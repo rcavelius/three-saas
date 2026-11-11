@@ -163,8 +163,13 @@ describe("team seats come from billing entitlements", () => {
     await app.auth("/organization/set-active", { jar: mate.jar, body: { organizationId: owner.orgId } });
     const got = await app.wf.get(mate.jar, workflow.id);
     expect(got.status).toBe(200);
-    // Members can't delete workflows saved by others.
+    // Members can't change or delete workflows saved by others; the owner can.
     expect((await app.wf.remove(mate.jar, workflow.id)).status).toBe(403);
+    expect((await app.wf.update(mate.jar, workflow.id, { name: "Hijacked", steps: STEPS })).status).toBe(403);
+    expect((await app.wf.update(owner.jar, workflow.id, { name: "Team flow v2", steps: STEPS })).status).toBe(200);
+    // A member can edit a workflow they saved themselves.
+    const own = (await (await app.wf.create(mate.jar, { name: "Mate flow", steps: STEPS })).json()) as { workflow: { id: string } };
+    expect((await app.wf.update(mate.jar, own.workflow.id, { name: "Mate flow v2", steps: STEPS })).status).toBe(200);
     // 2 members + 3 pending invitations fill the 5 seats; the next invitation is refused server-side.
     for (const e of ["mate2@example.com", "mate3@example.com", "mate4@example.com"]) expect((await invite(e)).status).toBe(200);
     const full = await invite("mate5@example.com");

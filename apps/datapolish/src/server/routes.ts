@@ -175,9 +175,9 @@ export async function getWorkflowRoute(p: Platform, req: Request, id: string): P
 
 export async function updateWorkflowRoute(p: Platform, req: Request, id: string): Promise<Response> {
   return guarded(async () => {
-    const { org, limit } = await workflowContext(p, req, true);
+    const { org, user, role, limit } = await workflowContext(p, req, true);
     const input = await parseWrite(req);
-    return json(200, { workflow: await p.workflows.update(org.id, id, input, limit) });
+    return json(200, { workflow: await p.workflows.update(org.id, id, input, limit, { userId: user.id, role }) });
   });
 }
 

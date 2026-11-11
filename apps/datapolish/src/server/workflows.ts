@@ -108,13 +108,23 @@ export function workflowRepo(handle: DbHandle<any>) {
       });
     },
 
-    async update(orgId: string, id: string, input: WorkflowWrite, limit: number): Promise<StoredWorkflow> {
+    /** Same rule as delete: members may edit their own workflows; admins and owners any workflow of the org. */
+    async update(
+      orgId: string,
+      id: string,
+      input: WorkflowWrite,
+      limit: number,
+      actor: { userId: string; role: "owner" | "admin" | "member" },
+    ): Promise<StoredWorkflow> {
       assertId(id);
       return handle.transaction(async (tx) => {
         await withOrgLock(tx, orgId);
         const scope = orgScope(orgId);
         const { rows } = await tx.query<Row>(`SELECT ${COLS} FROM workflows WHERE org_id = $1 AND id = $2 FOR UPDATE`, scope.params(id));
         const row = scope.assertOwns(rows[0]);
+        if (actor.role === "member" && row.created_by !== actor.userId) {
+          throw new ApiError(403, "forbidden", "Only the person who saved this workflow, or an admin, can change it.");
+        }
         if (lockedIds(await orderedIds(tx, orgId), limit).has(row.id)) {
           throw new ApiError(403, "workflow_locked", "This workflow is over your plan's limit and is read-only. Export or delete it, or upgrade to edit it.");
         }

@@ -120,6 +120,8 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [unverified, setUnverified] = useState<string | null>(null);
+  const [resent, setResent] = useState(false);
   return (
     <form
       className="grid gap-4"
@@ -127,8 +129,14 @@ export function LoginForm() {
         e.preventDefault();
         setBusy(true);
         setError(null);
+        setUnverified(null);
+        setResent(false);
         const { error: err } = await authClient().signIn.email({ email, password });
         setBusy(false);
+        if (err && (err.code === "EMAIL_NOT_VERIFIED" || err.status === 403)) {
+          setUnverified(email);
+          return setError("Please confirm your email address first. We can send the confirmation link again.");
+        }
         if (err) return setError(authErrorMessage(err, "Wrong email or password."));
         router.push(safeNext(params.get("next")));
         router.refresh();
@@ -137,6 +145,28 @@ export function LoginForm() {
       <Field id="email" label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" />
       <Field id="password" label="Password" type="password" value={password} onChange={setPassword} autoComplete="current-password" />
       <ErrorText text={error} />
+      {unverified && (
+        <p role="status" className="text-[13px] text-fg-muted">
+          {resent ? (
+            <>A new confirmation link is on its way to <span className="font-mono text-fg">{unverified}</span>.</>
+          ) : (
+            <button
+              type="button"
+              className="text-signal underline underline-offset-2"
+              onClick={async () => {
+                const next = safeNext(params.get("next"));
+                await authClient().sendVerificationEmail({
+                  email: unverified,
+                  callbackURL: `/verify-email?verified=1&next=${encodeURIComponent(next)}`,
+                });
+                setResent(true); // same message whether or not the address exists
+              }}
+            >
+              Send the confirmation email again
+            </button>
+          )}
+        </p>
+      )}
       <button className="btn btn-signal h-10 justify-center" disabled={busy}>
         {busy ? "Signing in…" : "Log in"}
       </button>
@@ -268,7 +298,7 @@ export function VerifyResult() {
       <div role="alert" className="grid gap-3">
         <h2 className="text-[18px] font-semibold">This link did not work</h2>
         <p className="text-[14px] text-fg-muted">
-          Confirmation links expire after one hour and work once. Log in to get a new one, or sign up again.
+          Confirmation links expire after one hour and work once. Try to log in and choose “Send the confirmation email again”.
         </p>
         <Link className="btn w-fit" href="/login">
           Log in
