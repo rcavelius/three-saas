@@ -299,6 +299,9 @@ export async function persistSiteScan(
 
     let opened: (IssueFingerprint & { openedAt: string })[] = [];
     let resolved: { fingerprint: string; severity: string; message: string; page: string | null }[] = [];
+    // When the crawl could not see the site (down, or robots.txt shuts SiteProofBot out), missing issues
+    // are NOT evidence of a fix: keep the open episodes instead of mass-"resolving" them.
+    const fullView = facts.reachable && !facts.robotsBlocksAll && !report.robots.blocksSiteProofBot;
     if (facts.reachable) {
       const fps = fingerprintReport(report);
       const current = new Map(fps.map((f) => [f.fp, f]));
@@ -320,7 +323,7 @@ export async function persistSiteScan(
         `UPDATE site_issues SET last_seen_at = $2, last_scan_id = $3 WHERE site_id = $1 AND resolved_at IS NULL AND fingerprint = ANY($4::text[])`,
         [site.id, nowIso, scanId, [...current.keys()]],
       );
-      resolved = open.filter((o) => !current.has(o.fingerprint));
+      resolved = fullView ? open.filter((o) => !current.has(o.fingerprint)) : [];
       if (resolved.length) {
         await tx.query(
           `UPDATE site_issues SET resolved_at = $2, resolved_scan_id = $3 WHERE site_id = $1 AND resolved_at IS NULL AND fingerprint = ANY($4::text[])`,

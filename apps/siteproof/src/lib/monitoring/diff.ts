@@ -62,7 +62,9 @@ export function factsOf(report: ScanReport): ScanFacts {
   const tls = report.https.tls;
   const ids = new Set(report.issues.map((i) => i.id));
   return {
-    reachable: start ? start.status !== null : false,
+    // When robots.txt keeps SiteProofBot off the start page there is no page entry: the server still
+    // answered (robots.txt), so the site is up.
+    reachable: start ? start.status !== null : report.robots.status !== null,
     homeStatus: start?.status ?? null,
     score: report.score,
     certDaysRemaining: tls?.daysRemaining ?? null,
@@ -116,7 +118,13 @@ export function detectChanges(
     out.push({ kind: "site_down", key: "down", summary: "The home page could not be loaded (no HTTP response)." });
   } else if (!prev.reachable && cur.reachable) {
     out.push({ kind: "site_up", key: "up", summary: `The site is reachable again (HTTP ${cur.homeStatus}).` });
-  } else if (cur.reachable && prev.homeStatus !== cur.homeStatus && (isOk(prev.homeStatus) !== isOk(cur.homeStatus))) {
+  } else if (
+    cur.reachable &&
+    prev.homeStatus !== null &&
+    cur.homeStatus !== null &&
+    prev.homeStatus !== cur.homeStatus &&
+    isOk(prev.homeStatus) !== isOk(cur.homeStatus)
+  ) {
     out.push({
       kind: "home_status",
       key: `status:${prev.homeStatus}->${cur.homeStatus}`,
