@@ -1,34 +1,71 @@
 import { z } from "zod";
-import { baseEnvSchema, parseEnv } from "@repo/config";
+import { parseEnv } from "@repo/config";
 
-/**
- * SiteProof env. Accounts/billing are not built yet, so SESSION_SECRET and Stripe keys are optional for now.
- */
-const siteproofEnvSchema = baseEnvSchema.extend({
-  APP_URL: z.string().url().default("http://localhost:3001"),
-  DATABASE_URL: z.string().min(1).default("pglite:./.data/siteproof"),
-  SESSION_SECRET: z.string().min(32).optional(),
-  /** Anonymous scans per client IP per hour. */
-  SCAN_RATE_LIMIT_PER_HOUR: z.coerce.number().int().positive().max(1000).default(5),
-  /** Scans of one target host per hour (stops SiteProof being used to hammer a site). */
-  SCAN_TARGET_LIMIT_PER_HOUR: z.coerce.number().int().positive().max(1000).default(10),
-  /** Concurrent scans in this process. */
-  MAX_CONCURRENT_SCANS: z.coerce.number().int().positive().max(50).default(4),
-  /**
-   * Header carrying the client IP set by YOUR reverse proxy (e.g. "x-forwarded-for", "fly-client-ip",
-   * "cf-connecting-ip"). Unset = do not trust any header; all anonymous clients then share one rate-limit bucket.
-   */
-  TRUSTED_IP_HEADER: z
-    .string()
-    .regex(/^[a-z0-9-]+$/i)
-    .optional(),
-  REPORT_RETENTION_DAYS: z.coerce.number().int().positive().max(3650).default(90),
-});
+/** Only used outside production so `next dev` and tests run without configuration. */
+export const DEV_SESSION_SECRET = "siteproof-development-only-secret-do-not-use-in-production";
 
-export type SiteproofEnv = z.infer<typeof siteproofEnvSchema>;
+const optionalString = z
+  .string()
+  .optional()
+  .transform((v) => (v && v.trim() ? v.trim() : undefined));
+
+const siteproofEnvSchema = z
+  .object({
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    APP_URL: z.string().url().default("http://localhost:3001"),
+    DATABASE_URL: z.string().min(1).default("pglite:./.data/siteproof"),
+    SESSION_SECRET: optionalString,
+    CRON_SECRET: optionalString,
+    /** Bearer secret for the detailed /api/health report (falls back to CRON_SECRET). */
+    HEALTH_DETAILS_SECRET: optionalString,
+    /** fly | cloudflare | render | xff:<n> | none (see @repo/ops clientIpConfigFromEnv). */
+    TRUSTED_PROXY: z.string().default("none"),
+    STRIPE_SECRET_KEY: optionalString,
+    STRIPE_WEBHOOK_SECRET: optionalString,
+    STRIPE_LIVE_MODE_AUTHORIZED: optionalString,
+    RESEND_API_KEY: optionalString,
+    EMAIL_FROM: z.string().default("SiteProof <no-reply@localhost>"),
+    SUPPORT_EMAIL: optionalString,
+    OWNER_ALERT_EMAIL: optionalString,
+    UPTIME_URLS: optionalString,
+    RUN_SCHEDULER: optionalString,
+    GIT_SHA: optionalString,
+    /** Anonymous scans per client IP per hour. */
+    SCAN_RATE_LIMIT_PER_HOUR: z.coerce.number().int().positive().max(1000).default(5),
+    /** Scans of one target host per hour (stops SiteProof being used to hammer a site). */
+    SCAN_TARGET_LIMIT_PER_HOUR: z.coerce.number().int().positive().max(1000).default(10),
+    /** Concurrent anonymous scans in this process. */
+    MAX_CONCURRENT_SCANS: z.coerce.number().int().positive().max(50).default(4),
+    /** Monitoring scans running at once across ALL instances and orgs (DB leases). */
+    MONITOR_GLOBAL_CONCURRENCY: z.coerce.number().int().positive().max(50).default(2),
+    /** Scheduled scans of one target host per hour, across all orgs. */
+    MONITOR_HOST_SCANS_PER_HOUR: z.coerce.number().int().positive().max(100).default(4),
+    /** Days an anonymous report link stays valid. */
+    REPORT_RETENTION_DAYS: z.coerce.number().int().positive().max(3650).default(90),
+  })
+  .superRefine((e, ctx) => {
+    if (e.NODE_ENV === "production" && (!e.SESSION_SECRET || e.SESSION_SECRET.length < 32)) {
+      ctx.addIssue({ code: "custom", path: ["SESSION_SECRET"], message: "SESSION_SECRET (>= 32 chars) is required in production" });
+    }
+    if (e.SESSION_SECRET && e.SESSION_SECRET.length < 32) {
+      ctx.addIssue({ code: "custom", path: ["SESSION_SECRET"], message: "SESSION_SECRET must be at least 32 characters" });
+    }
+  });
+
+export type SiteproofEnv = z.infer<typeof siteproofEnvSchema> & { SESSION_SECRET: string };
+
+export function parseSiteproofEnv(source: Record<string, string | undefined>): SiteproofEnv {
+  const e = parseEnv(siteproofEnvSchema, source);
+  return { ...e, SESSION_SECRET: e.SESSION_SECRET ?? DEV_SESSION_SECRET };
+}
 
 let cached: SiteproofEnv | undefined;
 export function env(): SiteproofEnv {
-  cached ??= parseEnv(siteproofEnvSchema);
+  cached ??= parseSiteproofEnv(process.env);
   return cached;
+}
+
+/** Stripe is usable only when both the key and the webhook secret are configured. */
+export function billingConfigured(e: SiteproofEnv): boolean {
+  return Boolean(e.STRIPE_SECRET_KEY && e.STRIPE_WEBHOOK_SECRET);
 }
