@@ -22,7 +22,7 @@ describe("auth flows through the app's /api/auth route", () => {
     const jar = new Map<string, string>();
     const v = await app.auth(app.linkIn(mail), { jar, origin: null });
     expect(v.status).toBeLessThan(400);
-    expect([...jar.keys()].some((k) => k.startsWith("dp."))).toBe(true);
+    expect([...jar.keys()].some((k) => k.startsWith("gr."))).toBe(true);
     const login = await app.auth("/sign-in/email", { body: { email: "flow@example.com", password: PASSWORD }, jar: new Map() });
     expect(login.status).toBe(200);
     // A personal workspace exists, owned by the user.

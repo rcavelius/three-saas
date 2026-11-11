@@ -65,7 +65,7 @@ First-party only (`/api/events`, cookie-less). `src/lib/analytics.ts` allows, pe
 
 - CSP with a per-request nonce from `src/proxy.ts` (`cspProxy`): `script-src 'nonce-…' 'strict-dynamic'`, **`connect-src 'self'` only** (Stripe Checkout/Portal are full-page redirects), `frame-ancestors 'none'`. Every page renders dynamically so Next can nonce its scripts. API responses get `default-src 'none'`.
 - Mutating API routes require a same-origin request (Origin, or `Sec-Fetch-Site: same-origin`); Better Auth checks origins on its own routes. Rate limits key on the client IP from `TRUSTED_PROXY` only; the auth route copies that IP into a header Better Auth trusts and overwrites any client-sent value.
-- Cookies are `dp.`-prefixed, http-only, SameSite=Lax, Secure in production.
+- Cookies are `gr.`-prefixed, http-only, SameSite=Lax, Secure in production.
 
 ## Layout
 
