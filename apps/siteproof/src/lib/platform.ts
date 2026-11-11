@@ -5,12 +5,15 @@
  */
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { AUTH_MIGRATIONS, createAuth, type AppAuth, type AuthEmailTemplates } from "@repo/auth";
+import { AUTH_MIGRATIONS, createAuth, isAuthError, type AppAuth, type AuthEmailTemplates } from "@repo/auth";
 import {
   BILLING_MIGRATIONS,
   BillingError,
   SITEPROOF_CATALOG,
+  checkoutRoute,
   createBilling,
+  portalRoute,
+  webhookRoute,
   getPlan,
   stripeGatewayFromEnv,
   type Billing,
@@ -63,8 +66,13 @@ export interface Platform {
   clientIp: ClientIpConfig;
   logger: Logger;
   monitor: MonitorDeps;
+  billingRoutes: { checkout: RouteFn; portal: RouteFn; webhook: RouteFn };
+  /** AuthError -> Response, using this platform's copy of the class (bundles may hold several). */
+  authErrorResponse(err: unknown): Response | null;
   now: () => Date;
 }
+
+type RouteFn = (req: Request) => Promise<Response>;
 
 export interface PlatformOptions {
   env: SiteproofEnv;
@@ -306,7 +314,18 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
     ],
   });
 
-  return { env: e, handle, auth, mailer, billing, billingEnabled, scheduler, brand, clientIp, logger, monitor, now };
+  const resolveOwner = async (req: Request) => {
+    const { org, user } = await auth.requireOrg(req.headers, { role: "owner" });
+    return { orgId: org.id, email: user.email };
+  };
+  const billingRoutes = {
+    checkout: checkoutRoute(billing, resolveOwner),
+    portal: portalRoute(billing, resolveOwner),
+    webhook: webhookRoute(billing),
+  };
+  const authErrorResponse = (err: unknown) => (isAuthError(err) ? err.toResponse() : null);
+
+  return { env: e, handle, auth, mailer, billing, billingEnabled, scheduler, brand, clientIp, logger, monitor, billingRoutes, authErrorResponse, now };
 }
 
 const g = globalThis as unknown as { __siteproofPlatform?: Promise<Platform> };

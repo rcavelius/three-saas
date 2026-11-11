@@ -50,7 +50,7 @@ export function TeamManager(props: {
           {msg.text}
         </Notice>
       )}
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full min-w-[32rem] text-left text-[0.95rem]">
           <caption className="sr-only">Members</caption>
           <thead className="border-b border-ink">

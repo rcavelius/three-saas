@@ -73,7 +73,7 @@ export default async function DashboardPage() {
             {sites.length === 0 ? (
               <p className="mt-4 text-muted">No sites yet. Add the address of a site you look after.</p>
             ) : (
-              <div className="mt-4 overflow-x-auto">
+              <div className="relative mt-4 overflow-x-auto">
                 <table className="w-full min-w-[46rem] text-left text-[0.95rem]">
                   <caption className="sr-only">Monitored sites with status, score and open issues</caption>
                   <thead className="border-b border-ink text-sm">

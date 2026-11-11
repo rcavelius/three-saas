@@ -30,6 +30,36 @@ export default function PrivacyPage() {
         addresses, titles and links.
       </p>
 
+      <h2>Accounts</h2>
+      <ul>
+        <li>Your email address, name and a salted password hash; the workspaces you belong to and your role in them.</li>
+        <li>
+          Signed-in sessions: a session cookie (httpOnly) and, per session, the time, the browser&rsquo;s user agent and the IP address, so you
+          can review and end sessions on the account page.
+        </li>
+        <li>Monitored site addresses, their scan reports, issue history and alert settings, visible only to members of your workspace.</li>
+        <li>
+          Emails we send (confirmation, password reset, invitations, alerts, billing notices) are stored in an outbox table with their status.
+        </li>
+      </ul>
+      <p>
+        Deleting your account on the account page removes your login, sessions and the workspaces you own alone, with all their sites,
+        reports and alerts, immediately.
+      </p>
+
+      <h2>Payments</h2>
+      <p>
+        Card payments are handled by Stripe on its own pages. We store the Stripe customer and subscription identifiers, the plan and its
+        status; we never receive card numbers.
+      </p>
+
+      <h2>Product analytics</h2>
+      <p>
+        Page views and a few product events (for example &ldquo;scan run&rdquo; or &ldquo;checkout started&rdquo;) are recorded on our own server
+        with a random identifier kept in your browser&rsquo;s local storage and, when signed in, your user id. IP addresses are not stored with
+        these events and no third-party analytics are used.
+      </p>
+
       <h2>Why we process this data</h2>
       <p>[Legal basis to be confirmed, e.g. providing the service you requested and preventing abuse.]</p>
 
@@ -37,7 +67,7 @@ export default function PrivacyPage() {
       <p>[Access, deletion and complaint rights and how to exercise them, to be completed for the jurisdictions served.]</p>
 
       <h2>Processors</h2>
-      <p>[Hosting and database providers to be listed once chosen.]</p>
+      <p>[Hosting and database providers to be listed once chosen.] Payments: Stripe. Email delivery: Resend (once configured).</p>
     </DocPage>
   );
 }

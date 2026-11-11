@@ -36,6 +36,16 @@ export async function readJsonBody<T = unknown>(req: Request, maxBytes = 8192): 
   }
 }
 
+/** SiteError by class or by shape (Next may bundle the module into several chunks). */
+function asSiteError(err: unknown): { code: string; status: number; message: string } | null {
+  if (err instanceof SiteError) return err;
+  const e = err as { name?: unknown; code?: unknown; status?: unknown; message?: unknown } | null;
+  if (e && e.name === "SiteError" && typeof e.code === "string" && typeof e.status === "number") {
+    return { code: e.code, status: e.status, message: String(e.message ?? "") };
+  }
+  return null;
+}
+
 export interface OrgContext {
   p: Platform;
   org: { id: string; name: string; slug: string };
@@ -61,8 +71,10 @@ export function orgRoute<C>(
       const user = r.user as { id: string; email: string; name: string };
       return await fn(req, { p, org: r.org, user, role: r.role }, routeCtx);
     } catch (err) {
-      if (isAuthError(err)) return err.toResponse();
-      if (err instanceof SiteError) return json(err.status, { error: err.code, message: err.message });
+      const authRes = isAuthError(err) ? err.toResponse() : p.authErrorResponse(err);
+      if (authRes) return authRes;
+      const site = asSiteError(err);
+      if (site) return json(site.status, { error: site.code, message: site.message });
       p.logger.error("route failed", { path: new URL(req.url).pathname, err });
       return json(500, { error: "internal_error", message: "Something went wrong. Please try again." });
     }

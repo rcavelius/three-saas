@@ -14,8 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...GUIDES.map((g) => ({ path: `/guides/${g.slug}`, priority: 0.6, changeFrequency: "monthly" as const })),
     { path: "/bot", priority: 0.4, changeFrequency: "yearly" },
     { path: "/signup", priority: 0.4, changeFrequency: "yearly" },
-    { path: "/privacy", priority: 0.2, changeFrequency: "yearly" },
-    { path: "/terms", priority: 0.2, changeFrequency: "yearly" },
+    // /privacy and /terms are noindex drafts until legal review; add them here once published.
   ];
   return pages.map((p) => ({ url: `${base}${p.path}`, changeFrequency: p.changeFrequency, priority: p.priority }));
 }

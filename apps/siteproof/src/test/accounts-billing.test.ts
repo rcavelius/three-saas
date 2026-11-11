@@ -179,6 +179,29 @@ describe("billing lifecycle (FakeStripe + signed webhooks through the app route)
   });
 });
 
+describe("team seats follow the plan (teamSeats)", () => {
+  it("a 1-seat plan cannot add a second member; Agency (5 seats) can", async () => {
+    const owner = await h.signUpVerified("seats-owner@example.com");
+    const invitee = await h.signUpVerified("seats-invitee@example.com");
+    const inv = await h.auth("/organization/invite-member", { jar: owner.jar, body: { email: "seats-invitee@example.com", role: "member", organizationId: owner.orgId } });
+    let accepted = 0;
+    if (inv.status === 200) {
+      const { id } = (await inv.json()) as { id: string };
+      const acc = await h.auth("/organization/accept-invitation", { jar: invitee.jar, body: { invitationId: id } });
+      if (acc.status === 200) accepted++;
+    }
+    expect(accepted).toBe(0);
+    const { rows } = await h.p.handle.executor.query<{ n: number }>(`SELECT count(*)::int AS n FROM auth_member WHERE organization_id = $1`, [owner.orgId]);
+    expect(rows[0]!.n).toBe(1);
+
+    await h.subscribe(owner.jar, "agency");
+    const inv2 = await h.auth("/organization/invite-member", { jar: owner.jar, body: { email: "seats-invitee@example.com", role: "member", organizationId: owner.orgId } });
+    expect(inv2.status).toBe(200);
+    const { id } = (await inv2.json()) as { id: string };
+    expect((await h.auth("/organization/accept-invitation", { jar: invitee.jar, body: { invitationId: id } })).status).toBe(200);
+  });
+});
+
 describe("quota race", () => {
   it("concurrent adds never exceed the plan's site limit", async () => {
     const u = await h.signUpVerified("race@example.com");
@@ -202,9 +225,14 @@ describe("account deletion", () => {
     h.web.set("leaver.example.com", healthySite());
     const add = await h.call(sitesPOST, "POST", "/api/sites", { jar: u.jar, body: { url: "leaver.example.com" } });
     expect(add.status).toBe(201);
-    await h.p.scheduler.tick({ budgetMs: 20_000 });
-    const before = await h.p.handle.executor.query<{ n: number }>(`SELECT count(*)::int AS n FROM scans WHERE org_id = $1`, [u.orgId]);
-    expect(before.rows[0]!.n).toBe(1);
+    let scans = 0;
+    for (let i = 0; i < 3 && scans === 0; i++) {
+      h.clock.advance(61_000);
+      await h.p.scheduler.tick({ budgetMs: 30_000 });
+      const r = await h.p.handle.executor.query<{ n: number }>(`SELECT count(*)::int AS n FROM scans WHERE org_id = $1`, [u.orgId]);
+      scans = r.rows[0]!.n;
+    }
+    expect(scans).toBe(1);
 
     const wrong = await h.auth("/delete-user", { jar: u.jar, body: { password: "not-my-password" } });
     expect(wrong.status).toBeGreaterThanOrEqual(400);

@@ -1,5 +1,4 @@
-import { checkoutRoute, portalRoute, webhookRoute, type ResolveOwnerOrg } from "@repo/billing";
-import { getPlatform, type Platform } from "./platform";
+import { getPlatform } from "./platform";
 import { json } from "./http";
 
 const NOT_CONFIGURED = () =>
@@ -8,27 +7,22 @@ const NOT_CONFIGURED = () =>
     message: "Online payments are not switched on yet. Nothing has been charged. Please try again later or contact support.",
   });
 
-function resolver(p: Platform): ResolveOwnerOrg {
-  return async (req) => {
-    const { org, user } = await p.auth.requireOrg(req.headers, { role: "owner" });
-    return { orgId: org.id, email: user.email };
-  };
-}
-
+// The route factories are built inside createPlatform (same module instance as billing), so the
+// package's `instanceof BillingError` mapping keeps working when Next splits code into chunks.
 export async function checkoutHandler(req: Request): Promise<Response> {
   const p = await getPlatform();
   if (!p.billingEnabled) return NOT_CONFIGURED();
-  return checkoutRoute(p.billing, resolver(p))(req);
+  return p.billingRoutes.checkout(req);
 }
 
 export async function portalHandler(req: Request): Promise<Response> {
   const p = await getPlatform();
   if (!p.billingEnabled) return NOT_CONFIGURED();
-  return portalRoute(p.billing, resolver(p))(req);
+  return p.billingRoutes.portal(req);
 }
 
 export async function webhookHandler(req: Request): Promise<Response> {
   const p = await getPlatform();
   if (!p.billingEnabled) return new Response("billing not configured", { status: 503 });
-  return webhookRoute(p.billing)(req);
+  return p.billingRoutes.webhook(req);
 }

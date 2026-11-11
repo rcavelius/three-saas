@@ -157,7 +157,7 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
             {scans.length === 0 ? (
               <p className="mt-3 text-muted">No scans yet.</p>
             ) : (
-              <div className="mt-4 overflow-x-auto">
+              <div className="relative mt-4 overflow-x-auto">
                 <table className="w-full min-w-[34rem] text-left text-sm">
                   <caption className="sr-only">Scans of {host}</caption>
                   <thead className="border-b border-ink">
