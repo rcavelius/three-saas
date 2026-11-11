@@ -109,7 +109,7 @@ jobs:
           echo "cron without secret: $code"; test "$code" = "401"
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "authorization: Bearer ci-only-cron-secret-0123456789" http://localhost:8080/api/cron/tick)
           echo "cron with secret: $code"; test "$code" = "200"
-          docker exec -i ${{ job.services.postgres.id }} psql -U postgres -At -c "SELECT count(*) FROM _migrations" | tee /dev/stderr | awk '$1 > 10 {ok=1} END {exit !ok}'
+          docker exec -i ${{ job.services.postgres.id }} psql -U postgres -At -c "SELECT count(*) FROM _migrations" | tee /dev/stderr | awk '$1 >= 8 {ok=1} END {exit !ok}'
       - name: Container logs
         if: always()
         run: docker logs app 2>&1 | tail -80

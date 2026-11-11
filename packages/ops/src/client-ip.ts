@@ -8,6 +8,7 @@
  *
  * Modes (env TRUSTED_PROXY):
  *  - fly         `Fly-Client-IP`, set by Fly's edge proxy (overwrites any client value).
+ *  - netlify     `X-Nf-Client-Connection-Ip`, set by Netlify's edge (overwrites any client value).
  *  - cloudflare  `CF-Connecting-IP`, set by Cloudflare (only safe if the origin accepts traffic from
  *                Cloudflare alone, e.g. a tunnel or Cloudflare-only firewall rules).
  *  - render      Right-most X-Forwarded-For entry. ASSUMPTION (Render docs, "Request headers"): Render's
@@ -22,20 +23,20 @@
 import { isIP } from "node:net";
 
 export type ClientIpConfig =
-  | { mode: "fly" | "cloudflare" | "render" | "xff"; trustedHops?: number }
+  | { mode: "fly" | "netlify" | "cloudflare" | "render" | "xff"; trustedHops?: number }
   | { mode: "none" };
 
 export function clientIpConfigFromEnv(env: Record<string, string | undefined>): ClientIpConfig {
   const raw = (env.TRUSTED_PROXY ?? "").trim().toLowerCase();
   if (raw === "" || raw === "none") return { mode: "none" };
-  if (raw === "fly" || raw === "cloudflare") return { mode: raw };
+  if (raw === "fly" || raw === "netlify" || raw === "cloudflare") return { mode: raw };
   if (raw === "render") return { mode: "render", trustedHops: 1 };
   const m = /^xff:(\d{1,2})$/.exec(raw);
   if (m) {
     const n = Number(m[1]);
     if (n >= 1 && n <= 10) return { mode: "xff", trustedHops: n };
   }
-  throw new Error(`TRUSTED_PROXY must be one of fly | cloudflare | render | xff:<1-10> | none (got "${raw}")`);
+  throw new Error(`TRUSTED_PROXY must be one of fly | netlify | cloudflare | render | xff:<1-10> | none (got "${raw}")`);
 }
 
 /**
@@ -105,6 +106,8 @@ export function getClientIp(headers: Headers, cfg: ClientIpConfig): string | nul
       return null;
     case "fly":
       return single(headers, "fly-client-ip");
+    case "netlify":
+      return single(headers, "x-nf-client-connection-ip");
     case "cloudflare":
       return single(headers, "cf-connecting-ip");
     case "render":

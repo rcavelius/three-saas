@@ -30,3 +30,6 @@ test-results/
 
 # netlify
 .netlify/
+
+# local-only credentials (never commit)
+.secrets/

@@ -112,3 +112,12 @@ describe("rateLimitKeyForIp", () => {
     expect(rateLimitKeyForIp("junk")).toBe("ip:unknown");
   });
 });
+
+describe("netlify mode", () => {
+  it("reads only Netlify's edge header, never X-Forwarded-For", () => {
+    const h = new Headers({ "x-nf-client-connection-ip": "203.0.113.77", "x-forwarded-for": "10.0.0.1" });
+    expect(getClientIp(h, { mode: "netlify" })).toBe("203.0.113.77");
+    expect(getClientIp(new Headers({ "x-forwarded-for": "203.0.113.5" }), { mode: "netlify" })).toBeNull();
+    expect(clientIpConfigFromEnv({ TRUSTED_PROXY: "netlify" })).toEqual({ mode: "netlify" });
+  });
+});
