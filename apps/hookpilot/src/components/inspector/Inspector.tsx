@@ -335,6 +335,12 @@ export function Inspector({ endpointId }: { endpointId: string }) {
           kept. <Link className="underline underline-offset-2" href="/account/billing">Upgrade</Link> or delete another endpoint.
         </p>
       )}
+      {claimMsg && (
+        // Outside the anonymous banner, which disappears once the endpoint belongs to the workspace.
+        <p role="status" className="border-b border-line bg-surface-2 px-4 py-1.5 text-[12.5px] text-fg-muted">
+          {claimMsg}
+        </p>
+      )}
       {ep.owner === "anonymous" && (
         <div className="border-b border-line bg-surface-2 px-4 py-1.5 text-[12.5px] text-fg-muted flex flex-wrap items-center gap-2">
           <span>This endpoint belongs to this browser only and expires.</span>
@@ -354,7 +360,6 @@ export function Inspector({ endpointId }: { endpointId: string }) {
               to keep it in a workspace and unlock replay.
             </span>
           )}
-          {claimMsg && <span role="status">{claimMsg}</span>}
         </div>
       )}
 

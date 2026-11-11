@@ -57,9 +57,15 @@ export function MyEndpoints({ title }: { title?: string }) {
     }
   }
 
-  if (!data || (data.endpoints.length === 0 && data.anonymous.length === 0)) return null;
+  if (!data || (data.endpoints.length === 0 && data.anonymous.length === 0 && !msg)) return null;
   return (
     <div className="grid gap-4">
+      {/* Outside the anonymous section: after a successful claim that section disappears. */}
+      {msg && (
+        <p role="status" className="text-[12.5px] text-fg-muted">
+          {msg}
+        </p>
+      )}
       {data.endpoints.length > 0 && (
         <section aria-labelledby="my-endpoints" className="border border-line rounded-[6px] bg-surface">
           <h2 id="my-endpoints" className="label px-4 pt-3 pb-2">
@@ -82,11 +88,6 @@ export function MyEndpoints({ title }: { title?: string }) {
               Claim my anonymous endpoints
             </button>
           </div>
-          {msg && (
-            <p role="status" className="px-4 pb-2 text-[12.5px] text-fg-muted">
-              {msg}
-            </p>
-          )}
           <ul className="divide-y divide-line border-t border-line">
             {data.anonymous.map((e) => (
               <Row key={e.id} e={e} />
