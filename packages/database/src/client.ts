@@ -94,7 +94,13 @@ export function createDb<TSchema extends Record<string, unknown>>(
             return { rows: r.rows as T[] };
           },
         };
-        return await runMigrations(single, m);
+        // Several instances may boot at once: serialise migrations with a session-level advisory lock.
+        await conn.query("SELECT pg_advisory_lock(7274827)");
+        try {
+          return await runMigrations(single, m);
+        } finally {
+          await conn.query("SELECT pg_advisory_unlock(7274827)").catch(() => undefined);
+        }
       } finally {
         conn.release();
       }

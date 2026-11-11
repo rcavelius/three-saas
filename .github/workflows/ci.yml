@@ -4,23 +4,112 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
 jobs:
   test:
+    name: Unit + integration (PGlite), typecheck, builds
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      - run: npm ci --no-fund --no-audit
       - run: npm run typecheck
       - run: npm test
-      - run: npm run build
+      - run: npm run build -w @apps/siteproof -w @apps/datapolish -w @apps/hookpilot
+      - run: npm audit --audit-level=high
+
+  postgres:
+    name: Real PostgreSQL 17 + backup/restore drill
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
         env:
-          NEXT_TELEMETRY_DISABLED: "1"
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://postgres:ci-only-password@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-fund --no-audit
+      - name: Integration tests on real PostgreSQL (multi-connection concurrency, pg driver, migrations)
+        run: npm run test:pg -w @repo/integration-tests
+      - name: Seed a database through the application packages
+        run: |
+          docker exec -i ${{ job.services.postgres.id }} createdb -U postgres backup_src
+          DATABASE_URL=postgres://postgres:ci-only-password@localhost:5432/backup_src npx tsx scripts/seed-backup-source.mts
+      - name: Backup (pg_dump) and restore (pg_restore), compare every table
+        run: PG="docker exec -i ${{ job.services.postgres.id }}" SRC_DB=backup_src bash scripts/backup-restore-verify.sh
+
+  docker:
+    name: Docker image ${{ matrix.app }} boots against PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [siteproof, datapolish, hookpilot]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build --build-arg APP=${{ matrix.app }} -t ${{ matrix.app }}:ci .
+      - name: Image size
+        run: docker image ls ${{ matrix.app }}:ci --format '{{.Repository}}:{{.Tag}} {{.Size}}'
+      - name: Run container (non-root, production env) against PostgreSQL
+        run: |
+          docker run -d --name app --network host \
+            -e APP_URL=http://localhost:8080 \
+            -e DATABASE_URL=postgres://postgres:ci-only-password@localhost:5432/postgres \
+            -e SESSION_SECRET=ci-only-session-secret-ci-only-session-secret \
+            -e CRON_SECRET=ci-only-cron-secret-0123456789 \
+            -e TRUSTED_PROXY=none -e RUN_SCHEDULER=1 \
+            ${{ matrix.app }}:ci
+          for i in $(seq 1 60); do curl -fsS http://localhost:8080/api/health && break; sleep 1; done
+          echo
+          test "$(docker exec app id -u)" != "0"
+      - name: Smoke the running container
+        run: |
+          set -e
+          for p in / /pricing /signup /robots.txt /sitemap.xml; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080$p")
+            echo "$p $code"; test "$code" = "200"
+          done
+          curl -sI http://localhost:8080/ | grep -i "content-security-policy" | grep -q "nonce-"
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/api/cron/tick)
+          echo "cron without secret: $code"; test "$code" = "401"
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "authorization: Bearer ci-only-cron-secret-0123456789" http://localhost:8080/api/cron/tick)
+          echo "cron with secret: $code"; test "$code" = "200"
+          docker exec -i ${{ job.services.postgres.id }} psql -U postgres -At -c "SELECT count(*) FROM _migrations" | tee /dev/stderr | awk '$1 > 10 {ok=1} END {exit !ok}'
+      - name: Container logs
+        if: always()
+        run: docker logs app 2>&1 | tail -80
