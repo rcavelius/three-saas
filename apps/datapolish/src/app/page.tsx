@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { Cleaner } from "@/components/Cleaner";
 import { CellText } from "@/components/DataGrid";
+import { JsonLd } from "@/components/JsonLd";
 import { runPipeline } from "@/lib/engine/pipeline";
 import { makeStep } from "@/lib/engine/schema";
+import { appUrl } from "@/lib/site";
+import { freeProcessingLimits, softwareApplicationLd } from "@/server/plans";
 
 /**
  * The specimen table is produced by the real engine at render time, so what it shows is exactly what
@@ -112,8 +115,9 @@ export default function Home() {
         </div>
       </section>
       <div className="pt-6">
-        <Cleaner />
+        <Cleaner freeLimits={freeProcessingLimits()} />
       </div>
+      <JsonLd data={softwareApplicationLd(appUrl())} />
     </>
   );
 }

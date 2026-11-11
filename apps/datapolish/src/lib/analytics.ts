@@ -1,0 +1,93 @@
+/**
+ * First-party, cookie-less product analytics: a tiny `track(name, props)` that posts to our own
+ * /api/events (connect-src 'self'; no third-party analytics).
+ *
+ * Privacy rule enforced HERE, in the browser, before anything is sent: an event can only carry the
+ * properties listed in EVENT_SPEC, and each one is either a small integer count or one of a fixed set
+ * of words. File names, column names, cell values and free text can never be attached, because no
+ * property accepts arbitrary strings.
+ */
+
+type PropSpec = "count" | readonly string[];
+
+export const EVENT_SPEC = {
+  pageview: {},
+  signup_started: { plan: ["free", "pro", "business"] },
+  signup_completed: {},
+  checkout_started: { plan: ["pro", "business"] },
+  upgrade_clicked: { plan: ["pro", "business"], from: ["pricing", "billing", "limit", "workflows", "team"] },
+  tool_used: {
+    action: ["clean", "download_csv", "download_xlsx", "download_zip", "download_batch_xlsx"],
+    mode: ["single", "merge", "batch"],
+    files: "count",
+    steps: "count",
+    format: ["csv", "tsv", "xlsx", "zip_csv", "zip_xlsx"],
+  },
+} as const satisfies Record<string, Record<string, PropSpec>>;
+
+export type EventName = keyof typeof EVENT_SPEC;
+type PropsOf<N extends EventName> = { [K in keyof (typeof EVENT_SPEC)[N]]?: (typeof EVENT_SPEC)[N][K] extends readonly string[] ? (typeof EVENT_SPEC)[N][K][number] : number };
+
+export interface EventPayload {
+  name: EventName;
+  anonymousId: string | null;
+  path: string;
+  props: Record<string, string | number>;
+}
+
+/** Keeps only allow-listed props with allowed values; counts are clamped integers 0..10000. */
+export function sanitizeEventProps(name: EventName, props: Record<string, unknown> = {}): Record<string, string | number> {
+  const spec = EVENT_SPEC[name] as Record<string, PropSpec>;
+  const out: Record<string, string | number> = {};
+  for (const [key, rule] of Object.entries(spec)) {
+    const v = props[key];
+    if (v === undefined || v === null) continue;
+    if (rule === "count") {
+      if (typeof v === "number" && Number.isFinite(v)) out[key] = Math.max(0, Math.min(10_000, Math.round(v)));
+    } else if (typeof v === "string" && rule.includes(v)) {
+      out[key] = v;
+    }
+  }
+  return out;
+}
+
+const ANON_KEY = "datapolish.anon.v1";
+
+function anonymousId(): string | null {
+  try {
+    let id = window.localStorage.getItem(ANON_KEY);
+    if (!id || !/^[A-Za-z0-9_-]{8,64}$/.test(id)) {
+      const bytes = crypto.getRandomValues(new Uint8Array(12));
+      id = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+      window.localStorage.setItem(ANON_KEY, id);
+    }
+    return id;
+  } catch {
+    return null;
+  }
+}
+
+export function buildEvent<N extends EventName>(name: N, props?: PropsOf<N>, pathname?: string): EventPayload {
+  return {
+    name,
+    anonymousId: typeof window !== "undefined" ? anonymousId() : null,
+    // Pathname only: query strings and fragments are never sent.
+    path: (pathname ?? (typeof location !== "undefined" ? location.pathname : "/")).slice(0, 200),
+    props: sanitizeEventProps(name, props as Record<string, unknown> | undefined),
+  };
+}
+
+/** Fire-and-forget. Never throws, never blocks the page. */
+export function track<N extends EventName>(name: N, props?: PropsOf<N>): void {
+  try {
+    if (typeof window === "undefined") return;
+    const body = JSON.stringify(buildEvent(name, props));
+    if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+      const ok = navigator.sendBeacon("/api/events", new Blob([body], { type: "text/plain" }));
+      if (ok) return;
+    }
+    void fetch("/api/events", { method: "POST", body, headers: { "content-type": "application/json" }, keepalive: true, credentials: "same-origin" }).catch(() => {});
+  } catch {
+    /* analytics must never break the app */
+  }
+}
