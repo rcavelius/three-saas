@@ -64,7 +64,7 @@ describe("getOwnerMetrics with fixture rows", () => {
     handle = await makeDb();
     const q = (sql: string, p: unknown[] = []) => handle.executor.query(sql, p);
     const sub = (org: string, plan: string, status: string, updated: string) =>
-      q(`INSERT INTO billing_subscriptions (org_id, stripe_subscription_id, plan_id, status, updated_at) VALUES ($1, $2, $3, $4, $5)`, [
+      q(`INSERT INTO billing_subscriptions (org_id, stripe_customer_id, stripe_subscription_id, plan_id, status, updated_at, last_event_at, payment_failed_at) VALUES ($1, 'cus_' || $1, $2, $3, $4, $5, $5, CASE WHEN $4 = 'past_due' THEN $5::timestamptz END)`, [
         org,
         `sub_${org}`,
         plan,
@@ -73,7 +73,7 @@ describe("getOwnerMetrics with fixture rows", () => {
       ]);
     await sub("o1", "solo", "active", daysAgo(1));
     await sub("o2", "team", "trialing", daysAgo(1));
-    await sub("o3", "solo", "past_due", daysAgo(3)); // within 14-day grace
+    await sub("o3", "solo", "past_due", daysAgo(3)); // within 7-day grace
     await sub("o4", "team", "past_due", daysAgo(20)); // grace over
     await sub("o5", "free", "active", daysAgo(1)); // free plan
     await sub("o6", "solo", "canceled", daysAgo(2));

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@repo/database": "*",
+    "drizzle-orm": "^0.45.4",
     "stripe": "^23.1.0",
     "zod": "^4.6.7"
   }

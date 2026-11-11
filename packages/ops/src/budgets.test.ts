@@ -120,7 +120,7 @@ describe("checkBillingHealth", () => {
 
   it("warns when paid subscriptions exist but no webhook arrived in 7 days", async () => {
     await ex().query(
-      `INSERT INTO billing_subscriptions (org_id, stripe_subscription_id, plan_id, status) VALUES ('o1', 'sub_1', 'solo', 'active')`,
+      `INSERT INTO billing_subscriptions (org_id, stripe_customer_id, stripe_subscription_id, plan_id, status, last_event_at) VALUES ('o1', 'cus_1', 'sub_1', 'solo', 'active', now())`,
     );
     await ev("evt_old", 8 * 24 * 60, true);
     let r = await checkBillingHealth(ex(), { now });

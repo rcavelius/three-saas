@@ -38,7 +38,7 @@ export interface OwnerMetrics {
 export interface OwnerMetricsOptions {
   plans: { id: string; priceMonthlyCents: number }[];
   now?: Date;
-  /** past_due subscriptions still count toward MRR for this many days after their last update (default 14). */
+  /** past_due subscriptions still count toward MRR for this many days after the first failed payment (default 7, matching @repo/billing's grace period). */
   pastDueGraceDays?: number;
 }
 
@@ -50,7 +50,7 @@ export async function getOwnerMetrics(ex: SqlExecutor, opts: OwnerMetricsOptions
   const monthStart = monthStartUtc(now);
   const nowIso = now.toISOString();
   const msIso = monthStart.toISOString();
-  const graceDays = opts.pastDueGraceDays ?? 14;
+  const graceDays = opts.pastDueGraceDays ?? 7;
   const prices = new Map(opts.plans.filter((p) => p.priceMonthlyCents > 0).map((p) => [p.id, p.priceMonthlyCents]));
 
   const hasSubs = await tableExists(ex, "billing_subscriptions");
@@ -66,7 +66,7 @@ export async function getOwnerMetrics(ex: SqlExecutor, opts: OwnerMetricsOptions
     const graceCutoff = new Date(now.getTime() - graceDays * 24 * 3600_000).toISOString();
     const { rows } = await ex.query<{ org_id: string; plan_id: string }>(
       `SELECT org_id, plan_id FROM billing_subscriptions
-       WHERE status IN ('active', 'trialing') OR (status = 'past_due' AND updated_at >= $1)`,
+       WHERE status IN ('active', 'trialing') OR (status = 'past_due' AND COALESCE(payment_failed_at, updated_at) >= $1)`,
       [graceCutoff],
     );
     mrr = 0;
@@ -87,7 +87,8 @@ export async function getOwnerMetrics(ex: SqlExecutor, opts: OwnerMetricsOptions
       `SELECT
          count(*) FILTER (WHERE type = 'customer.subscription.created')::int AS created,
          count(*) FILTER (WHERE type = 'customer.subscription.deleted')::int AS deleted
-       FROM billing_events WHERE created_at >= $1 AND created_at <= $2`,
+       FROM billing_events WHERE created_at >= $1 AND created_at <= $2
+         AND outcome IS DISTINCT FROM 'ignored'`,
       [msIso, nowIso],
     );
     newSubs = Number(rows[0]?.created ?? 0);
@@ -154,7 +155,7 @@ export async function getOwnerMetrics(ex: SqlExecutor, opts: OwnerMetricsOptions
       value: mrr,
       unit: "cents",
       source: hasSubs
-        ? `sum of catalog monthly prices for billing_subscriptions on paid plans with status active/trialing, or past_due updated within ${graceDays} days`
+        ? `sum of catalog monthly prices for billing_subscriptions on paid plans with status active/trialing, or past_due within ${graceDays} days of the first failed payment`
         : missing("billing_subscriptions"),
     },
     activePaidSubscriptions: {
