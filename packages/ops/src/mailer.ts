@@ -11,6 +11,7 @@ import { enqueueJob, type DbHandle } from "@repo/database";
 import type { Logger } from "@repo/monitoring";
 import {
   PermanentJobError,
+  isPermanentJobError,
   silentLogger,
   systemClock,
   type Brand,
@@ -137,7 +138,7 @@ export function createMailer(opts: MailerOptions): Mailer {
       if (res.status === 429 || res.status === 409 || res.status >= 500) throw new RetryableEmailError(reason);
       throw new PermanentJobError(reason);
     } catch (err) {
-      const permanent = err instanceof PermanentJobError;
+      const permanent = isPermanentJobError(err);
       const message = (err as Error).message;
       const final = permanent || ctx.isFinalAttempt;
       await setStatus(id, final ? "failed" : "retrying", { error: message });

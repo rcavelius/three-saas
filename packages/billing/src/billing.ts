@@ -42,7 +42,13 @@ export interface BillingAnomaly {
 export interface BillingHooks {
   onPlanChanged?(orgId: string, from: string, to: string): Promise<void>;
   onPaymentFailed?(orgId: string, info: PaymentFailedInfo): Promise<void>;
+  /** The subscription has ENDED (access is now the free plan). */
   onSubscriptionCanceled?(orgId: string): Promise<void>;
+  /**
+   * The customer scheduled a cancellation (cancel at period end / cancel_at). Paid access continues until
+   * `endsAt`; use it for the "your plan stays active until …" email. Fires once per scheduling.
+   */
+  onCancellationScheduled?(orgId: string, info: { planId: string; endsAt: Date | null }): Promise<void>;
   /** Extension: incident-worthy problems (wire to @repo/ops raiseIncident). */
   onAnomaly?(a: BillingAnomaly): Promise<void>;
 }
@@ -124,6 +130,13 @@ export class BillingError extends Error {
   }
 }
 
+/** Shape check (see isAuthError): `instanceof` fails across Next.js server chunks. */
+export function isBillingError(err: unknown): err is BillingError {
+  if (err instanceof BillingError) return true;
+  const e = err as { name?: unknown; status?: unknown; code?: unknown } | null;
+  return !!e && typeof e === "object" && e.name === "BillingError" && typeof e.status === "number" && typeof e.code === "string";
+}
+
 // ---------------------------------------------------------------------------------------------
 // Internals
 
@@ -154,7 +167,15 @@ const DAY_MS = 86_400_000;
 const PRICE_CACHE_MS = 10 * 60_000;
 
 type ApplyResult =
-  | { kind: "applied"; orgId: string; from: string; to: string; canceled: boolean; changed: boolean }
+  | {
+      kind: "applied";
+      orgId: string;
+      from: string;
+      to: string;
+      canceled: boolean;
+      changed: boolean;
+      cancellationScheduled: { planId: string; endsAt: Date | null } | null;
+    }
   | { kind: "stale"; orgId: string }
   | { kind: "foreign" }
   | { kind: "unknown_price"; orgId: string; lookupKey: string | null; priceId: string | null };
@@ -375,6 +396,12 @@ export function createBilling(opts: BillingOptions): Billing {
       SUBSCRIBED_STATUSES.has(existing.status) &&
       !SUBSCRIBED_STATUSES.has(after.status) &&
       after.status !== "incomplete";
+    const wasScheduled = !!existing && (existing.cancel_at_period_end || existing.cancel_at != null);
+    const isScheduled = SUBSCRIBED_STATUSES.has(after.status) && (after.cancel_at_period_end || after.cancel_at != null);
+    const cancellationScheduled =
+      isScheduled && !wasScheduled
+        ? { planId: subscribedPlanId(after), endsAt: after.cancel_at ?? after.current_period_end ?? null }
+        : null;
     return {
       kind: "applied",
       orgId,
@@ -382,6 +409,7 @@ export function createBilling(opts: BillingOptions): Billing {
       to: subscribedPlanId(after),
       canceled,
       changed,
+      cancellationScheduled,
     };
   }
 
@@ -393,6 +421,15 @@ export function createBilling(opts: BillingOptions): Billing {
           orgId: r.orgId,
           eventId,
         });
+        if (e) errors.push(e);
+      }
+      if (r.cancellationScheduled) {
+        const info = r.cancellationScheduled;
+        const e = await safeHook(
+          "onCancellationScheduled",
+          hooks.onCancellationScheduled && (() => hooks.onCancellationScheduled!(r.orgId, info)),
+          { orgId: r.orgId, eventId },
+        );
         if (e) errors.push(e);
       }
       if (r.canceled) {

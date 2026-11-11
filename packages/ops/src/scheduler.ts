@@ -12,7 +12,7 @@ import { redact, type Logger } from "@repo/monitoring";
 import { raiseIncident } from "./incidents";
 import { claimNextJob, completeJobAt, countDeadLetters, failJobAt } from "./queue";
 import { writeHeartbeat } from "./state";
-import { PermanentJobError, silentLogger, systemClock, type Clock, type JobHandler } from "./types";
+import { isPermanentJobError, silentLogger, systemClock, type Clock, type JobHandler } from "./types";
 
 export interface ScheduleDef {
   /** Unique schedule name (primary key in ops_schedules). */
@@ -215,7 +215,7 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
       clearTimeout(timer);
       const error = errorMessage(err);
       const now = clock();
-      const outcome = await failJobAt(ex, job, error, now, { permanent: err instanceof PermanentJobError });
+      const outcome = await failJobAt(ex, job, error, now, { permanent: isPermanentJobError(err) });
       await recordScheduleOutcome(job, "error", error);
       if (outcome === "retry") {
         report.retried++;

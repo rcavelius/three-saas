@@ -15,6 +15,7 @@ export async function setup(opts: { catalog?: Catalog; latencyMs?: number; hooks
   const handle = await createBillingTestDb();
   const fake = new FakeStripe({ webhookSecret: WEBHOOK_SECRET, now, catalogs: [catalog], latencyMs: opts.latencyMs });
   const seen = {
+    cancellationScheduled: [] as Array<[string, { planId: string; endsAt: Date | null }]>,
     planChanged: [] as [string, string, string][],
     paymentFailed: [] as [string, PaymentFailedInfo][],
     canceled: [] as string[],
@@ -31,6 +32,7 @@ export async function setup(opts: { catalog?: Catalog; latencyMs?: number; hooks
       onPlanChanged: async (o, f, t) => void seen.planChanged.push([o, f, t]),
       onPaymentFailed: async (o, i) => void seen.paymentFailed.push([o, i]),
       onSubscriptionCanceled: async (o) => void seen.canceled.push(o),
+      onCancellationScheduled: async (o, i) => void seen.cancellationScheduled.push([o, i]),
       onAnomaly: async (a) => void seen.anomalies.push(a),
       ...opts.hooks,
     },

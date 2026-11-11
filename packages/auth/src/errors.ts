@@ -30,6 +30,18 @@ function defaultMessage(status: AuthErrorStatus): string {
   return "Not found";
 }
 
+/**
+ * Shape check, not `instanceof`: Next.js can bundle this package into several server chunks, each with its own
+ * AuthError class, so an error thrown in one chunk fails `instanceof` in another.
+ */
 export function isAuthError(err: unknown): err is AuthError {
-  return err instanceof AuthError;
+  if (err instanceof AuthError) return true;
+  const e = err as { name?: unknown; status?: unknown; code?: unknown } | null;
+  return (
+    !!e &&
+    typeof e === "object" &&
+    e.name === "AuthError" &&
+    (e.status === 401 || e.status === 403 || e.status === 404) &&
+    typeof e.code === "string"
+  );
 }

@@ -134,6 +134,13 @@ describe("subscription lifecycle", () => {
     let ent = await t.billing.getEntitlements("org_a");
     expect(ent).toMatchObject({ planId: "agency", cancelAtPeriodEnd: true, status: "active" });
     expect(t.seen.canceled).toEqual([]);
+    // The "access continues until" email gets the real end date, exactly once.
+    expect(t.seen.cancellationScheduled).toHaveLength(1);
+    expect(t.seen.cancellationScheduled[0]![0]).toBe("org_a");
+    expect(t.seen.cancellationScheduled[0]![1].planId).toBe("agency");
+    expect(t.seen.cancellationScheduled[0]![1].endsAt?.getTime()).toBe(ent.currentPeriodEnd?.getTime());
+    await t.fake.deliverAll(t.billing);
+    expect(t.seen.cancellationScheduled).toHaveLength(1);
 
     // Period end passes; even before the deleted webhook arrives the plan is no longer granted.
     t.advance(20 * DAY + 1000);

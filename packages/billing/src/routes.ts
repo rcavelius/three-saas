@@ -14,7 +14,7 @@
  * otherwise. The org id ALWAYS comes from the resolver, never from the request body.
  */
 import { z } from "zod";
-import { BillingError, type Billing } from "./billing";
+import { isBillingError, type Billing } from "./billing";
 import { BillingNotConfiguredError } from "./gateway";
 
 export interface OwnerOrg {
@@ -71,10 +71,10 @@ function respondUrl(req: Request, url: string): Response {
 }
 
 function billingErrorResponse(e: unknown): Response {
-  if (e instanceof BillingNotConfiguredError || (e as { code?: string })?.code === "billing_not_configured") {
+  if (e instanceof BillingNotConfiguredError || (e as { code?: string } | null)?.code === "billing_not_configured") {
     return json(503, { error: "billing_not_configured", message: "Payments are not switched on yet." });
   }
-  if (e instanceof BillingError) {
+  if (isBillingError(e)) {
     return json(e.status, { error: e.code, message: e.status < 500 ? e.message : "billing is not configured" });
   }
   return json(500, { error: "internal_error" });

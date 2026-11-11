@@ -58,6 +58,11 @@ export class PermanentJobError extends Error {
   }
 }
 
+/** Shape check: `instanceof` fails when the app and this package end up in different Next.js server chunks. */
+export function isPermanentJobError(err: unknown): err is PermanentJobError {
+  return err instanceof PermanentJobError || (!!err && typeof err === "object" && (err as { name?: unknown }).name === "PermanentJobError");
+}
+
 /** A null logger for callers that do not pass one. */
 export const silentLogger: Logger = {
   debug() {},
