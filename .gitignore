@@ -24,3 +24,6 @@ Thumbs.db
 !.vscode/extensions.json
 playwright-report/
 test-results/
+
+# agent worktrees
+.claude/worktrees/

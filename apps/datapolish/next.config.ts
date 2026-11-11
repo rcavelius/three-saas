@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -21,6 +22,10 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for the Docker image (see /Dockerfile). Tracing root = monorepo root
+  // so workspace packages are included.
+  output: "standalone",
+  outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {

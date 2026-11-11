@@ -1,30 +1,77 @@
-# Operating cost estimate
+# Operating cost model
 
-**These are planning estimates, not quotes.** Provider prices change; confirm each on the provider's pricing page when the account is opened, then record actual monthly costs in the `cost_entries` table so the owner dashboard reports real numbers.
+**Planning estimates, not quotes.** Unit prices below are list prices as last known (late 2026) and must be re-checked on each provider's pricing page at signup. Once running, actual costs are recorded in `cost_entries` and the owner dashboard reports those instead of these estimates.
 
-## Fixed monthly costs at launch (all three products)
+## Unit prices assumed
 
-| Item | Low | Expected | Notes |
+| Item | Assumed price | Notes |
+|---|---|---|
+| Fly.io shared-cpu-1x, 512 MB, always on | ~$3.20/mo | 1x/1 GB ~$5.70, 2x/1 GB ~$11, performance-1x/2 GB ~$31 |
+| Fly.io outbound bandwidth (NA/EU) | ~$0.02/GB | inbound free |
+| Neon Postgres | Free tier; paid ~$19/mo base or usage (~$0.14/compute-hour, ~$0.35/GB-month storage) | one project, three databases |
+| Resend email | Free: 3,000/mo (100/day); Pro ~$20/mo for 50,000 | |
+| Stripe | 2.9% + 30¢ per card charge, plus ~0.7% Stripe Billing | US cards; international cards cost more |
+| Domains | ~$12/yr each | |
+| AI support (small model) | ~$0.002–0.01 per answered question | hard-capped monthly budget |
+| Error tracking / uptime | $0 (free tiers) | Sentry developer, Better Stack or UptimeRobot |
+
+## Workload assumptions per paying customer
+
+| App | Plan mix assumed | Load per paying customer | Free users |
 |---|---|---|---|
-| App hosting (3 small always-on containers + 1 worker) | $10 | $25–40 | Fly.io / Render small instances. |
-| Postgres (3 databases) | $0 | $19–25 | Neon free tier works for launch; paid plan once data or compute grows. |
-| Transactional email | $0 | $0–20 | Free tiers cover early volume (low thousands of emails/month). |
-| Error tracking / uptime monitoring | $0 | $0 | Free tiers (Sentry developer, Better Stack / UptimeRobot). |
-| Domains (3) | ~$3 | ~$4 | ~$10–15 per domain per year, amortised. |
-| AI support assistant | $0 | $5–20 | Usage-based; capped with a hard monthly budget alert. |
-| **Total** | **~$13** | **~$50–110** | |
+| SiteProof | 70% Solo, 30% Agency | Solo ~2 sites, Agency ~10 sites in use; daily scan, avg 150 pages × 120 KB fetched | ~20 free one-off scans per paying customer per month (25 pages each) |
+| DataPolish | 70% Pro, 30% Business | Processing is in the browser: server load is auth, billing and saved workflows only (~5 KB/user) | static page views |
+| HookPilot | 70% Developer, 30% Pro | ~15k captured requests/mo avg, 4 KB avg stored, 7-day (Dev) / 30-day (Pro) history | ~100 requests per free endpoint, 24 h retention |
 
-## Variable costs
+Emails: ~4 lifecycle emails per customer per month, plus SiteProof change alerts (deduplicated, ~4/mo) and owner alerts (few).
 
-- **Stripe**: percentage + fixed fee per successful charge (standard US card pricing is roughly 2.9% + 30¢; Stripe Billing adds a small percentage of billing volume). At $19/month a subscription nets roughly $18.
-- **SiteProof crawling**: bandwidth and CPU scale with scheduled scans. Page caps per plan (enforced in code) bound the worst case.
-- **HookPilot storage**: bounded by per-plan request history, payload caps and automatic expiry.
-- **DataPolish**: free-tier processing runs in the user's browser and costs nothing server-side.
+## Monthly cost by scale (per app)
 
-## Break-even (illustrative)
+### 0 paying customers (launch)
 
-At ~$80/month fixed cost, break-even is about 5 Solo SiteProof subscriptions, or 7 DataPolish Pro, or 9 HookPilot Developer subscriptions. This excludes the cost of a contracted operator (see OWNER-ACTIONS.md).
+| | SiteProof | DataPolish | HookPilot |
+|---|---|---|---|
+| Compute | $5.70 (1x/1 GB) | $3.20 | $3.20 |
+| Database | $0 (Neon free) | $0 | $0 |
+| Bandwidth | <$1 | <$1 | <$1 |
+| Email | $0 | $0 | $0 |
+| Domain | $1 | $1 | $1 |
+| **Total** | **~$8** | **~$5** | **~$5** |
 
-## Budget alerts (to configure at signup)
+All three: **~$18/month** (+ optional AI support budget, capped at $5).
 
-Set spend alerts in every provider that supports them (hosting, Neon, AI provider, email). The app-side monitoring job will also raise an incident when recorded monthly costs exceed a configured budget.
+### 100 paying customers each
+
+| | SiteProof | DataPolish | HookPilot |
+|---|---|---|---|
+| MRR (plan mix above) | $3,700 | $1,710 | $1,500 |
+| Compute | $11 (1 web) + $11 (1 scan worker) | $3.20 | $5.70 |
+| Crawl / ingest volume | ~450 sites × 150 pages/day ≈ 2M fetches, ~240 GB inbound (free) | — | ~1.5M requests, ~6 GB stored |
+| Database | ~3 GB → ~$19 | ~$0–19 | ~6 GB + write load → ~$19–25 |
+| Bandwidth out | ~$2 | ~$1 | ~$2 |
+| Email (~800–1,200/mo) | shared Resend free tier → $0 (Pro $20 if limits hit) | | |
+| Stripe fees (~3.9% + 30¢) | ~$175 | ~$97 | ~$89 |
+| **Total cost** | **~$220** | **~$105** | **~$120** |
+| **Contribution** | **~$3,480** | **~$1,605** | **~$1,380** |
+
+### 1,000 paying customers each
+
+| | SiteProof | DataPolish | HookPilot |
+|---|---|---|---|
+| MRR | $37,000 | $17,100 | $15,000 |
+| Compute | 2 web ($22) + 4 scan workers perf-1x/2 GB ($124) | 2 × 1 GB ($11) | 3 × 1 GB ($17) |
+| Volume | ~20M fetches/day-equivalent month, ~2.4 TB inbound | — | ~15M requests/mo (~6/s avg, bursts 100/s) |
+| Database | ~30 GB, higher compute → ~$100–150 | ~$19 | ~60 GB → ~$120–180 |
+| Bandwidth out | ~$15 | ~$5 | ~$15 |
+| Email (~12k/app/mo, ~36k total) | Resend Pro $20 shared | | |
+| Monitoring (paid tiers likely) | ~$30 shared | | |
+| Stripe fees | ~$1,740 | ~$967 | ~$885 |
+| **Total cost** | **~$2,050** | **~$1,010** | **~$1,100** |
+
+At 1,000 customers each, human operator time (support escalations, disputes, abuse) becomes the main non-Stripe cost: budget roughly 10–20 contracted hours per month across the three products.
+
+## Budget alerts and ceilings (configured in code and at providers)
+
+- Provider-side: spend alerts in Fly.io (organisation billing alerts), Neon (usage notifications), Resend, Stripe Radar rules, AI provider monthly limit.
+- App-side (`@repo/ops` budgets): monthly budget per provider in `ops_budgets`; warning at 80%, critical incident (owner email) at 100%.
+- Usage ceilings (owner-tunable env vars, enforced in code): SiteProof max concurrent scans and pages per scan per plan; HookPilot max stored requests per endpoint, payload caps, monthly request quota per plan, global rows ceiling incident; DataPolish file-size and row caps per plan (in-browser).
