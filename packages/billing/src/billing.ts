@@ -1,0 +1,843 @@
+/**
+ * createBilling(): Stripe checkout/portal, webhook processing, entitlements, usage counters and
+ * reconciliation for ONE app (one catalog, one database).
+ *
+ * Invariants
+ * - The database is only written from verified Stripe data: webhook events whose signature
+ *   verified, and subscriptions re-fetched from the Stripe API (source of truth). Event payload
+ *   snapshots are only used to find which subscription to fetch.
+ * - Every event id is recorded once in billing_events; the state change and "processed" mark
+ *   commit in one transaction, so a duplicate delivery can never run side effects twice.
+ * - An event older than the stored state (last_event_at) never overwrites it.
+ * - Entitlements are computed server-side from billing_subscriptions only.
+ */
+import type { DbHandle, SqlExecutor } from "@repo/database";
+import { getFreePlan, getPlan, planByLookupKey, type Catalog, type PlanDef } from "./catalog";
+import {
+  invoiceSubscriptionId,
+  normalizeSubscription,
+  type GatewayEvent,
+  type GatewaySubscription,
+  type StripeGateway,
+  type SubscriptionStatus,
+} from "./gateway";
+import { advisoryXactLock } from "./locks";
+
+// ---------------------------------------------------------------------------------------------
+// Public types
+
+export interface PaymentFailedInfo {
+  invoiceId: string;
+  amountDueCents: number;
+  nextAttemptAt: Date | null;
+}
+
+export interface BillingAnomaly {
+  kind: "unknown_price" | "org_mismatch" | "hook_failed" | "reconcile_failed";
+  message: string;
+  orgId?: string;
+  eventId?: string;
+}
+
+export interface BillingHooks {
+  onPlanChanged?(orgId: string, from: string, to: string): Promise<void>;
+  onPaymentFailed?(orgId: string, info: PaymentFailedInfo): Promise<void>;
+  onSubscriptionCanceled?(orgId: string): Promise<void>;
+  /** Extension: incident-worthy problems (wire to @repo/ops raiseIncident). */
+  onAnomaly?(a: BillingAnomaly): Promise<void>;
+}
+
+export interface BillingOptions {
+  handle: DbHandle<any>;
+  catalog: Catalog;
+  stripe: StripeGateway;
+  webhookSecret: string;
+  /** APP_URL, e.g. https://siteproof.example. Used for redirect URLs and the route Origin check. */
+  appUrl: string;
+  hooks?: BillingHooks;
+  /** Clock (tests inject one). */
+  now?: () => Date;
+  /** Days a past_due subscription keeps its plan, counted from the first failed payment. Default 7. */
+  gracePeriodDays?: number;
+  /** Checkout allow_promotion_codes. Default false. */
+  allowPromotionCodes?: boolean;
+  /** Proration for changePlan. Default "create_prorations" (difference billed on the next invoice). */
+  prorationBehavior?: "create_prorations" | "always_invoice";
+  paths?: { checkoutSuccess?: string; checkoutCancel?: string; portalReturn?: string };
+}
+
+export interface Entitlements {
+  planId: string;
+  planName: string;
+  /** Stripe status of the org's subscription, or "none" when it never subscribed. */
+  status: SubscriptionStatus | "none";
+  limits: Record<string, number>;
+  features: Record<string, boolean>;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: Date | null;
+  /** Set while past_due: when the plan falls back to free. */
+  graceEndsAt: Date | null;
+  /** The plan the org pays for (may differ from planId once the grace period is over). */
+  subscribedPlanId: string;
+}
+
+export interface UsageResult {
+  ok: boolean;
+  used: number;
+  limit: number;
+}
+
+export interface Billing {
+  readonly catalog: Catalog;
+  readonly appUrl: string;
+  getEntitlements(orgId: string): Promise<Entitlements>;
+  consumeUsage(orgId: string, metric: string, amount: number, opts?: { period?: string }): Promise<UsageResult>;
+  releaseUsage(orgId: string, metric: string, amount: number, opts?: { period?: string }): Promise<void>;
+  getUsage(orgId: string, metric: string, opts?: { period?: string }): Promise<number>;
+  createCheckoutSession(orgId: string, planId: string, customerEmail: string): Promise<{ url: string; id: string }>;
+  createPortalSession(orgId: string): Promise<{ url: string }>;
+  changePlan(orgId: string, planId: string): Promise<Entitlements>;
+  handleWebhook(rawBody: string, signatureHeader: string | null): Promise<{ status: number; body: string }>;
+  reconcile(): Promise<{ checked: number; fixed: number; errors: number }>;
+  cancelImmediately(orgId: string): Promise<void>;
+  /** Current usage period ("YYYY-MM", UTC) for the injected clock. */
+  currentPeriod(): string;
+}
+
+export type BillingErrorCode =
+  | "invalid_plan"
+  | "already_subscribed"
+  | "not_subscribed"
+  | "no_customer"
+  | "price_not_configured"
+  | "invalid_input";
+
+export class BillingError extends Error {
+  constructor(
+    readonly code: BillingErrorCode,
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "BillingError";
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Internals
+
+interface SubRow {
+  org_id: string;
+  stripe_subscription_id: string;
+  stripe_customer_id: string;
+  plan_id: string;
+  status: SubscriptionStatus;
+  stripe_price_id: string | null;
+  current_period_end: Date | null;
+  cancel_at_period_end: boolean;
+  cancel_at: Date | null;
+  payment_failed_at: Date | null;
+  last_event_at: Date;
+  updated_at: Date;
+}
+
+const SUB_COLUMNS = `org_id, stripe_subscription_id, stripe_customer_id, plan_id, status, stripe_price_id,
+  current_period_end, cancel_at_period_end, cancel_at, payment_failed_at, last_event_at, updated_at`;
+
+/** Statuses that keep the paid plan (subject to grace / scheduled cancel). */
+const PLAN_STATUSES = new Set<string>(["active", "trialing", "past_due"]);
+/** Statuses where the org still has a subscription that must be managed via portal/changePlan. */
+const SUBSCRIBED_STATUSES = new Set<string>(["active", "trialing", "past_due", "unpaid", "paused"]);
+
+const DAY_MS = 86_400_000;
+const PRICE_CACHE_MS = 10 * 60_000;
+
+type ApplyResult =
+  | { kind: "applied"; orgId: string; from: string; to: string; canceled: boolean; changed: boolean }
+  | { kind: "stale"; orgId: string }
+  | { kind: "foreign" }
+  | { kind: "unknown_price"; orgId: string; lookupKey: string | null; priceId: string | null };
+
+const toDate = (v: unknown): Date | null => (v == null ? null : v instanceof Date ? v : new Date(String(v)));
+const secToDate = (s: number | null): Date | null => (s == null ? null : new Date(s * 1000));
+
+function rowFromDb(r: Record<string, unknown>): SubRow {
+  return {
+    ...(r as unknown as SubRow),
+    current_period_end: toDate(r.current_period_end),
+    cancel_at: toDate(r.cancel_at),
+    payment_failed_at: toDate(r.payment_failed_at),
+    last_event_at: toDate(r.last_event_at)!,
+    updated_at: toDate(r.updated_at)!,
+  };
+}
+
+function subscriptionRank(s: GatewaySubscription): number {
+  if (s.status === "active" || s.status === "trialing") return 3;
+  if (s.status === "past_due" || s.status === "unpaid" || s.status === "paused") return 2;
+  if (s.status === "incomplete") return 1;
+  return 0;
+}
+
+/** The subscription that should represent the org: live ones first, then the newest. */
+export function pickPrimarySubscription(subs: GatewaySubscription[]): GatewaySubscription | null {
+  const sorted = [...subs].sort((a, b) => subscriptionRank(b) - subscriptionRank(a) || b.created - a.created);
+  return sorted[0] ?? null;
+}
+
+function errMessage(e: unknown): string {
+  return (e instanceof Error ? e.message : String(e)).slice(0, 2000);
+}
+
+function isNotFound(e: unknown): boolean {
+  const o = e as { statusCode?: number; code?: string } | null;
+  return !!o && (o.statusCode === 404 || o.code === "resource_missing");
+}
+
+const PERIOD_RE = /^[A-Za-z0-9:_-]{1,40}$/;
+
+// ---------------------------------------------------------------------------------------------
+
+export function createBilling(opts: BillingOptions): Billing {
+  const { handle, catalog, stripe } = opts;
+  const hooks = opts.hooks ?? {};
+  const now = opts.now ?? (() => new Date());
+  const graceMs = (opts.gracePeriodDays ?? 7) * DAY_MS;
+  const freePlan = getFreePlan(catalog);
+  if (!opts.webhookSecret) throw new Error("createBilling: webhookSecret is required");
+  let appOrigin: URL;
+  try {
+    appOrigin = new URL(opts.appUrl);
+  } catch {
+    throw new Error("createBilling: appUrl must be an absolute URL");
+  }
+  const appUrl = appOrigin.origin;
+  const paths = {
+    checkoutSuccess: opts.paths?.checkoutSuccess ?? "/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}",
+    checkoutCancel: opts.paths?.checkoutCancel ?? "/billing?checkout=canceled",
+    portalReturn: opts.paths?.portalReturn ?? "/billing",
+  };
+  const ex = handle.executor;
+
+  // ---- helpers ---------------------------------------------------------------------------
+
+  async function safeHook(name: string, fn: (() => Promise<void>) | undefined, ctx: { orgId?: string; eventId?: string }) {
+    if (!fn) return null;
+    try {
+      await fn();
+      return null;
+    } catch (e) {
+      const message = `hook ${name} failed: ${errMessage(e)}`;
+      if (name !== "onAnomaly") {
+        await safeHook("onAnomaly", hooks.onAnomaly && (() => hooks.onAnomaly!({ kind: "hook_failed", message, ...ctx })), ctx);
+      }
+      return message;
+    }
+  }
+
+  async function loadSub(q: SqlExecutor, orgId: string, forUpdate = false): Promise<SubRow | null> {
+    const { rows } = await q.query<Record<string, unknown>>(
+      `SELECT ${SUB_COLUMNS} FROM billing_subscriptions WHERE org_id = $1${forUpdate ? " FOR UPDATE" : ""}`,
+      [orgId],
+    );
+    return rows[0] ? rowFromDb(rows[0]) : null;
+  }
+
+  async function orgForCustomer(q: SqlExecutor, customerId: string): Promise<string | null> {
+    if (!customerId) return null;
+    const { rows } = await q.query<{ org_id: string }>(
+      `SELECT org_id FROM billing_customers WHERE stripe_customer_id = $1`,
+      [customerId],
+    );
+    return rows[0]?.org_id ?? null;
+  }
+
+  /** Plan the org is paying for according to the row (ignores grace expiry). */
+  function subscribedPlanId(row: SubRow | null): string {
+    if (!row || !PLAN_STATUSES.has(row.status)) return freePlan.id;
+    return getPlan(catalog, row.plan_id)?.id ?? freePlan.id;
+  }
+
+  function computeEntitlements(row: SubRow | null): Entitlements {
+    const t = now().getTime();
+    let effective: PlanDef = freePlan;
+    let graceEndsAt: Date | null = null;
+    const subscribed = subscribedPlanId(row);
+    if (row && subscribed !== freePlan.id) {
+      const plan = getPlan(catalog, subscribed)!;
+      if (row.status === "active" || row.status === "trialing") {
+        effective = plan;
+      } else if (row.status === "past_due") {
+        const since = row.payment_failed_at ?? row.updated_at;
+        graceEndsAt = new Date(since.getTime() + graceMs);
+        if (t < graceEndsAt.getTime()) effective = plan;
+      }
+      if (effective !== freePlan && row.cancel_at_period_end) {
+        const endsAt = row.cancel_at ?? row.current_period_end;
+        if (endsAt && t >= endsAt.getTime()) effective = freePlan;
+      }
+    }
+    return {
+      planId: effective.id,
+      planName: effective.name,
+      status: row?.status ?? "none",
+      limits: { ...effective.limits },
+      features: { ...effective.features },
+      cancelAtPeriodEnd: row?.cancel_at_period_end ?? false,
+      currentPeriodEnd: row?.current_period_end ?? null,
+      graceEndsAt,
+      subscribedPlanId: subscribed,
+    };
+  }
+
+  /**
+   * Writes Stripe's view of a subscription into billing_subscriptions.
+   * versionSec: Stripe event `created` (webhooks) or the current time (API results we just
+   * fetched: reconcile, changePlan, cancel). Older versions never overwrite newer ones.
+   * Runs inside `tx`; returns what changed so hooks can run after commit.
+   */
+  async function applySubscription(
+    tx: SqlExecutor,
+    sub: GatewaySubscription,
+    versionSec: number,
+  ): Promise<ApplyResult> {
+    const orgId = await orgForCustomer(tx, sub.customer);
+    if (!orgId) return { kind: "foreign" };
+    const plan = planByLookupKey(catalog, sub.priceLookupKey);
+    if (!plan || plan.id === freePlan.id) {
+      return { kind: "unknown_price", orgId, lookupKey: sub.priceLookupKey, priceId: sub.priceId };
+    }
+    await advisoryXactLock(tx, `billing-sub:${orgId}`);
+    const existing = await loadSub(tx, orgId, true);
+    const version = new Date(versionSec * 1000);
+    if (existing) {
+      const sameSub = existing.stripe_subscription_id === sub.id;
+      // An event for an old/other subscription must not replace a live one.
+      if (!sameSub && SUBSCRIBED_STATUSES.has(existing.status) && !SUBSCRIBED_STATUSES.has(sub.status)) {
+        return { kind: "stale", orgId };
+      }
+      if (sameSub && existing.last_event_at.getTime() > version.getTime()) {
+        return { kind: "stale", orgId };
+      }
+    }
+    // A subscription id may already sit on another org row only through data corruption; the
+    // UNIQUE constraint then fails loudly and the event is retried / surfaced.
+    const failing = sub.status === "past_due" || sub.status === "unpaid";
+    const failedAt = failing ? (existing?.payment_failed_at ?? version) : null;
+    const { rows } = await tx.query<Record<string, unknown>>(
+      `INSERT INTO billing_subscriptions (org_id, stripe_subscription_id, stripe_customer_id, plan_id, status,
+         stripe_price_id, current_period_end, cancel_at_period_end, cancel_at, payment_failed_at, last_event_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       ON CONFLICT (org_id) DO UPDATE SET
+         stripe_subscription_id = EXCLUDED.stripe_subscription_id,
+         stripe_customer_id = EXCLUDED.stripe_customer_id,
+         plan_id = EXCLUDED.plan_id,
+         status = EXCLUDED.status,
+         stripe_price_id = EXCLUDED.stripe_price_id,
+         current_period_end = EXCLUDED.current_period_end,
+         cancel_at_period_end = EXCLUDED.cancel_at_period_end,
+         cancel_at = EXCLUDED.cancel_at,
+         payment_failed_at = EXCLUDED.payment_failed_at,
+         last_event_at = GREATEST(billing_subscriptions.last_event_at, EXCLUDED.last_event_at),
+         updated_at = EXCLUDED.updated_at
+       RETURNING ${SUB_COLUMNS}`,
+      [
+        orgId,
+        sub.id,
+        sub.customer,
+        plan.id,
+        sub.status,
+        sub.priceId,
+        secToDate(sub.currentPeriodEnd),
+        sub.cancelAtPeriodEnd,
+        secToDate(sub.cancelAt),
+        failedAt,
+        version,
+        now(),
+      ],
+    );
+    const after = rowFromDb(rows[0]!);
+    const changed =
+      !existing ||
+      existing.stripe_subscription_id !== after.stripe_subscription_id ||
+      existing.status !== after.status ||
+      existing.plan_id !== after.plan_id ||
+      existing.stripe_price_id !== after.stripe_price_id ||
+      existing.cancel_at_period_end !== after.cancel_at_period_end ||
+      existing.current_period_end?.getTime() !== after.current_period_end?.getTime() ||
+      existing.cancel_at?.getTime() !== after.cancel_at?.getTime();
+    // onSubscriptionCanceled: a subscription the org actually had (not an abandoned incomplete one) ended.
+    const canceled =
+      !!existing &&
+      existing.stripe_subscription_id === after.stripe_subscription_id &&
+      SUBSCRIBED_STATUSES.has(existing.status) &&
+      !SUBSCRIBED_STATUSES.has(after.status) &&
+      after.status !== "incomplete";
+    return {
+      kind: "applied",
+      orgId,
+      from: subscribedPlanId(existing),
+      to: subscribedPlanId(after),
+      canceled,
+      changed,
+    };
+  }
+
+  async function runApplyHooks(r: ApplyResult, eventId?: string): Promise<string[]> {
+    const errors: string[] = [];
+    if (r.kind === "applied") {
+      if (r.from !== r.to) {
+        const e = await safeHook("onPlanChanged", hooks.onPlanChanged && (() => hooks.onPlanChanged!(r.orgId, r.from, r.to)), {
+          orgId: r.orgId,
+          eventId,
+        });
+        if (e) errors.push(e);
+      }
+      if (r.canceled) {
+        const e = await safeHook(
+          "onSubscriptionCanceled",
+          hooks.onSubscriptionCanceled && (() => hooks.onSubscriptionCanceled!(r.orgId)),
+          { orgId: r.orgId, eventId },
+        );
+        if (e) errors.push(e);
+      }
+    } else if (r.kind === "unknown_price") {
+      const message = `Stripe price ${r.priceId ?? "?"} (lookup key ${r.lookupKey ?? "none"}) is not in the ${catalog.app} catalog`;
+      const e = await safeHook(
+        "onAnomaly",
+        hooks.onAnomaly && (() => hooks.onAnomaly!({ kind: "unknown_price", message, orgId: r.orgId, eventId })),
+        { orgId: r.orgId, eventId },
+      );
+      if (e) errors.push(e);
+    }
+    return errors;
+  }
+
+  /** Applies an API-fetched subscription outside of webhook processing (version = now). */
+  async function applyFetched(sub: GatewaySubscription): Promise<ApplyResult> {
+    const version = Math.floor(now().getTime() / 1000);
+    const r = await handle.transaction((tx) => applySubscription(tx, sub, version));
+    await runApplyHooks(r);
+    return r;
+  }
+
+  // ---- prices & customers ----------------------------------------------------------------
+
+  const priceCache = new Map<string, { id: string; at: number }>();
+  async function priceIdFor(plan: PlanDef): Promise<string> {
+    const key = plan.stripeLookupKey!;
+    const cached = priceCache.get(key);
+    if (cached && Date.now() - cached.at < PRICE_CACHE_MS) return cached.id;
+    const prices = (await stripe.prices.listByLookupKeys([key])).filter((p) => p.active && p.lookupKey === key);
+    if (prices.length !== 1) {
+      throw new BillingError(
+        "price_not_configured",
+        `Expected exactly one active Stripe price with lookup key ${key}, found ${prices.length}. Run scripts/setup-stripe-test.ts.`,
+        500,
+      );
+    }
+    const p = prices[0]!;
+    if (p.unitAmount !== plan.priceMonthlyCents) {
+      throw new BillingError(
+        "price_not_configured",
+        `Stripe price ${key} is ${p.unitAmount} cents but the catalog says ${plan.priceMonthlyCents}`,
+        500,
+      );
+    }
+    priceCache.set(key, { id: p.id, at: Date.now() });
+    return p.id;
+  }
+
+  async function getCustomerId(orgId: string): Promise<string | null> {
+    const { rows } = await ex.query<{ stripe_customer_id: string }>(
+      `SELECT stripe_customer_id FROM billing_customers WHERE org_id = $1`,
+      [orgId],
+    );
+    return rows[0]?.stripe_customer_id ?? null;
+  }
+
+  /**
+   * Race-safe: an advisory lock per org serialises concurrent creators, the second one sees the
+   * row; the PRIMARY KEY on org_id is the backstop; the Stripe idempotency key makes a retried
+   * create (e.g. after a crash before COMMIT) return the same customer within 24 h.
+   */
+  async function getOrCreateCustomer(orgId: string, email: string): Promise<string> {
+    const existing = await getCustomerId(orgId);
+    if (existing) return existing;
+    return handle.transaction(async (tx) => {
+      await advisoryXactLock(tx, `billing-customer:${orgId}`);
+      const { rows } = await tx.query<{ stripe_customer_id: string }>(
+        `SELECT stripe_customer_id FROM billing_customers WHERE org_id = $1`,
+        [orgId],
+      );
+      if (rows[0]) return rows[0].stripe_customer_id;
+      const customer = await stripe.customers.create(
+        { email: email || undefined, metadata: { orgId, app: catalog.app } },
+        { idempotencyKey: `${catalog.app}-customer-${orgId}` },
+      );
+      const ins = await tx.query<{ stripe_customer_id: string }>(
+        `INSERT INTO billing_customers (org_id, stripe_customer_id) VALUES ($1, $2)
+         ON CONFLICT (org_id) DO NOTHING RETURNING stripe_customer_id`,
+        [orgId, customer.id],
+      );
+      if (ins.rows[0]) return ins.rows[0].stripe_customer_id;
+      const again = await tx.query<{ stripe_customer_id: string }>(
+        `SELECT stripe_customer_id FROM billing_customers WHERE org_id = $1`,
+        [orgId],
+      );
+      return again.rows[0]!.stripe_customer_id;
+    });
+  }
+
+  function requireOrgId(orgId: string) {
+    if (typeof orgId !== "string" || orgId.length === 0 || orgId.length > 200) {
+      throw new BillingError("invalid_input", "orgId required", 400);
+    }
+  }
+
+  function periodOf(p?: string): string {
+    if (p === undefined) return currentPeriod();
+    if (!PERIOD_RE.test(p)) throw new BillingError("invalid_input", "invalid usage period", 400);
+    return p;
+  }
+
+  function currentPeriod(): string {
+    return now().toISOString().slice(0, 7);
+  }
+
+  // ---- webhook ---------------------------------------------------------------------------
+
+  type Prepared =
+    | { kind: "subscription"; sub: GatewaySubscription; payment?: PaymentFailedInfo; expectOrg?: string }
+    | { kind: "ignore"; reason: string };
+
+  async function retrieveOrSnapshot(id: string, snapshot?: Record<string, unknown>): Promise<GatewaySubscription> {
+    try {
+      return await stripe.subscriptions.retrieve(id);
+    } catch (e) {
+      if (isNotFound(e) && snapshot) return normalizeSubscription(snapshot);
+      throw e;
+    }
+  }
+
+  /** Network part (outside DB transactions): figure out which subscription and fetch it. */
+  async function prepare(event: GatewayEvent): Promise<Prepared> {
+    const o = event.object;
+    switch (event.type) {
+      case "checkout.session.completed": {
+        if (o.mode !== "subscription") return { kind: "ignore", reason: "not a subscription checkout" };
+        const subId = typeof o.subscription === "string" ? o.subscription : (o.subscription as { id?: string })?.id;
+        if (!subId) return { kind: "ignore", reason: "checkout without subscription" };
+        const expectOrg = typeof o.client_reference_id === "string" ? o.client_reference_id : undefined;
+        return { kind: "subscription", sub: await stripe.subscriptions.retrieve(subId), expectOrg };
+      }
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted":
+      case "customer.subscription.paused":
+      case "customer.subscription.resumed": {
+        return { kind: "subscription", sub: await retrieveOrSnapshot(String(o.id), o) };
+      }
+      case "invoice.paid":
+      case "invoice.payment_succeeded":
+      case "invoice.payment_failed": {
+        const subId = invoiceSubscriptionId(o);
+        if (!subId) return { kind: "ignore", reason: "invoice without subscription" };
+        const sub = await stripe.subscriptions.retrieve(subId);
+        if (event.type !== "invoice.payment_failed") return { kind: "subscription", sub };
+        const next = typeof o.next_payment_attempt === "number" ? o.next_payment_attempt : null;
+        return {
+          kind: "subscription",
+          sub,
+          payment: {
+            invoiceId: String(o.id),
+            amountDueCents: typeof o.amount_due === "number" ? o.amount_due : 0,
+            nextAttemptAt: secToDate(next),
+          },
+        };
+      }
+      case "customer.subscription.trial_will_end":
+        return { kind: "ignore", reason: "trial_will_end needs no state change" };
+      default:
+        return { kind: "ignore", reason: `unhandled event type ${event.type}` };
+    }
+  }
+
+  async function handleWebhook(rawBody: string, signatureHeader: string | null) {
+    const text = (status: number, body: string) => ({ status, body });
+    if (!signatureHeader) return text(400, "missing Stripe-Signature header");
+    if (typeof rawBody !== "string" || rawBody.length === 0) return text(400, "empty body");
+    let event: GatewayEvent;
+    try {
+      event = stripe.webhooks.constructEvent(rawBody, signatureHeader, opts.webhookSecret);
+    } catch {
+      return text(400, "invalid signature");
+    }
+    if (event.livemode && stripe.mode !== "live") return text(400, "live event sent to a test-mode endpoint");
+
+    const known = await ex.query<{ processed_at: unknown }>(`SELECT processed_at FROM billing_events WHERE id = $1`, [
+      event.id,
+    ]);
+    if (known.rows[0]?.processed_at) return text(200, JSON.stringify({ received: true, duplicate: true }));
+    await ex.query(
+      `INSERT INTO billing_events (id, type, created_at, received_at, attempts) VALUES ($1, $2, $3, $4, 0)
+       ON CONFLICT (id) DO NOTHING`,
+      [event.id, event.type, new Date(event.created * 1000), now()],
+    );
+    await ex.query(`UPDATE billing_events SET attempts = attempts + 1 WHERE id = $1`, [event.id]);
+
+    try {
+      const prepared = await prepare(event);
+      const outcome = await handle.transaction(async (tx) => {
+        const claim = await tx.query<{ processed_at: unknown }>(
+          `SELECT processed_at FROM billing_events WHERE id = $1 FOR UPDATE`,
+          [event.id],
+        );
+        if (claim.rows[0]?.processed_at) return { duplicate: true as const };
+        let result: ApplyResult | null = null;
+        let label: string;
+        let error: string | null = null;
+        let orgId: string | null = null;
+        if (prepared.kind === "ignore") {
+          label = "ignored";
+          error = null;
+        } else {
+          result = await applySubscription(tx, prepared.sub, event.created);
+          if (result.kind === "foreign") {
+            label = "ignored";
+            error = `customer ${prepared.sub.customer} is not managed by ${catalog.app}`;
+          } else {
+            orgId = result.orgId;
+            if (result.kind === "unknown_price") {
+              label = "unknown_price";
+              error = `unknown price ${result.priceId ?? "?"} (lookup key ${result.lookupKey ?? "none"})`;
+            } else {
+              label = result.kind === "stale" ? "stale" : "processed";
+              if (prepared.expectOrg && prepared.expectOrg !== result.orgId) {
+                error = `client_reference_id ${prepared.expectOrg} does not match customer org ${result.orgId}`;
+              }
+            }
+          }
+        }
+        await tx.query(
+          `UPDATE billing_events SET processed_at = $2, outcome = $3, error = $4, org_id = $5 WHERE id = $1`,
+          [event.id, now(), label, error, orgId],
+        );
+        return { duplicate: false as const, result, label, orgId, error };
+      });
+      if (outcome.duplicate) return text(200, JSON.stringify({ received: true, duplicate: true }));
+
+      // Side effects after COMMIT, exactly once per event id.
+      const hookErrors: string[] = [];
+      if (outcome.result) hookErrors.push(...(await runApplyHooks(outcome.result, event.id)));
+      if (outcome.error && outcome.label === "processed" && outcome.orgId) {
+        const e = await safeHook(
+          "onAnomaly",
+          hooks.onAnomaly &&
+            (() => hooks.onAnomaly!({ kind: "org_mismatch", message: outcome.error!, orgId: outcome.orgId!, eventId: event.id })),
+          { orgId: outcome.orgId, eventId: event.id },
+        );
+        if (e) hookErrors.push(e);
+      }
+      if (prepared.kind === "subscription" && prepared.payment && outcome.orgId && outcome.label !== "unknown_price") {
+        const orgId = outcome.orgId;
+        const info = prepared.payment;
+        const e = await safeHook("onPaymentFailed", hooks.onPaymentFailed && (() => hooks.onPaymentFailed!(orgId, info)), {
+          orgId,
+          eventId: event.id,
+        });
+        if (e) hookErrors.push(e);
+      }
+      if (hookErrors.length) {
+        await ex.query(`UPDATE billing_events SET error = concat_ws('; ', error, $2::text) WHERE id = $1`, [
+          event.id,
+          hookErrors.join("; ").slice(0, 2000),
+        ]);
+      }
+      return text(200, JSON.stringify({ received: true, outcome: outcome.label }));
+    } catch (e) {
+      // Not marked processed: Stripe retries with backoff (up to 3 days), reconcile() covers the rest.
+      await ex
+        .query(`UPDATE billing_events SET outcome = 'failed', error = $2 WHERE id = $1`, [event.id, errMessage(e)])
+        .catch(() => {});
+      return text(500, "processing failed");
+    }
+  }
+
+  // ---- public API --------------------------------------------------------------------------
+
+  async function getEntitlements(orgId: string): Promise<Entitlements> {
+    requireOrgId(orgId);
+    return computeEntitlements(await loadSub(ex, orgId));
+  }
+
+  async function consumeUsage(orgId: string, metric: string, amount: number, o?: { period?: string }): Promise<UsageResult> {
+    requireOrgId(orgId);
+    if (!Number.isSafeInteger(amount) || amount < 0) throw new BillingError("invalid_input", "amount must be a non-negative integer", 400);
+    const ent = await getEntitlements(orgId);
+    const limit = ent.limits[metric];
+    if (limit === undefined) throw new Error(`Unknown usage metric "${metric}" for ${catalog.app}`);
+    const period = periodOf(o?.period);
+    let rows: { used: string | number | bigint }[];
+    if (limit === -1) {
+      ({ rows } = await ex.query<{ used: string | number | bigint }>(
+        `INSERT INTO billing_usage AS u (org_id, metric, period, used) VALUES ($1, $2, $3, $4::bigint)
+         ON CONFLICT (org_id, metric, period) DO UPDATE SET used = u.used + EXCLUDED.used
+         RETURNING used`,
+        [orgId, metric, period, amount],
+      ));
+    } else {
+      // One statement: the row lock taken by ON CONFLICT DO UPDATE makes check-and-increment atomic
+      // under concurrency (the WHERE is re-evaluated against the latest row version).
+      ({ rows } = await ex.query<{ used: string | number | bigint }>(
+        `INSERT INTO billing_usage AS u (org_id, metric, period, used)
+         SELECT $1, $2, $3, $4::bigint WHERE $4::bigint <= $5::bigint
+         ON CONFLICT (org_id, metric, period) DO UPDATE SET used = u.used + EXCLUDED.used
+         WHERE u.used + EXCLUDED.used <= $5::bigint
+         RETURNING used`,
+        [orgId, metric, period, amount, limit],
+      ));
+    }
+    if (rows[0]) return { ok: true, used: Number(rows[0].used), limit };
+    return { ok: false, used: await getUsage(orgId, metric, { period }), limit };
+  }
+
+  async function getUsage(orgId: string, metric: string, o?: { period?: string }): Promise<number> {
+    const { rows } = await ex.query<{ used: string | number | bigint }>(
+      `SELECT used FROM billing_usage WHERE org_id = $1 AND metric = $2 AND period = $3`,
+      [orgId, metric, periodOf(o?.period)],
+    );
+    return rows[0] ? Number(rows[0].used) : 0;
+  }
+
+  async function releaseUsage(orgId: string, metric: string, amount: number, o?: { period?: string }): Promise<void> {
+    requireOrgId(orgId);
+    if (!Number.isSafeInteger(amount) || amount < 0) throw new BillingError("invalid_input", "amount must be a non-negative integer", 400);
+    await ex.query(
+      `UPDATE billing_usage SET used = GREATEST(used - $4::bigint, 0) WHERE org_id = $1 AND metric = $2 AND period = $3`,
+      [orgId, metric, periodOf(o?.period), amount],
+    );
+  }
+
+  async function createCheckoutSession(orgId: string, planId: string, customerEmail: string) {
+    requireOrgId(orgId);
+    const plan = getPlan(catalog, planId);
+    if (!plan || plan.id === freePlan.id || !plan.stripeLookupKey) {
+      throw new BillingError("invalid_plan", `Unknown or free plan "${planId}"`, 400);
+    }
+    const row = await loadSub(ex, orgId);
+    if (row && SUBSCRIBED_STATUSES.has(row.status)) {
+      throw new BillingError(
+        "already_subscribed",
+        "This organization already has a subscription; use the billing portal or change plan instead.",
+        409,
+      );
+    }
+    const price = await priceIdFor(plan);
+    const customer = await getOrCreateCustomer(orgId, customerEmail);
+    const metadata = { orgId, app: catalog.app, planId: plan.id };
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer,
+      client_reference_id: orgId,
+      line_items: [{ price, quantity: 1 }],
+      success_url: appUrl + paths.checkoutSuccess,
+      cancel_url: appUrl + paths.checkoutCancel,
+      allow_promotion_codes: opts.allowPromotionCodes ?? false,
+      metadata,
+      subscription_data: { metadata },
+    });
+    return { url: session.url, id: session.id };
+  }
+
+  async function createPortalSession(orgId: string) {
+    requireOrgId(orgId);
+    const customer = await getCustomerId(orgId);
+    if (!customer) throw new BillingError("no_customer", "No billing account yet; choose a plan first.", 404);
+    return stripe.billingPortal.sessions.create({ customer, return_url: appUrl + paths.portalReturn });
+  }
+
+  async function changePlan(orgId: string, planId: string): Promise<Entitlements> {
+    requireOrgId(orgId);
+    const plan = getPlan(catalog, planId);
+    if (!plan) throw new BillingError("invalid_plan", `Unknown plan "${planId}"`, 400);
+    const row = await loadSub(ex, orgId);
+    if (!row || !SUBSCRIBED_STATUSES.has(row.status)) {
+      throw new BillingError("not_subscribed", "No active subscription; start a checkout instead.", 409);
+    }
+    const current = await stripe.subscriptions.retrieve(row.stripe_subscription_id);
+    let updated: GatewaySubscription;
+    if (plan.id === freePlan.id) {
+      // Downgrade to free = cancel at the end of the paid period (no refund for the rest of it).
+      updated = await stripe.subscriptions.update(current.id, { cancel_at_period_end: true });
+    } else {
+      if (!current.itemId) throw new Error(`subscription ${current.id} has no items`);
+      const price = await priceIdFor(plan);
+      updated = await stripe.subscriptions.update(current.id, {
+        items: [{ id: current.itemId, price }],
+        proration_behavior: opts.prorationBehavior ?? "create_prorations",
+        cancel_at_period_end: false,
+        metadata: { orgId, app: catalog.app, planId: plan.id },
+      });
+    }
+    await applyFetched(updated);
+    return getEntitlements(orgId);
+  }
+
+  async function cancelImmediately(orgId: string): Promise<void> {
+    requireOrgId(orgId);
+    const customer = await getCustomerId(orgId);
+    if (!customer) return;
+    // Cancel every live subscription of the customer, not only the one we know about.
+    const subs = await stripe.subscriptions.list({ customer });
+    for (const s of subs) {
+      if (s.status === "canceled" || s.status === "incomplete_expired") continue;
+      await applyFetched(await stripe.subscriptions.cancel(s.id, { prorate: false }));
+    }
+  }
+
+  async function reconcile() {
+    const { rows } = await ex.query<{ org_id: string; stripe_customer_id: string }>(
+      `SELECT org_id, stripe_customer_id FROM billing_customers ORDER BY org_id`,
+    );
+    let checked = 0;
+    let fixed = 0;
+    let errors = 0;
+    for (const c of rows) {
+      checked++;
+      try {
+        const subs = await stripe.subscriptions.list({ customer: c.stripe_customer_id });
+        const primary = pickPrimarySubscription(subs);
+        if (!primary) continue;
+        const r = await applyFetched(primary);
+        if (r.kind === "applied" && r.changed) fixed++;
+        if (r.kind === "unknown_price") errors++;
+      } catch (e) {
+        errors++;
+        await safeHook(
+          "onAnomaly",
+          hooks.onAnomaly &&
+            (() => hooks.onAnomaly!({ kind: "reconcile_failed", message: errMessage(e), orgId: c.org_id })),
+          { orgId: c.org_id },
+        );
+      }
+    }
+    return { checked, fixed, errors };
+  }
+
+  return {
+    catalog,
+    appUrl,
+    getEntitlements,
+    consumeUsage,
+    releaseUsage,
+    getUsage,
+    createCheckoutSession,
+    createPortalSession,
+    changePlan,
+    handleWebhook,
+    reconcile,
+    cancelImmediately,
+    currentPeriod,
+  };
+}
