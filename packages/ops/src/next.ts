@@ -26,6 +26,11 @@ export interface CspOptions {
   frameAncestors?: string[];
   /** Development mode: adds 'unsafe-eval' (React dev tooling needs it) and drops upgrade-insecure-requests. */
   dev?: boolean;
+  /**
+   * Add `upgrade-insecure-requests` (default: true unless dev). Set false when a production build is served
+   * over plain http (e.g. `next start` on http://localhost for local smoke tests).
+   */
+  upgradeInsecureRequests?: boolean;
 }
 
 const SOURCE_RE = /^(?:'self'|'none'|https?:\/\/[A-Za-z0-9.*-]+(?::\d{1,5})?(?:\/[^\s;,']*)?|wss?:\/\/[A-Za-z0-9.*-]+(?::\d{1,5})?|data:|blob:)$/;
@@ -60,7 +65,7 @@ export function buildCsp(nonce: string, opts: CspOptions = {}): string {
     "form-action 'self'",
     `frame-ancestors ${frameAncestors.length ? frameAncestors.join(" ") : "'none'"}`,
   ];
-  if (!opts.dev) directives.push("upgrade-insecure-requests");
+  if (opts.upgradeInsecureRequests ?? !opts.dev) directives.push("upgrade-insecure-requests");
   return directives.join("; ");
 }
 
@@ -211,6 +216,8 @@ export interface EventsRouteOptions {
   allowedOrigins?: string[];
   /** Server-side user lookup (session). The client body can never set userId. */
   getUserId?: (req: Request) => Promise<string | null>;
+  /** Per-event allowlist of prop keys, e.g. { tool_used: ["rows", "steps"] }. Events not listed keep sanitized props. */
+  allowedProps?: Record<string, readonly string[]>;
   now?: Clock;
 }
 
@@ -244,6 +251,23 @@ async function readBounded(req: Request, max: number): Promise<string | null> {
 }
 
 /** POST /api/events — client beacons (fetch keepalive or navigator.sendBeacon). Always 204 on accept. */
+/**
+ * Without an allowlist for the event, props pass through trackEvent's PII stripping only. With one, only the
+ * listed keys are kept and only primitive values (string <= 64 chars, finite number, boolean).
+ */
+function pickProps(raw: unknown, allowed: readonly string[] | undefined): Record<string, unknown> | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  if (!allowed) return raw as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const k of allowed) {
+    const v = (raw as Record<string, unknown>)[k];
+    if (typeof v === "boolean" || (typeof v === "number" && Number.isFinite(v)) || (typeof v === "string" && v.length <= 64)) {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
 export function eventsRoute(o: EventsRouteOptions) {
   const names = o.allowedNames ?? DEFAULT_EVENT_NAMES;
   return async (req: Request): Promise<Response> => {
@@ -283,7 +307,7 @@ export function eventsRoute(o: EventsRouteOptions) {
         anonymousId: typeof b.anonymousId === "string" ? b.anonymousId : null,
         userId,
         path: typeof b.path === "string" ? b.path : null,
-        props: b.props && typeof b.props === "object" ? (b.props as Record<string, unknown>) : null,
+        props: pickProps(b.props, o.allowedProps?.[b.name as string]),
       },
       { allowedNames: names, now },
     );

@@ -1,16 +1,30 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { headers } from "next/headers";
 import Link from "next/link";
+import { AccountNav, PageviewTracker } from "@/components/SiteChrome";
+import { appUrl } from "@/lib/site";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-plex-sans", display: "swap" });
 const plexMono = IBM_Plex_Mono({ subsets: ["latin", "latin-ext"], weight: ["400", "500"], variable: "--font-plex-mono", display: "swap" });
 
-export const metadata: Metadata = {
-  title: { default: "DataPolish — clean CSV and Excel files in your browser", template: "%s · DataPolish" },
-  description:
-    "Trim spaces, remove blank and duplicate rows, fix dates and numbers, merge files. Runs entirely in your browser; your files are never uploaded.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    metadataBase: new URL(appUrl()),
+    title: { default: "DataPolish — clean CSV and Excel files in your browser", template: "%s · DataPolish" },
+    description:
+      "Trim spaces, remove blank and duplicate rows, fix dates and numbers, merge files. Runs entirely in your browser; your files are never uploaded.",
+    alternates: { canonical: "/" },
+    openGraph: {
+      type: "website",
+      siteName: "DataPolish",
+      title: "DataPolish — clean CSV and Excel files in your browser",
+      description: "Clean messy spreadsheets in your browser. Files are never uploaded.",
+      url: "/",
+    },
+  };
+}
 
 export const viewport: Viewport = { themeColor: "#f5f7f9", width: "device-width", initialScale: 1 };
 
@@ -21,7 +35,10 @@ const nav = [
   { href: "/privacy", label: "Privacy" },
 ];
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Reading the request headers makes every page render per request, which nonce-based CSP requires
+  // (Next adds the proxy's nonce to its own scripts only on dynamic renders).
+  await headers();
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body className="min-h-dvh flex flex-col antialiased">
@@ -35,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="text-[15px] font-semibold tracking-tight">DataPolish</span>
             </Link>
             <nav aria-label="Main">
-              <ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-2">
+              <ul className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-ink-2">
                 {nav.map((n) => (
                   <li key={n.href}>
                     <Link href={n.href} className="hover:text-ink">
@@ -43,6 +60,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <AccountNav />
+                </li>
               </ul>
             </nav>
           </div>
@@ -54,29 +74,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto flex max-w-[1400px] flex-col gap-3 px-4 py-6 text-sm text-ink-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p>Files are processed in your browser and never uploaded.</p>
             <ul className="flex flex-wrap gap-x-5 gap-y-1">
-              <li>
-                <Link href="/guides" className="hover:text-ink">
-                  Guides
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="hover:text-ink">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="hover:text-ink">
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="hover:text-ink">
-                  Terms
-                </Link>
-              </li>
+              {[
+                ["/guides", "Guides"],
+                ["/pricing", "Pricing"],
+                ["/privacy", "Privacy"],
+                ["/terms", "Terms"],
+              ].map(([href, label]) => (
+                <li key={href}>
+                  <Link href={href!} className="hover:text-ink">
+                    {label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </footer>
+        <PageviewTracker />
       </body>
     </html>
   );

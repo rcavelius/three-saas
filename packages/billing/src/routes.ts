@@ -15,6 +15,7 @@
  */
 import { z } from "zod";
 import { BillingError, type Billing } from "./billing";
+import { BillingNotConfiguredError } from "./gateway";
 
 export interface OwnerOrg {
   orgId: string;
@@ -70,6 +71,9 @@ function respondUrl(req: Request, url: string): Response {
 }
 
 function billingErrorResponse(e: unknown): Response {
+  if (e instanceof BillingNotConfiguredError || (e as { code?: string })?.code === "billing_not_configured") {
+    return json(503, { error: "billing_not_configured", message: "Payments are not switched on yet." });
+  }
   if (e instanceof BillingError) {
     return json(e.status, { error: e.code, message: e.status < 500 ? e.message : "billing is not configured" });
   }

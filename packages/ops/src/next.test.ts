@@ -159,3 +159,12 @@ describe("route factories", () => {
     expect(await res.json()).toEqual({ status: "down", version: "abc123" });
   });
 });
+
+describe("buildCsp upgradeInsecureRequests", () => {
+  it("defaults on in production, can be turned off for plain-http smoke tests", () => {
+    const n = generateNonce();
+    expect(buildCsp(n)).toContain("upgrade-insecure-requests");
+    expect(buildCsp(n, { upgradeInsecureRequests: false })).not.toContain("upgrade-insecure-requests");
+    expect(buildCsp(n, { dev: true })).not.toContain("upgrade-insecure-requests");
+  });
+});

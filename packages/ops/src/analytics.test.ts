@@ -151,3 +151,29 @@ describe("eventsRoute", () => {
     expect((await r2(post({ name: "pageview" }))).status).toBe(403);
   });
 });
+
+describe("eventsRoute allowedProps", () => {
+  it("keeps only allowlisted primitive props for listed events", async () => {
+    const route = eventsRoute({
+      handle,
+      rateLimit: { limit: 100, windowMs: 60_000 },
+      clientIp: { mode: "fly" },
+      allowedProps: { tool_used: ["rows", "steps"] },
+    });
+    const res = await route(
+      new Request("https://app.example/api/events", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://app.example", "fly-client-ip": "198.51.100.9" },
+        body: JSON.stringify({
+          name: "tool_used",
+          props: { rows: 120, steps: "trim,dedupe", fileName: "customers.csv", cell: "secret", nested: { a: 1 } },
+        }),
+      }),
+    );
+    expect(res.status).toBe(204);
+    const { rows } = await handle.executor.query<{ props: Record<string, unknown> }>(
+      `SELECT props FROM analytics_events WHERE name = 'tool_used' ORDER BY created_at DESC LIMIT 1`,
+    );
+    expect(rows[0]?.props).toEqual({ rows: 120, steps: "trim,dedupe" });
+  });
+});

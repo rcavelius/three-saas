@@ -6,6 +6,7 @@
  */
 import { randomBytes, randomUUID } from "node:crypto";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins/organization";
 import type { DbHandle, SqlExecutor } from "@repo/database";
@@ -44,6 +45,12 @@ export interface CreateAuthOptions {
   secureCookies?: boolean;
   /** Client IP resolution for rate limiting. Match the deployment proxy (see @repo/ops getClientIp). */
   ipAddress?: { ipAddressHeaders?: string[]; trustedProxies?: string[] };
+  /**
+   * Preferred over `ipAddress`: resolve the client IP from the incoming request with the deployment's trusted
+   * proxy rules (e.g. `(h) => getClientIp(h, clientIpConfigFromEnv(process.env))`). The handler overwrites
+   * CLIENT_IP_HEADER with the result (removing any client-supplied value) before Better Auth reads it.
+   */
+  resolveClientIp?: (headers: Headers) => string | null;
   /** Rate limiting is on by default in every environment. Only tests should ever disable it. */
   rateLimitEnabled?: boolean;
   /** Link put in invitation emails. Default: `${baseURL}/accept-invitation/${invitationId}`. */
@@ -83,11 +90,19 @@ function snakeFields<K extends string>(...keys: K[]): Record<K, string> {
   return out;
 }
 
+/** Internal header carrying the server-resolved client IP into Better Auth; any client-sent value is replaced. */
+export const CLIENT_IP_HEADER = "x-repo-client-ip";
+
 const SESSION_EXPIRES_IN = 60 * 60 * 24 * 30; // 30 days
 const SESSION_UPDATE_AGE = 60 * 60 * 24; // roll the expiry forward at most once a day
 
 /** Builds the Better Auth options (exported for schema verification tests; apps use createAuth). */
 export function buildAuthOptions(opts: CreateAuthOptions) {
+  const seatLimit = async (orgId: string): Promise<number> => {
+    if (!opts.getMemberLimit) return 100;
+    const limit = await opts.getMemberLimit(orgId);
+    return limit < 0 || !Number.isFinite(limit) ? Number.MAX_SAFE_INTEGER : limit;
+  };
   if (!opts.secret || opts.secret.length < 32) throw new Error("createAuth: secret must be at least 32 characters");
   if (!/^[a-z0-9-]{1,16}$/i.test(opts.cookiePrefix)) throw new Error("createAuth: cookiePrefix must be 1-16 [a-z0-9-] chars");
   const baseOrigin = new URL(opts.baseURL).origin;
@@ -267,7 +282,7 @@ export function buildAuthOptions(opts: CreateAuthOptions) {
       // Better Auth skips origin/CSRF checks when NODE_ENV=test unless these are explicitly false.
       disableOriginCheck: false,
       disableCSRFCheck: false,
-      ipAddress: opts.ipAddress,
+      ipAddress: opts.resolveClientIp ? { ipAddressHeaders: [CLIENT_IP_HEADER] } : opts.ipAddress,
       database: { generateId: () => randomUUID() },
     },
 
@@ -304,10 +319,22 @@ export function buildAuthOptions(opts: CreateAuthOptions) {
         requireEmailVerificationOnInvitation: true,
         cancelPendingInvitationsOnReInvite: true,
         invitationExpiresIn: 60 * 60 * 24 * 7,
-        membershipLimit: async (_user, org) => {
-          if (!opts.getMemberLimit) return 100;
-          const limit = await opts.getMemberLimit(org.id);
-          return limit < 0 || !Number.isFinite(limit) ? Number.MAX_SAFE_INTEGER : limit;
+        membershipLimit: async (_user, org) => seatLimit(org.id),
+        organizationHooks: {
+          // Better Auth only checks membershipLimit when an invitation is ACCEPTED; refuse new invitations
+          // once members + pending invitations already fill the plan's seats.
+          beforeCreateInvitation: async ({ invitation }) => {
+            const limit = await seatLimit(invitation.organizationId);
+            const { rows } = await opts.handle.executor.query<{ n: number }>(
+              `SELECT (SELECT count(*) FROM auth_member WHERE organization_id = $1)
+                    + (SELECT count(*) FROM auth_invitation WHERE organization_id = $1 AND status = 'pending'
+                         AND expires_at > now() AND lower(email) <> lower($2))::int AS n`,
+              [invitation.organizationId, invitation.email],
+            );
+            if (Number(rows[0]?.n ?? 0) >= limit) {
+              throw new APIError("FORBIDDEN", { message: "Seat limit reached for this plan", code: "SEAT_LIMIT_REACHED" });
+            }
+          },
         },
         sendInvitationEmail: async (data) => {
           await send(
@@ -388,12 +415,26 @@ export function createAuth(opts: CreateAuthOptions) {
 
   return {
     api: ba.api,
-    handler: (req: Request) => ba.handler(req),
+    handler: (req: Request) => ba.handler(withResolvedClientIp(req, opts.resolveClientIp)),
     getSession,
     requireUser,
     requireOrg,
     $betterAuth: ba,
   };
+}
+
+function withResolvedClientIp(req: Request, resolve: CreateAuthOptions["resolveClientIp"]): Request {
+  if (!resolve) return req;
+  const headers = new Headers(req.headers);
+  headers.delete(CLIENT_IP_HEADER);
+  const ip = resolve(req.headers);
+  if (ip) headers.set(CLIENT_IP_HEADER, ip);
+  const init: RequestInit & { duplex?: "half" } = { method: req.method, headers, signal: req.signal };
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    init.body = req.body;
+    init.duplex = "half";
+  }
+  return new Request(req.url, init);
 }
 
 export type AppAuth = ReturnType<typeof createAuth>;

@@ -73,8 +73,8 @@ export interface SubscriptionUpdateParams {
 }
 
 export interface StripeGateway {
-  /** "test"/"live" for the real SDK (from the key prefix), "fake" for FakeStripe. */
-  readonly mode: "test" | "live" | "fake";
+  /** "test"/"live" for the real SDK (from the key prefix), "fake" for FakeStripe, "none" when not configured. */
+  readonly mode: "test" | "live" | "fake" | "none";
   customers: {
     create(
       params: { email?: string; metadata: Record<string, string> },
@@ -269,4 +269,48 @@ export function stripeGatewayFromEnv(env: Record<string, string | undefined> = p
   const key = env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
   return createStripeGateway(key, { allowLive: env.STRIPE_LIVE_MODE_AUTHORIZED === "true" });
+}
+
+/** Thrown by the not-configured gateway; routes map it to 503 "billing not configured". */
+export class BillingNotConfiguredError extends Error {
+  readonly status = 503;
+  readonly code = "billing_not_configured";
+  constructor() {
+    super("Billing is not configured (no Stripe key)");
+    this.name = "BillingNotConfiguredError";
+  }
+}
+
+/**
+ * A gateway for running without Stripe credentials (local dev, previews): every Stripe call throws
+ * BillingNotConfiguredError, so entitlements fall back to whatever the database says (free for everyone
+ * until a subscription exists) and checkout/portal answer 503.
+ */
+export function notConfiguredGateway(): StripeGateway {
+  const fail = async (): Promise<never> => {
+    throw new BillingNotConfiguredError();
+  };
+  return {
+    mode: "none",
+    customers: { create: fail },
+    checkout: { sessions: { create: fail } },
+    billingPortal: { sessions: { create: fail } },
+    subscriptions: { retrieve: fail, list: fail, update: fail, cancel: fail },
+    prices: { listByLookupKeys: fail },
+    webhooks: {
+      constructEvent: () => {
+        throw new BillingNotConfiguredError();
+      },
+    },
+  };
+}
+
+/** Real gateway when STRIPE_SECRET_KEY is set, otherwise the not-configured gateway. */
+export function stripeGatewayFromEnvOrNotConfigured(env: Record<string, string | undefined> = process.env): {
+  gateway: StripeGateway;
+  configured: boolean;
+} {
+  return env.STRIPE_SECRET_KEY
+    ? { gateway: stripeGatewayFromEnv(env), configured: true }
+    : { gateway: notConfiguredGateway(), configured: false };
 }
