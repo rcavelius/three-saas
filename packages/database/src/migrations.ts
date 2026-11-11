@@ -15,56 +15,9 @@ export interface SqlExecutor {
 export const CORE_MIGRATIONS: Migration[] = [
   {
     id: "core_0001_init",
+    // Identity tables were removed from this migration before any deployment existed;
+    // they now live in @repo/auth (AUTH_MIGRATIONS) and @repo/billing (BILLING_MIGRATIONS).
     sql: `
-CREATE TABLE IF NOT EXISTS users (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email text NOT NULL,
-  password_hash text,
-  email_verified_at timestamptz,
-  role text NOT NULL DEFAULT 'customer',
-  created_at timestamptz NOT NULL DEFAULT now(),
-  deleted_at timestamptz
-);
-CREATE UNIQUE INDEX IF NOT EXISTS users_email_idx ON users (email);
-
-CREATE TABLE IF NOT EXISTS sessions (
-  id text PRIMARY KEY,
-  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  expires_at timestamptz NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS sessions_user_idx ON sessions (user_id);
-
-CREATE TABLE IF NOT EXISTS auth_tokens (
-  id text PRIMARY KEY,
-  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  purpose text NOT NULL,
-  expires_at timestamptz NOT NULL,
-  used_at timestamptz
-);
-
-CREATE TABLE IF NOT EXISTS subscriptions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  stripe_customer_id text,
-  stripe_subscription_id text,
-  plan text NOT NULL DEFAULT 'free',
-  status text NOT NULL DEFAULT 'active',
-  current_period_end timestamptz,
-  cancel_at_period_end boolean NOT NULL DEFAULT false,
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE UNIQUE INDEX IF NOT EXISTS subscriptions_user_idx ON subscriptions (user_id);
-CREATE INDEX IF NOT EXISTS subscriptions_stripe_sub_idx ON subscriptions (stripe_subscription_id);
-
-CREATE TABLE IF NOT EXISTS stripe_events (
-  id text PRIMARY KEY,
-  type text NOT NULL,
-  received_at timestamptz NOT NULL DEFAULT now(),
-  processed_at timestamptz,
-  error text
-);
-
 CREATE TABLE IF NOT EXISTS jobs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   queue text NOT NULL,
@@ -96,7 +49,7 @@ CREATE TABLE IF NOT EXISTS analytics_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   anonymous_id text,
-  user_id uuid,
+  user_id text,
   path text,
   props jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at timestamptz NOT NULL DEFAULT now()

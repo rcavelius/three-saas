@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS endpoints (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug text NOT NULL,
   name text NOT NULL DEFAULT 'Untitled endpoint',
-  owner_user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+  owner_user_id uuid,
   anon_owner_hash text,
   plan text NOT NULL DEFAULT 'free',
   created_at timestamptz NOT NULL DEFAULT now(),

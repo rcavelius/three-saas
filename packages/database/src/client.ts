@@ -21,6 +21,11 @@ export interface DbHandle<TSchema extends Record<string, unknown> = Record<strin
   executor: SqlExecutor;
   driver: "pg" | "pglite";
   migrate(migrations: Migration[]): Promise<string[]>;
+  /**
+   * Runs fn inside one BEGIN/COMMIT on a single connection; rolls back on throw.
+   * Use for check-then-write sequences (usage accounting, plan-limit counts with advisory locks).
+   */
+  transaction<T>(fn: (tx: SqlExecutor) => Promise<T>): Promise<T>;
   close(): Promise<void>;
 }
 
@@ -44,6 +49,16 @@ export function createDb<TSchema extends Record<string, unknown>>(
       executor,
       driver: "pglite",
       migrate: (m) => runMigrations(executor, m),
+      transaction: (fn) =>
+        client.transaction(async (t) =>
+          fn({
+            exec: (sql) => t.exec(sql),
+            query: async <T>(sql: string, params?: unknown[]) => {
+              const r = await t.query<T>(sql, params as unknown[]);
+              return { rows: r.rows };
+            },
+          }),
+        ),
       close: () => client.close(),
     };
   }
@@ -80,6 +95,26 @@ export function createDb<TSchema extends Record<string, unknown>>(
           },
         };
         return await runMigrations(single, m);
+      } finally {
+        conn.release();
+      }
+    },
+    transaction: async (fn) => {
+      const conn = await pool.connect();
+      try {
+        await conn.query("BEGIN");
+        const result = await fn({
+          exec: (sql) => conn.query(sql),
+          query: async <T>(sql: string, params?: unknown[]) => {
+            const r = await conn.query(sql, params);
+            return { rows: r.rows as T[] };
+          },
+        });
+        await conn.query("COMMIT");
+        return result;
+      } catch (err) {
+        await conn.query("ROLLBACK").catch(() => {});
+        throw err;
       } finally {
         conn.release();
       }

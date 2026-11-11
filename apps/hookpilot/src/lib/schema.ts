@@ -30,7 +30,7 @@ export const endpoints = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     slug: text("slug").notNull(),
     name: text("name").notNull().default("Untitled endpoint"),
-    ownerUserId: uuid("owner_user_id").references(() => coreSchema.users.id, { onDelete: "cascade" }),
+    ownerUserId: uuid("owner_user_id"),
     /** sha256 hex of the anonymous owner token; the raw token only lives in the owner's cookie. */
     anonOwnerHash: text("anon_owner_hash"),
     plan: text("plan").notNull().default("free"),

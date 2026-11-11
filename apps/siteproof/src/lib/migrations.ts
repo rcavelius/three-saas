@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS scans (
   pages integer NOT NULL,
   duration_ms integer NOT NULL,
   report jsonb NOT NULL,
-  user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  user_id uuid,
   created_at timestamptz NOT NULL DEFAULT now(),
   expires_at timestamptz NOT NULL
 );

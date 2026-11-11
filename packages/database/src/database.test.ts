@@ -21,9 +21,11 @@ describe("migrations", () => {
   });
 
   it("supports drizzle queries on the core schema", async () => {
-    const [u] = await handle.db.insert(schema.users).values({ email: "a@example.com" }).returning();
-    expect(u?.email).toBe("a@example.com");
-    expect(u?.role).toBe("customer");
+    const [i] = await handle.db
+      .insert(schema.incidents)
+      .values({ severity: "warning", source: "test", title: "t" })
+      .returning();
+    expect(i?.status).toBe("open");
   });
 });
 
@@ -62,6 +64,22 @@ describe("job queue", () => {
     await handle.executor.query(`UPDATE jobs SET locked_at = now() - interval '1 hour' WHERE id = $1`, [id]);
     const [again] = await claimJobs(handle.executor, "q4", "w2");
     expect(again?.id).toBe(id);
+  });
+});
+
+describe("transaction", () => {
+  it("commits on success and rolls back on throw", async () => {
+    await handle.transaction(async (tx) => {
+      await tx.query(`INSERT INTO incidents (severity, source, title) VALUES ('info','tx','commit')`);
+    });
+    await expect(
+      handle.transaction(async (tx) => {
+        await tx.query(`INSERT INTO incidents (severity, source, title) VALUES ('info','tx','rollback')`);
+        throw new Error("abort");
+      }),
+    ).rejects.toThrow("abort");
+    const { rows } = await handle.executor.query<{ title: string }>(`SELECT title FROM incidents WHERE source = 'tx'`);
+    expect(rows.map((r) => r.title)).toEqual(["commit"]);
   });
 });
 

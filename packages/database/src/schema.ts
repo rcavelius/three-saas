@@ -1,90 +1,11 @@
 /**
- * Core tables shared by every app. Each app runs its OWN database (independent
- * deployability); these tables exist in each of them alongside app-specific tables.
- * Keep this file in sync with CORE_MIGRATIONS in ./migrations.ts.
+ * Core infrastructure tables shared by every app. Each app runs its OWN database (independent
+ * deployability). Identity/teams live in @repo/auth (Better Auth tables, prefixed auth_), billing in
+ * @repo/billing (prefixed billing_), ops tables in @repo/ops. Keep in sync with CORE_MIGRATIONS.
  */
-import {
-  pgTable,
-  text,
-  uuid,
-  timestamp,
-  integer,
-  jsonb,
-  boolean,
-  index,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, integer, jsonb, index } from "drizzle-orm/pg-core";
 
-export const users = pgTable(
-  "users",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    email: text("email").notNull(),
-    passwordHash: text("password_hash"),
-    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
-    role: text("role").notNull().default("customer"), // customer | operator | owner
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  },
-  (t) => [uniqueIndex("users_email_idx").on(t.email)],
-);
-
-export const sessions = pgTable(
-  "sessions",
-  {
-    /** sha256 of the session token; the raw token only lives in the cookie */
-    id: text("id").primaryKey(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [index("sessions_user_idx").on(t.userId)],
-);
-
-export const authTokens = pgTable("auth_tokens", {
-  /** sha256 of a single-use token (email verification, magic link, password reset) */
-  id: text("id").primaryKey(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  purpose: text("purpose").notNull(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  usedAt: timestamp("used_at", { withTimezone: true }),
-});
-
-export const subscriptions = pgTable(
-  "subscriptions",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    stripeCustomerId: text("stripe_customer_id"),
-    stripeSubscriptionId: text("stripe_subscription_id"),
-    plan: text("plan").notNull().default("free"),
-    status: text("status").notNull().default("active"),
-    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
-    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [
-    uniqueIndex("subscriptions_user_idx").on(t.userId),
-    index("subscriptions_stripe_sub_idx").on(t.stripeSubscriptionId),
-  ],
-);
-
-/** Stripe webhook idempotency + audit trail. */
-export const stripeEvents = pgTable("stripe_events", {
-  id: text("id").primaryKey(),
-  type: text("type").notNull(),
-  receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
-  processedAt: timestamp("processed_at", { withTimezone: true }),
-  error: text("error"),
-});
-
-/** Postgres-backed job queue (claimed with FOR UPDATE SKIP LOCKED). */
+/** Postgres-backed job queue (claimed with FOR UPDATE SKIP LOCKED). status 'failed' = dead letter. */
 export const jobs = pgTable(
   "jobs",
   {
@@ -115,14 +36,14 @@ export const incidents = pgTable("incidents", {
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
 });
 
-/** First-party, cookie-less product analytics (no third-party trackers). */
+/** First-party, cookie-less product analytics (no third-party trackers, no IP addresses stored). */
 export const analyticsEvents = pgTable(
   "analytics_events",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     name: text("name").notNull(),
     anonymousId: text("anonymous_id"),
-    userId: uuid("user_id"),
+    userId: text("user_id"),
     path: text("path"),
     props: jsonb("props").notNull().default({}),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -130,14 +51,14 @@ export const analyticsEvents = pgTable(
   (t) => [index("analytics_name_time_idx").on(t.name, t.createdAt)],
 );
 
-/** Fixed-window rate limit counters. */
+/** Fixed-window rate limit counters (shared DB => limits hold across all app instances). */
 export const rateLimits = pgTable("rate_limits", {
   key: text("key").primaryKey(),
   windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
   count: integer("count").notNull().default(0),
 });
 
-/** Infrastructure/API cost entries (recorded from provider usage, never estimated silently). */
+/** Infrastructure/API cost entries (recorded from provider usage or owner input, never invented). */
 export const costEntries = pgTable("cost_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
   provider: text("provider").notNull(),

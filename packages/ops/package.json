@@ -1,0 +1,19 @@
+{
+  "name": "@repo/ops",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./next": "./src/next.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@repo/database": "*",
+    "@repo/monitoring": "*",
+    "zod": "^4.6.7"
+  }
+}
