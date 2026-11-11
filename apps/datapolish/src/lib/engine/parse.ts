@@ -47,7 +47,9 @@ export function rowsToTable(data: string[][], hasHeader: boolean): ParseResult {
   }
   const header = hasHeader ? data[0]! : [];
   const body = hasHeader ? data.slice(1) : data;
-  const width = Math.max(header.length, ...body.map((r) => r.length));
+  // A loop, not Math.max(...spread): spreading hundreds of thousands of rows overflows the call stack.
+  let width = header.length;
+  for (const r of body) if (r.length > width) width = r.length;
   const rawColumns = hasHeader ? [...header] : [];
   let extra = 1;
   while (rawColumns.length < width) {

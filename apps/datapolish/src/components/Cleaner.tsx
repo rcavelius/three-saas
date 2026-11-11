@@ -1,19 +1,24 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DataGrid } from "@/components/DataGrid";
 import { StepCard } from "@/components/StepEditor";
 import { WorkflowPanel } from "@/components/WorkflowPanel";
+import { track } from "@/lib/analytics";
 import { baseName, downloadBlob, MIME } from "@/lib/download";
 import { normalizeHeaders } from "@/lib/engine/ops/basic";
 import type { CsvExportOptions } from "@/lib/engine/export";
 import { detectKind, type XlsxDateMode } from "@/lib/engine/parse";
 import { isCellChanged } from "@/lib/engine/pipeline";
 import type { Step, StepType } from "@/lib/engine/schema";
-import { FREE_LIMITS, formatBytes } from "@/lib/limits";
+import { zipFileName } from "@/lib/engine/zip";
+import { formatBytes, processingLimits, type ClientEntitlements, type ProcessingLimits } from "@/lib/limits";
+import { checkBeforeParse, estimateCellsMemory, estimateFileMemory, maxCellsFor, memoryBudget } from "@/lib/memory";
 import { SAMPLE_CSV, SAMPLE_FILE_NAME } from "@/lib/sample";
-import { createStep, defaultSteps, renameRefs, STEP_META, templateFor } from "@/lib/steps";
-import { createEngineClient, type EngineClient } from "@/lib/worker/client";
+import { defaultSteps, renameRefs, STEP_META, templateFor } from "@/lib/steps";
+import { fetchEntitlements, useEntitlements } from "@/lib/useEntitlements";
+import { createEngineClient, isCancelled, type EngineClient } from "@/lib/worker/client";
 import type { ParseResponse, RunResponse } from "@/lib/worker/protocol";
 
 interface LoadedFile {
@@ -48,10 +53,32 @@ function tidyNames(columns: string[], names: string[]): string[] {
   return names.map((n) => tidy[columns.indexOf(n)] ?? n);
 }
 
-export function Cleaner() {
+/** Rough heap estimate of a loaded file (parsed table + kept bytes), for the memory guard. */
+function fileMemory(f: LoadedFile): number {
+  return f.size + estimateCellsMemory(f.parse.table.rows.length * Math.max(1, f.parse.table.columns.length));
+}
+
+const MODE_OF = (files: number, mode: Mode) => (files <= 1 ? "single" : mode);
+
+export interface CleanerProps {
+  /** Free plan limits from the catalog (server-rendered), used until /api/me/entitlements answers. */
+  freeLimits: ProcessingLimits;
+  /** Injected in tests; defaults to GET /api/me/entitlements. */
+  loadEntitlements?: () => Promise<ClientEntitlements | null>;
+}
+
+export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: CleanerProps) {
   const clientRef = useRef<EngineClient | null>(null);
   const client = useCallback(() => (clientRef.current ??= createEngineClient()), []);
   useEffect(() => () => clientRef.current?.dispose(), []);
+
+  // Plan limits for LOCAL processing come from the server's entitlements. They are value fences, not
+  // security boundaries: the file never leaves this browser, so there is nothing server-side to protect.
+  const { entitlements, refresh: refreshEntitlements } = useEntitlements(loadEntitlements);
+  const limits: ProcessingLimits = entitlements ? processingLimits(entitlements.planId, entitlements.planName, entitlements.limits) : freeLimits;
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [runNonce, setRunNonce] = useState(0);
+  const cancelled = useRef(false);
 
   const [files, setFiles] = useState<LoadedFile[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -120,55 +147,112 @@ export function Cleaner() {
         setPending(false);
       } catch (e) {
         if (my !== token.current) return;
-        setRunError(e instanceof Error ? e.message : String(e));
-        setStatus("Cleaning failed.");
+        if (isCancelled(e)) {
+          setRunError("Cleaning was cancelled. Change a step or press “Run again”.");
+          setStatus("Cancelled.");
+        } else {
+          setRunError(e instanceof Error ? e.message : String(e));
+          setStatus("Cleaning failed.");
+        }
         setPending(false);
       }
     }, 180);
     return () => clearTimeout(timer);
-  }, [files, steps, merge, isBatch, isMerge, activeId, client]);
+  }, [files, steps, merge, isBatch, isMerge, activeId, client, runNonce]);
+
+  const cancelWork = () => {
+    cancelled.current = true;
+    token.current++;
+    client().cancel();
+    if (pending) setRunError("Cleaning was cancelled. Change a step or press “Run again”.");
+    setPending(false);
+    setLoading(false);
+    setStatus("Cancelled.");
+  };
 
   const shown: RunResponse | null = isBatch ? (batch.find((b) => b.fileId === activeId)?.res ?? batch[0]?.res ?? null) : single;
   const activeFile = files.find((f) => f.id === activeId) ?? files[0] ?? null;
   const inputColumns = shown?.input.columns ?? activeFile?.parse.table.columns ?? [];
 
+  const planWord = `your plan (${limits.planName})`;
+  const [limitHit, setLimitHit] = useState(false);
+
   const addFiles = async (list: File[] | { name: string; bytes: Uint8Array }[]) => {
     const errors: string[] = [];
-    const room = FREE_LIMITS.maxFiles - files.length;
-    if (list.length > room) errors.push(`The free plan handles ${FREE_LIMITS.maxFiles} files at once; ${list.length - Math.max(room, 0)} file(s) were not added.`);
+    const warns: string[] = [];
+    let hit = false;
+    const room = limits.maxFiles - files.length;
+    if (list.length > room) {
+      errors.push(`${planWord} handles ${limits.maxFiles} files at once; ${list.length - Math.max(room, 0)} file(s) were not added.`);
+      hit = true;
+    }
     const take = list.slice(0, Math.max(room, 0));
+    cancelled.current = false;
     setLoading(true);
     setStatus("Reading file…");
     const added: LoadedFile[] = [];
+    const budget = memoryBudget();
     for (const item of take) {
+      if (cancelled.current) {
+        errors.push("Loading was cancelled.");
+        break;
+      }
       const name = item.name;
       const size = item instanceof File ? item.size : item.bytes.byteLength;
-      if (detectKind(name) === "unsupported") {
+      const kind = detectKind(name);
+      if (kind === "unsupported") {
         errors.push(`${name}: not a CSV or Excel file (.csv, .tsv, .txt, .xlsx, .xls, .ods).`);
         continue;
       }
-      if (size > FREE_LIMITS.maxFileBytes) {
-        errors.push(`${name} is ${formatBytes(size)}; the free plan handles files up to ${formatBytes(FREE_LIMITS.maxFileBytes)}.`);
+      if (size > limits.maxFileBytes) {
+        errors.push(`${name} is ${formatBytes(size)}; ${planWord} handles files up to ${formatBytes(limits.maxFileBytes)}.`);
+        hit = true;
         continue;
       }
+      // Memory guard BEFORE reading: refuse or warn instead of letting the tab crash.
+      const loaded = [...files, ...added];
+      const inUse = loaded.reduce((n, f) => n + fileMemory(f), 0);
+      const verdict = checkBeforeParse({
+        name,
+        bytes: size,
+        kind: kind === "workbook" ? "xlsx" : "csv",
+        inUseBytes: inUse,
+        loadedFileBytes: loaded.reduce((n, f) => n + f.size, 0),
+        budget,
+      });
+      if (verdict.level === "refuse") {
+        errors.push(verdict.message);
+        continue;
+      }
+      if (verdict.level === "warn") warns.push(verdict.message);
       try {
         const bytes = item instanceof File ? new Uint8Array(await item.arrayBuffer()) : item.bytes;
-        const parse = await client().parse(name, bytes, {});
-        if (parse.table.rows.length > FREE_LIMITS.maxRows) {
-          errors.push(`${name} has ${parse.table.rows.length.toLocaleString("en-US")} rows; the free plan handles up to ${FREE_LIMITS.maxRows.toLocaleString("en-US")}.`);
-          continue;
-        }
+        const loadedCells = loaded.reduce((n, f) => n + f.parse.table.rows.length * Math.max(1, f.parse.table.columns.length), 0);
+        const parse = await client().parse(name, bytes, {}, {
+          maxRows: limits.maxRows,
+          maxCells: maxCellsFor(budget, inUse + estimateFileMemory(size, kind === "workbook" ? "xlsx" : "csv") / 4, loadedCells),
+          planName: limits.planName,
+        });
         added.push({ id: `f${++fileCounter}`, name, size, bytes, parse, sheet: parse.sheet, dateMode: "display", hasHeader: true });
       } catch (e) {
-        errors.push(`${name}: ${e instanceof Error ? e.message : "could not be read"}`);
+        if (isCancelled(e)) {
+          errors.push("Loading was cancelled.");
+          break;
+        }
+        const msg = e instanceof Error ? e.message : "could not be read";
+        if (/your plan/.test(msg)) hit = true;
+        errors.push(msg.startsWith(name) ? msg : `${name}: ${msg}`);
       }
     }
     setLoading(false);
     setLoadErrors(errors);
+    setWarnings(warns);
+    setLimitHit(hit);
     if (added.length === 0) {
       setStatus(errors.length ? "No file was added." : "");
       return;
     }
+    track("tool_used", { action: "clean", mode: MODE_OF(files.length + added.length, mode), files: files.length + added.length, steps: steps.length });
     if (files.length === 0) {
       const first = added[0]!;
       setSteps(defaultSteps(tidyNames(first.parse.table.columns, first.parse.suggestions.numberColumns)));
@@ -186,14 +270,18 @@ export function Cleaner() {
     if (!f) return;
     const next = { ...f, ...patch };
     try {
-      const parse = await client().parse(f.name, f.bytes, { sheet: next.sheet, dateMode: next.dateMode, hasHeader: next.hasHeader });
-      if (parse.table.rows.length > FREE_LIMITS.maxRows) {
-        setLoadErrors([`That sheet has more than ${FREE_LIMITS.maxRows.toLocaleString("en-US")} rows (free plan limit).`]);
-        return;
-      }
+      const others = files.filter((x) => x.id !== id);
+      const inUse = others.reduce((n, x) => n + fileMemory(x), 0);
+      const loadedCells = others.reduce((n, x) => n + x.parse.table.rows.length * Math.max(1, x.parse.table.columns.length), 0);
+      const parse = await client().parse(
+        f.name,
+        f.bytes,
+        { sheet: next.sheet, dateMode: next.dateMode, hasHeader: next.hasHeader },
+        { maxRows: limits.maxRows, maxCells: maxCellsFor(memoryBudget(), inUse, loadedCells), planName: limits.planName },
+      );
       setFiles((prev) => prev.map((x) => (x.id === id ? { ...next, parse } : x)));
     } catch (e) {
-      setLoadErrors([e instanceof Error ? e.message : String(e)]);
+      if (!isCancelled(e)) setLoadErrors([e instanceof Error ? e.message : String(e)]);
     }
   };
 
@@ -288,30 +376,53 @@ export function Cleaner() {
   const ready = !!result && !pending && !runError;
   const outName = isMerge ? "merged" : baseName(activeFile?.name ?? "data");
 
-  const downloadCsv = async () => {
-    if (!result) return;
-    const text = await client().csv(result.table, csvOpts);
-    downloadBlob(text, `${outName}-clean.${csvOpts.delimiter === "\t" ? "tsv" : "csv"}`, MIME.csv);
-  };
-  const downloadXlsx = async () => {
-    if (!result) return;
-    const bytes = await client().xlsx([{ name: outName, table: result.table }]);
-    downloadBlob(bytes as BlobPart, `${outName}-clean.xlsx`, MIME.xlsx);
-  };
-  const downloadOriginal = (f: LoadedFile) => downloadBlob(f.bytes as BlobPart, f.name, "application/octet-stream");
-  const downloadBatchXlsx = async () => {
-    const sheets = batch.map((b) => ({ name: files.find((f) => f.id === b.fileId)?.name ?? "sheet", table: b.res.result.table }));
-    const bytes = await client().xlsx(sheets);
-    downloadBlob(bytes as BlobPart, "batch-clean.xlsx", MIME.xlsx);
-  };
-  const downloadBatchCsvs = async () => {
-    for (const b of batch) {
-      const f = files.find((x) => x.id === b.fileId);
-      const text = await client().csv(b.res.result.table, csvOpts);
-      downloadBlob(text, `${baseName(f?.name ?? "data")}-clean.csv`, MIME.csv);
-      await new Promise((r) => setTimeout(r, 400));
+  const usage = (action: "download_csv" | "download_xlsx" | "download_zip" | "download_batch_xlsx", format: "csv" | "tsv" | "xlsx" | "zip_csv" | "zip_xlsx") =>
+    track("tool_used", { action, mode: MODE_OF(files.length, mode), files: files.length, steps: steps.length, format });
+
+  const [exporting, setExporting] = useState(false);
+  const exportGuard = async (fn: () => Promise<void>) => {
+    setExporting(true);
+    try {
+      await fn();
+    } catch (e) {
+      if (!isCancelled(e)) setRunError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setExporting(false);
     }
   };
+
+  const downloadCsv = () =>
+    exportGuard(async () => {
+      if (!result) return;
+      const text = await client().csv(result.table, csvOpts);
+      const tsv = csvOpts.delimiter === "\t";
+      downloadBlob(text, `${outName}-clean.${tsv ? "tsv" : "csv"}`, MIME.csv);
+      usage("download_csv", tsv ? "tsv" : "csv");
+    });
+  const downloadXlsx = () =>
+    exportGuard(async () => {
+      if (!result) return;
+      const bytes = await client().xlsx([{ name: outName, table: result.table }]);
+      downloadBlob(bytes as BlobPart, `${outName}-clean.xlsx`, MIME.xlsx);
+      usage("download_xlsx", "xlsx");
+    });
+  const downloadOriginal = (f: LoadedFile) => downloadBlob(f.bytes as BlobPart, f.name, "application/octet-stream");
+  const batchTables = () => batch.map((b) => ({ name: files.find((f) => f.id === b.fileId)?.name ?? "data", table: b.res.result.table }));
+  const downloadBatchXlsx = () =>
+    exportGuard(async () => {
+      const bytes = await client().xlsx(batchTables());
+      downloadBlob(bytes as BlobPart, "batch-clean.xlsx", MIME.xlsx);
+      usage("download_batch_xlsx", "xlsx");
+    });
+  /** One ZIP with a cleaned CSV (or XLSX) per file, built in the worker. Nothing is uploaded. */
+  const downloadZip = (format: "csv" | "xlsx") =>
+    exportGuard(async () => {
+      setStatus("Building ZIP…");
+      const bytes = await client().zip(batchTables(), format, csvOpts);
+      downloadBlob(bytes as BlobPart, zipFileName(), MIME.zip);
+      setStatus(`ZIP ready: ${batch.length} files.`);
+      usage("download_zip", format === "xlsx" ? "zip_xlsx" : "zip_csv");
+    });
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -336,12 +447,13 @@ export function Cleaner() {
             <p className="eyebrow">Step 1 · Load a file</p>
             <p className="text-lg font-semibold">Drop a CSV or Excel file here</p>
             <p className="text-sm text-ink-2">
-              Up to {FREE_LIMITS.maxFiles} files, {formatBytes(FREE_LIMITS.maxFileBytes)} and {FREE_LIMITS.maxRows.toLocaleString("en-US")} rows each. Read in your browser, never uploaded.
+              {limits.planName} plan: up to {limits.maxFiles} files, {formatBytes(limits.maxFileBytes)} and {limits.maxRows.toLocaleString("en-US")} rows each. Read in your browser, never
+              uploaded.
             </p>
           </>
         )}
         <div className="flex flex-wrap justify-center gap-2">
-          <button type="button" className="btn btn-primary" onClick={() => fileInput.current?.click()} disabled={loading || files.length >= FREE_LIMITS.maxFiles}>
+          <button type="button" className="btn btn-primary" onClick={() => fileInput.current?.click()} disabled={loading || files.length >= limits.maxFiles}>
             {files.length ? "Add another file…" : "Choose file…"}
           </button>
           {files.length === 0 && (
@@ -377,10 +489,33 @@ export function Cleaner() {
 
       {files.length === 0 && dropZone}
 
+      {(loading || pending || exporting) && (
+        <div className="mt-3 flex items-center justify-between gap-3 border border-rule bg-surface px-3 py-2 text-sm">
+          <span aria-hidden="true">{loading ? "Reading file in your browser…" : exporting ? "Preparing download…" : "Cleaning in your browser…"}</span>
+          <button type="button" className="btn btn-sm" onClick={cancelWork}>
+            Cancel
+          </button>
+        </div>
+      )}
+
       {loadErrors.length > 0 && (
         <div role="alert" className="mt-3 border-l-2 border-del-ink bg-del px-3 py-2 text-sm text-del-ink">
           {loadErrors.map((e, i) => (
             <p key={i}>{e}</p>
+          ))}
+          {limitHit && limits.planId !== "business" && (
+            <p className="mt-1">
+              <Link href="/pricing" className="font-medium underline" onClick={() => track("upgrade_clicked", { from: "limit", plan: limits.planId === "pro" ? "business" : "pro" })}>
+                See plans with larger limits
+              </Link>
+            </p>
+          )}
+        </div>
+      )}
+      {warnings.length > 0 && (
+        <div className="mt-3 border-l-2 border-mark-edge bg-mark px-3 py-2 text-sm">
+          {warnings.map((w, i) => (
+            <p key={i}>{w}</p>
           ))}
         </div>
       )}
@@ -392,7 +527,7 @@ export function Cleaner() {
             <section aria-labelledby="files-heading" className="border border-rule bg-surface">
               <div className="flex items-center justify-between border-b border-rule px-3 py-2">
                 <h2 id="files-heading" className="text-sm font-semibold">
-                  Files <span className="font-mono text-xs font-normal text-ink-3">{files.length}/{FREE_LIMITS.maxFiles}</span>
+                  Files <span className="font-mono text-xs font-normal text-ink-3">{files.length}/{limits.maxFiles}</span>
                 </h2>
                 <button type="button" className="text-[12px] text-ink-2 underline hover:text-ink" onClick={startOver}>
                   Start over
@@ -461,7 +596,7 @@ export function Cleaner() {
                   </li>
                 ))}
               </ul>
-              {files.length < FREE_LIMITS.maxFiles && <div className="border-t border-rule">{dropZone}</div>}
+              {files.length < limits.maxFiles && <div className="border-t border-rule">{dropZone}</div>}
             </section>
 
             {files.length > 1 && (
@@ -541,6 +676,8 @@ export function Cleaner() {
 
             <WorkflowPanel
               steps={steps}
+              entitlements={entitlements}
+              onAccountChange={() => void refreshEntitlements()}
               onLoad={(s) => {
                 setSteps(s);
                 setStatus("Workflow applied.");
@@ -558,9 +695,19 @@ export function Cleaner() {
             </div>
 
             {runError && (
-              <p role="alert" className="border-l-2 border-del-ink bg-del px-3 py-2 text-sm text-del-ink">
-                {runError}
-              </p>
+              <div role="alert" className="flex flex-wrap items-center justify-between gap-2 border-l-2 border-del-ink bg-del px-3 py-2 text-sm text-del-ink">
+                <p>{runError}</p>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  onClick={() => {
+                    setRunError(null);
+                    setRunNonce((n) => n + 1);
+                  }}
+                >
+                  Run again
+                </button>
+              </div>
             )}
 
             {isBatch && batch.length > 0 && (
@@ -708,19 +855,22 @@ export function Cleaner() {
                     Download
                   </h3>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <button type="button" className="btn btn-primary" onClick={() => void downloadCsv()} disabled={!ready}>
+                    <button type="button" className="btn btn-primary" onClick={() => void downloadCsv()} disabled={!ready || exporting}>
                       Download cleaned CSV
                     </button>
-                    <button type="button" className="btn" onClick={() => void downloadXlsx()} disabled={!ready}>
+                    <button type="button" className="btn" onClick={() => void downloadXlsx()} disabled={!ready || exporting}>
                       Download cleaned XLSX
                     </button>
                     {isBatch && (
                       <>
-                        <button type="button" className="btn" onClick={() => void downloadBatchXlsx()} disabled={!ready}>
-                          All files → one XLSX
+                        <button type="button" className="btn" onClick={() => void downloadZip("csv")} disabled={!ready || exporting}>
+                          All files → ZIP of CSVs
                         </button>
-                        <button type="button" className="btn" onClick={() => void downloadBatchCsvs()} disabled={!ready}>
-                          All files → CSVs
+                        <button type="button" className="btn" onClick={() => void downloadZip("xlsx")} disabled={!ready || exporting}>
+                          All files → ZIP of XLSX
+                        </button>
+                        <button type="button" className="btn" onClick={() => void downloadBatchXlsx()} disabled={!ready || exporting}>
+                          All files → one XLSX
                         </button>
                       </>
                     )}
