@@ -30,12 +30,17 @@ export const endpoints = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     slug: text("slug").notNull(),
     name: text("name").notNull().default("Untitled endpoint"),
-    ownerUserId: uuid("owner_user_id"),
+    /** Owning organization (accounts); NULL for anonymous endpoints. */
+    orgId: text("org_id"),
+    createdBy: text("created_by"),
     /** sha256 hex of the anonymous owner token; the raw token only lives in the owner's cookie. */
     anonOwnerHash: text("anon_owner_hash"),
     plan: text("plan").notNull().default("free"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    /** NULL = never expires (paid plans). */
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    /** Set when the org's plan no longer covers this endpoint (downgrade): capture answers 423. */
+    lockedAt: timestamp("locked_at", { withTimezone: true }),
     maxRequests: integer("max_requests").notNull().default(100),
     requestCount: bigint("request_count", { mode: "number" }).notNull().default(0),
     lastRequestAt: timestamp("last_request_at", { withTimezone: true }),
@@ -74,5 +79,44 @@ export const capturedRequests = pgTable(
   ],
 );
 
-export const schema = { ...coreSchema, endpoints, capturedRequests };
+export const destinations = pgTable("hp_destinations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: text("org_id").notNull(),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  verificationTokenHash: text("verification_token_hash"),
+  verificationAttemptedAt: timestamp("verification_attempted_at", { withTimezone: true }),
+  lastVerificationError: text("last_verification_error"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const replays = pgTable("hp_replays", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: text("org_id").notNull(),
+  batchId: uuid("batch_id").notNull(),
+  endpointId: uuid("endpoint_id"),
+  requestId: uuid("request_id"),
+  destinationId: uuid("destination_id"),
+  destinationUrl: text("destination_url").notNull(),
+  userId: text("user_id"),
+  includedSensitive: jsonb("included_sensitive").$type<string[]>().notNull().default([]),
+  attempt: integer("attempt").notNull().default(1),
+  attemptsTotal: integer("attempts_total").notNull().default(1),
+  status: text("status").notNull(),
+  responseStatus: integer("response_status"),
+  elapsedMs: integer("elapsed_ms"),
+  errorCode: text("error_code"),
+  error: text("error"),
+  responseHeaders: jsonb("response_headers"),
+  responseBodyPreview: text("response_body_preview"),
+  responseTruncated: boolean("response_truncated").notNull().default(false),
+  runAt: timestamp("run_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+});
+
+export const schema = { ...coreSchema, endpoints, capturedRequests, destinations, replays };
 export type HookPilotSchema = typeof schema;

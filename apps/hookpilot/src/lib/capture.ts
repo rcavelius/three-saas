@@ -1,11 +1,13 @@
-import { rateLimit, type SqlExecutor } from "@repo/database";
+import { rateLimit } from "@repo/database";
 import { appLogger } from "./log";
 import { readBodyCapped } from "./body";
-import { getDb } from "./db";
-import { clientIp, retryAfterSeconds } from "./http";
+import { clientIpOf, retryAfterSeconds } from "./http";
 import { SLUG_RE } from "./ids";
+import { maybeNotifyUsage } from "./notify";
+import { orgLimits } from "./org-data";
 import { OWNER_COOKIE } from "./owner";
-import { limits, PLANS, type PlanId } from "./plans";
+import { limits } from "./plans";
+import { getPlatform, type Platform } from "./platform";
 import { insertCapturedRequest } from "./requests";
 import { CAPTURE_METHODS } from "./types";
 
@@ -29,10 +31,16 @@ export function captureResponseHeaders(contentType: "application/json" | "text/p
   return h;
 }
 
-function captureError(status: number, code: string, message: string, extra: Record<string, string> = {}): Response {
+function captureError(
+  status: number,
+  code: string,
+  message: string,
+  extraHeaders: Record<string, string> = {},
+  extraBody: Record<string, unknown> = {},
+): Response {
   const h = captureResponseHeaders("application/json");
-  for (const [k, v] of Object.entries(extra)) h.set(k, v);
-  return new Response(JSON.stringify({ ok: false, error: code, message }), { status, headers: h });
+  for (const [k, v] of Object.entries(extraHeaders)) h.set(k, v);
+  return new Response(JSON.stringify({ ok: false, error: code, message, ...extraBody }), { status, headers: h });
 }
 
 /** Path after /h/<slug>, kept exactly as sent (still percent-encoded). */
@@ -42,7 +50,13 @@ export function subpathFromUrl(url: URL, slug: string): string {
   return (p === "" ? "/" : p).slice(0, limits.storedPathMaxLength);
 }
 
-/** Headers as an ordered [name, value] list, without our own owner cookie, size-capped. */
+/** HookPilot's own cookies (anonymous owner token, Better Auth session/cookies with the "hp" prefix). */
+export function isOwnCookie(name: string): boolean {
+  const n = name.trim();
+  return n === OWNER_COOKIE || /^(__Secure-|__Host-)?hp\./.test(n);
+}
+
+/** Headers as an ordered [name, value] list, without HookPilot's own cookies, size-capped. */
 export function headersForStorage(req: Request): [string, string][] {
   const out: [string, string][] = [];
   for (const [name, value] of req.headers) {
@@ -51,7 +65,7 @@ export function headersForStorage(req: Request): [string, string][] {
     if (name === "cookie") {
       v = value
         .split(";")
-        .filter((part) => part.split("=")[0]?.trim() !== OWNER_COOKIE)
+        .filter((part) => !isOwnCookie(part.split("=")[0] ?? ""))
         .join(";")
         .trim();
       if (!v) continue;
@@ -63,13 +77,19 @@ export function headersForStorage(req: Request): [string, string][] {
 
 interface CaptureEndpointRow {
   id: string;
-  plan: string;
-  expires_at: Date | string;
+  org_id: string | null;
+  anon_owner_hash: string | null;
+  expires_at: Date | string | null;
+  locked_at: Date | string | null;
   deleted_at: Date | string | null;
-  max_requests: number;
   response_status: number;
   response_content_type: "application/json" | "text/plain";
   response_body: string | null;
+}
+
+/** First day of next UTC month (when the monthly quota resets). */
+export function nextPeriodStart(now: Date): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
 }
 
 export function buildCaptureResponse(ep: CaptureEndpointRow, requestId: string, method: string, req: Request): Response {
@@ -87,16 +107,27 @@ export function buildCaptureResponse(ep: CaptureEndpointRow, requestId: string, 
   return new Response(body, { status, headers });
 }
 
-export async function handleCapture(req: Request, slug: string, opts: { executor?: SqlExecutor } = {}): Promise<Response> {
+/** Usage key for the monthly quota: the org, or the anonymous owner (free plan quota per owner token). */
+export function usageOwnerKey(ep: { org_id: string | null; anon_owner_hash: string | null }): string {
+  return ep.org_id ?? `anon:${ep.anon_owner_hash}`;
+}
+
+/**
+ * Public capture: no auth, never reveals stored data (it only answers with the endpoint's
+ * configured response). Order: method/slug → per-IP limit → endpoint state → per-endpoint limit →
+ * body (plan payload caps, 413) → monthly quota (atomic consumeUsage, 429) → store + prune.
+ */
+export async function handleCapture(req: Request, slug: string, opts: { platform?: Platform } = {}): Promise<Response> {
   const method = req.method.toUpperCase();
   if (!METHODS.has(method)) return captureError(405, "method_not_allowed", "Method not supported.");
   if (!SLUG_RE.test(slug)) return captureError(404, "not_found", "No such endpoint.");
 
-  const ex = opts.executor ?? (await getDb()).executor;
+  const p = opts.platform ?? (await getPlatform());
+  const ex = p.ex;
   const now = new Date();
-  const ip = clientIp(req);
+  const { ip, key: ipKey } = clientIpOf(req, p.clientIp);
 
-  const ipLimit = await rateLimit(ex, `hp:cap:ip:${ip}`, limits.capturePerIpPerMinute, 60_000, now);
+  const ipLimit = await rateLimit(ex, `hp:cap:${ipKey}`, limits.capturePerIpPerMinute, 60_000, now);
   if (!ipLimit.allowed) {
     return captureError(429, "rate_limited", "Too many requests from this IP.", {
       "Retry-After": String(retryAfterSeconds(ipLimit.resetAt, now)),
@@ -104,17 +135,20 @@ export async function handleCapture(req: Request, slug: string, opts: { executor
   }
 
   const { rows } = await ex.query<CaptureEndpointRow>(
-    `SELECT id, plan, expires_at, deleted_at, max_requests, response_status, response_content_type, response_body
+    `SELECT id, org_id, anon_owner_hash, expires_at, locked_at, deleted_at, response_status, response_content_type, response_body
      FROM endpoints WHERE slug = $1`,
     [slug],
   );
   const ep = rows[0];
   if (!ep || ep.deleted_at) return captureError(404, "not_found", "No such endpoint.");
-  if (new Date(ep.expires_at).getTime() <= now.getTime()) {
+  if (ep.expires_at !== null && new Date(ep.expires_at).getTime() <= now.getTime()) {
     return captureError(410, "expired", "This endpoint has expired.");
   }
+  if (ep.locked_at !== null) {
+    return captureError(423, "endpoint_paused", "This endpoint is paused because the workspace's plan does not include it. Nothing was stored.");
+  }
 
-  const plan = PLANS[(ep.plan in PLANS ? ep.plan : "free") as PlanId];
+  const plan = await orgLimits(p, ep.org_id);
   const epLimit = await rateLimit(ex, `hp:cap:ep:${ep.id}`, plan.capturePerEndpointPerMinute, 60_000, now);
   if (!epLimit.allowed) {
     return captureError(429, "rate_limited", "Too many requests to this endpoint.", {
@@ -125,7 +159,25 @@ export async function handleCapture(req: Request, slug: string, opts: { executor
   const body = await readBodyCapped(req, plan.storedBodyBytes, plan.maxBodyBytes);
   if (body.kind === "too_large") {
     log.info("capture rejected: payload too large", { endpointId: ep.id, method, size: body.size });
-    return captureError(413, "payload_too_large", `Body exceeds ${plan.maxBodyBytes} bytes.`);
+    return captureError(413, "payload_too_large", `Body exceeds the ${plan.planName} plan's ${plan.maxBodyBytes} byte limit.`, {}, {
+      limitBytes: plan.maxBodyBytes,
+    });
+  }
+
+  // Monthly quota: one atomic check-and-increment (never exceeds the limit under concurrency).
+  const owner = usageOwnerKey(ep);
+  const period = p.billing.currentPeriod();
+  const usage = await p.billing.consumeUsage(owner, "requestsPerMonth", 1, { period });
+  if (!usage.ok) {
+    const resets = nextPeriodStart(now);
+    log.info("capture rejected: monthly quota exhausted", { endpointId: ep.id });
+    return captureError(
+      429,
+      "quota_exceeded",
+      `Monthly request quota exhausted (${usage.limit} captured requests per month on the ${plan.planName} plan). Captures resume on ${resets.toISOString().slice(0, 10)} (UTC) or right after an upgrade.`,
+      { "Retry-After": String(retryAfterSeconds(resets, now)) },
+      { limit: usage.limit, used: usage.used, period, resetsAt: resets.toISOString() },
+    );
   }
 
   const url = new URL(req.url);
@@ -140,8 +192,9 @@ export async function handleCapture(req: Request, slug: string, opts: { executor
     truncated: body.truncated,
     contentType: req.headers.get("content-type")?.slice(0, 255) ?? null,
     sourceIp: ip,
-    maxRequests: ep.max_requests,
+    maxRequests: plan.requestsStored,
   });
+  await maybeNotifyUsage(p, owner, "requestsPerMonth", usage.used, usage.limit, period);
   // Never log headers, query or body: they routinely carry secrets.
   log.info("captured", { endpointId: ep.id, method, size: body.size, truncated: body.truncated });
   return buildCaptureResponse(ep, requestId, method, req);

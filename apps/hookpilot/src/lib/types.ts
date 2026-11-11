@@ -11,9 +11,16 @@ export interface EndpointDTO {
   name: string;
   captureUrl: string;
   plan: string;
+  planName: string;
+  /** "org" = belongs to the signed-in user's workspace; "anonymous" = owner-token cookie of this browser. */
+  owner: "org" | "anonymous";
   createdAt: string;
-  expiresAt: string;
+  /** null = never expires (paid plans). */
+  expiresAt: string | null;
   expired: boolean;
+  /** Paused because the workspace's plan no longer covers it (capture answers 423). */
+  locked: boolean;
+  /** Requests kept (newest); older ones are pruned. */
   maxRequests: number;
   /** Requests received over the endpoint's lifetime (including pruned ones). */
   requestCount: number;
@@ -29,9 +36,52 @@ export interface EndpointDTO {
   limits: {
     storedBodyBytes: number;
     maxBodyBytes: number;
-    retentionHours: number;
-    maxExpiresAt: string;
+    requestsPerMonth: number;
+    historyDays: number;
+    /** null for endpoints that never expire. */
+    ttlHours: number | null;
+    maxExpiresAt: string | null;
   };
+  permissions: {
+    canDelete: boolean;
+    canReplay: boolean;
+    canManageDestinations: boolean;
+  };
+}
+
+export interface DestinationDTO {
+  id: string;
+  name: string;
+  url: string;
+  verified: boolean;
+  verifiedAt: string | null;
+  lastVerificationError: string | null;
+  verificationAttemptedAt: string | null;
+  createdAt: string;
+}
+
+export type ReplayStatus = "scheduled" | "running" | "delivered" | "failed" | "blocked" | "skipped";
+
+export interface ReplayDTO {
+  id: string;
+  batchId: string;
+  requestId: string | null;
+  destinationId: string | null;
+  destinationUrl: string;
+  by: string | null;
+  attempt: number;
+  attemptsTotal: number;
+  status: ReplayStatus;
+  responseStatus: number | null;
+  elapsedMs: number | null;
+  errorCode: string | null;
+  error: string | null;
+  responseBodyPreview: string | null;
+  responseTruncated: boolean;
+  includedSensitive: string[];
+  runAt: string;
+  createdAt: string;
+  finishedAt: string | null;
 }
 
 export interface RequestSummaryDTO {
@@ -55,9 +105,16 @@ export interface RequestDetailDTO extends RequestSummaryDTO {
 }
 
 export interface RequestListDTO {
+  /** Newest first. */
   requests: RequestSummaryDTO[];
-  /** Pass as ?before= to load older requests; null when there are no more. */
+  /** Pass as ?before= to load older requests; null when there are no more (or in ?after= mode). */
   nextCursor: string | null;
+  /**
+   * ?after= mode only: true when more new requests exist beyond this page. The page holds the
+   * OLDEST requests after the cursor, so polling again with after=<newest cursor of this page>
+   * catches up without gaps.
+   */
+  hasMore?: boolean;
 }
 
 export interface ApiErrorDTO {

@@ -1,14 +1,14 @@
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { getDb } from "@/lib/db";
-import { limits, PLANS } from "@/lib/plans";
+import { FREE_LIMITS, limits, testOverrides } from "@/lib/plans";
 import type { RequestDetailDTO, RequestListDTO } from "@/lib/types";
 import { capture, createEndpoint, routes } from "./helpers";
 
 const saved = { ...limits };
-const savedFree = { ...PLANS.free };
+
 afterEach(() => {
   Object.assign(limits, saved);
-  Object.assign(PLANS.free, savedFree);
+  testOverrides.byPlan = {};
 });
 
 beforeAll(async () => {
@@ -76,19 +76,19 @@ describe("capture", () => {
 
   it("truncates bodies above the stored cap but keeps the true size", async () => {
     const { endpoint, token } = await createEndpoint();
-    const size = PLANS.free.storedBodyBytes + 5000;
+    const size = FREE_LIMITS.storedBodyBytes + 5000;
     const res = await capture(endpoint.slug, "POST", { body: "a".repeat(size), headers: { "content-type": "text/plain" } });
     expect(res.status).toBe(200);
     const id = ((await res.json()) as { id: string }).id;
     const d = await detail(endpoint.id, id, token);
     expect(d.bodySize).toBe(size);
     expect(d.truncated).toBe(true);
-    expect(d.storedBodySize).toBe(PLANS.free.storedBodyBytes);
+    expect(d.storedBodySize).toBe(FREE_LIMITS.storedBodyBytes);
   });
 
   it("rejects bodies over the hard cap with 413 from Content-Length, without storing", async () => {
     const { endpoint, token } = await createEndpoint();
-    const res = await capture(endpoint.slug, "POST", { body: "x".repeat(PLANS.free.maxBodyBytes + 1) });
+    const res = await capture(endpoint.slug, "POST", { body: "x".repeat(FREE_LIMITS.maxBodyBytes + 1) });
     expect(res.status).toBe(413);
     expect((await list(endpoint.id, token)).requests).toHaveLength(0);
   });
@@ -138,7 +138,7 @@ describe("capture", () => {
     expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThan(0);
 
     limits.capturePerIpPerMinute = saved.capturePerIpPerMinute;
-    PLANS.free.capturePerEndpointPerMinute = 2;
+    testOverrides.byPlan.free = { capturePerEndpointPerMinute: 2 };
     const e2 = await createEndpoint();
     const s2 = [];
     for (let i = 0; i < 3; i++) s2.push((await capture(e2.endpoint.slug, "GET")).status); // fresh IP each time
@@ -148,7 +148,7 @@ describe("capture", () => {
   it("keeps only the newest max_requests (oldest pruned) while counting all", async () => {
     const { endpoint, token } = await createEndpoint();
     const { executor } = await getDb();
-    await executor.query(`UPDATE endpoints SET max_requests = 3 WHERE id = $1`, [endpoint.id]);
+    testOverrides.byPlan.free = { requestsStored: 3 };
     for (let i = 1; i <= 5; i++) await capture(endpoint.slug, "POST", { path: `/n${i}`, body: String(i) });
     const { requests } = await list(endpoint.id, token);
     expect(requests.map((r) => r.path)).toEqual(["/n5", "/n4", "/n3"]);

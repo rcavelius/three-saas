@@ -23,7 +23,7 @@ describe("anonymous endpoint creation", () => {
     expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(endpoint.slug).toMatch(/^[A-Za-z0-9_-]{24}$/);
     expect(endpoint.captureUrl).toBe(`http://localhost:3003/h/${endpoint.slug}`);
-    const hours = (Date.parse(endpoint.expiresAt) - Date.parse(endpoint.createdAt)) / 3_600_000;
+    const hours = (Date.parse(endpoint.expiresAt!) - Date.parse(endpoint.createdAt)) / 3_600_000;
     expect(hours).toBe(24);
     const { executor } = await getDb();
     const { rows } = await executor.query<{ anon_owner_hash: string }>(`SELECT anon_owner_hash FROM endpoints WHERE id = $1`, [endpoint.id]);
@@ -45,7 +45,7 @@ describe("anonymous endpoint creation", () => {
     await createEndpoint(a.token);
     await createEndpoint(a.token);
     const fourth = await createEndpoint(a.token);
-    expect(fourth.res.status).toBe(429);
+    expect(fourth.res.status).toBe(403);
     // expiring one frees a slot
     const { executor } = await getDb();
     await executor.query(`UPDATE endpoints SET expires_at = now() - interval '1 second' WHERE id = $1`, [a.endpoint.id]);
@@ -181,7 +181,7 @@ describe("inspection API", () => {
     expect(r.status).toBe(200);
     const updated = ((await r.json()) as { endpoint: EndpointDTO }).endpoint;
     expect(updated.name).toBe("Stripe test");
-    const hoursLeft = (Date.parse(updated.expiresAt) - Date.now()) / 3_600_000;
+    const hoursLeft = (Date.parse(updated.expiresAt!) - Date.now()) / 3_600_000;
     expect(hoursLeft).toBeGreaterThan(1.9);
     expect(hoursLeft).toBeLessThanOrEqual(2);
     expect((await routes.patchEndpoint(endpoint.id, token, { expiresInHours: 25 })).status).toBe(400);
@@ -196,7 +196,7 @@ describe("inspection API", () => {
       [endpoint.id],
     );
     const capped = ((await (await routes.patchEndpoint(endpoint.id, token, { expiresInHours: 24 })).json()) as { endpoint: EndpointDTO }).endpoint;
-    expect((Date.parse(capped.expiresAt) - Date.now()) / 3_600_000).toBeLessThan(1.01);
+    expect((Date.parse(capped.expiresAt!) - Date.now()) / 3_600_000).toBeLessThan(1.01);
 
     expect((await routes.patchEndpoint(endpoint.id, token, { name: "x" }, "https://evil.example")).status).toBe(403);
     expect((await routes.deleteEndpoint(endpoint.id, token, "https://evil.example")).status).toBe(403);
