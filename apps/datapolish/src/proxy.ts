@@ -4,7 +4,7 @@
  * Checkout and the Billing Portal are full-page navigations, so they need no connect-src entry.
  */
 import type { NextRequest } from "next/server";
-import { cspProxy } from "@repo/ops/next";
+import { cspProxy } from "@repo/ops/csp";
 import { stagingGate } from "@repo/ops/staging";
 
 const dev = process.env.NODE_ENV !== "production";

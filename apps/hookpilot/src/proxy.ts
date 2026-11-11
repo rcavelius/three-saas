@@ -1,4 +1,4 @@
-import { cspProxy } from "@repo/ops/next";
+import { cspProxy } from "@repo/ops/csp";
 
 /**
  * Nonce-based CSP for every rendered page (fresh 128-bit nonce per request). API routes and the

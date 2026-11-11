@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { cspProxy } from "@repo/ops/next";
+import { cspProxy } from "@repo/ops/csp";
 
 // A plain-http origin (local production smoke tests) cannot use upgrade-insecure-requests or HSTS.
 const plainHttp = (process.env.APP_URL ?? "").startsWith("http://");
