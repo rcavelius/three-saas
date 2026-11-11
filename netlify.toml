@@ -1,0 +1,5 @@
+# Netlify entry point for the monorepo. The deployed package is chosen by `base`; Netlify installs the npm
+# workspace from the repo root and then reads apps/<app>/netlify.toml for build/publish/functions settings.
+# Currently only DataPolish staging is deployed from this repository.
+[build]
+  base = "apps/datapolish"
