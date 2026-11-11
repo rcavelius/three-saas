@@ -39,4 +39,4 @@ export function integrations(env: BaseEnv) {
 }
 
 /** Local dev ports, fixed so the apps can run side by side. */
-export const DEV_PORTS = { siteproof: 3001, datapolish: 3002, hookpilot: 3003 } as const;
+export const DEV_PORTS = { siteproof: 3001, datapolish: 3002, webhooktrail: 3003 } as const;

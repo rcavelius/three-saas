@@ -1,5 +1,5 @@
 /**
- * createAuth: the one Better Auth configuration shared by SiteProof, DataPolish and HookPilot.
+ * createAuth: the one Better Auth configuration shared by SiteProof, DataPolish and WebhookTrail.
  *
  * All crypto (password hashing, token generation, cookie signing, session storage) is Better Auth's.
  * This module only wires options, table names, emails, tenancy hooks and server helpers.
@@ -24,7 +24,7 @@ export interface CreateAuthOptions {
   baseURL: string;
   /** SESSION_SECRET, at least 32 characters. */
   secret: string;
-  /** Per-app cookie prefix ("sp", "dp", "hp") so apps on sibling domains never share cookies. */
+  /** Per-app cookie prefix ("sp", "dp", "wt") so apps on sibling domains never share cookies. */
   cookiePrefix: string;
   sendEmail: (msg: EmailMessage) => Promise<void>;
   emailTemplates?: Partial<AuthEmailTemplates>;

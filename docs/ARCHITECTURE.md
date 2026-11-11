@@ -6,7 +6,7 @@ Three independently deployable SaaS products in one npm-workspaces monorepo.
 apps/
   siteproof/    Website monitoring and health audits       (Next.js, Node runtime, port 3001)
   datapolish/   Spreadsheet cleanup, in-browser processing (Next.js, port 3002)
-  hookpilot/    Webhook capture and inspection             (Next.js, Node runtime, port 3003)
+  webhooktrail/    Webhook capture and inspection             (Next.js, Node runtime, port 3003)
 packages/
   config/       Env validation (zod), integration detection, dev ports
   database/     Postgres client (pg or PGlite), core schema, migrations, job queue, rate limiter
@@ -36,7 +36,7 @@ docs/
 ## Security boundaries
 
 - **SiteProof outbound requests** all go through `@repo/security` safe fetch: http/https only, ports 80/443, every DNS answer must be public unicast, the socket is pinned to the validated IP (defeats DNS rebinding), redirects are followed manually and re-validated per hop, body size and time are capped, no cookies or credentials are sent. The crawler respects robots.txt and never submits forms.
-- **HookPilot** never makes outbound requests from captured data. Capture responses are served as `text/plain`/`application/json` with `nosniff` and `CSP: sandbox` so users cannot host HTML/JS on our domain. Endpoint slugs carry at least 128 bits of randomness; owner tokens are stored as SHA-256 hashes. Replay (later) will only target verified destinations through the same safe fetch.
+- **WebhookTrail** never makes outbound requests from captured data. Capture responses are served as `text/plain`/`application/json` with `nosniff` and `CSP: sandbox` so users cannot host HTML/JS on our domain. Endpoint slugs carry at least 128 bits of randomness; owner tokens are stored as SHA-256 hashes. Replay (later) will only target verified destinations through the same safe fetch.
 - **DataPolish** processes files in the browser; file contents are never uploaded on the free tier. Cloud processing (paid batch, later) will use size limits, encrypted object storage and automatic deletion.
 - Secrets live only in environment variables; logs pass through `redact()`.
 
@@ -45,12 +45,12 @@ docs/
 | App | Runtime need | Recommended host |
 |---|---|---|
 | SiteProof | Long-running outbound crawls, raw TLS checks, scheduled scan worker | Container platform (Fly.io or Render): web process + worker process from one image |
-| HookPilot | Always-on capture endpoint, streamed body limits, predictable cost under abusive traffic | Container platform (Fly.io or Render), small always-on machine |
+| WebhookTrail | Always-on capture endpoint, streamed body limits, predictable cost under abusive traffic | Container platform (Fly.io or Render), small always-on machine |
 | DataPolish | Mostly static + client-side processing | Same container platform for consistency, or Netlify / Cloudflare Pages (both available as connectors here) |
 | Databases | Postgres x3 | Neon (serverless Postgres, branches for previews) or the platform's managed Postgres |
 | Email | Transactional | Resend (or Postmark) with verified sending domain per brand |
 | Payments | Subscriptions | Stripe (test mode until the owner completes account verification) |
 
-Serverless platforms are possible for DataPolish, but SiteProof's crawler and TLS checks and HookPilot's always-on capture are cheaper and simpler on small containers.
+Serverless platforms are possible for DataPolish, but SiteProof's crawler and TLS checks and WebhookTrail's always-on capture are cheaper and simpler on small containers.
 
 See [COSTS.md](COSTS.md) for operating cost estimates and [OWNER-ACTIONS.md](OWNER-ACTIONS.md) for what needs a human.

@@ -20,7 +20,7 @@ Scheduled work (scans, cleanup, reconciliation, budgets, digests) runs from the 
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Multi-stage build of any app as a Next.js standalone server (`--build-arg APP=siteproof|datapolish|hookpilot`). |
+| `Dockerfile` | Multi-stage build of any app as a Next.js standalone server (`--build-arg APP=siteproof|datapolish|webhooktrail`). |
 | `.dockerignore` | Keeps node_modules, local databases, env files and git history out of images. |
 | `deploy/fly/<app>.toml` | Fly.io app config: health check on `/api/health`, always-on machine, `TRUSTED_PROXY=fly`. |
 | `.github/workflows/ci.yml` | Typecheck, tests and builds on every push/PR. |

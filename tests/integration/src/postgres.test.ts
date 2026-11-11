@@ -8,7 +8,7 @@ import { AUTH_MIGRATIONS, createAuth, type EmailMessage } from "@repo/auth";
 import { BILLING_MIGRATIONS, createBilling, defineCatalog, notConfiguredGateway } from "@repo/billing";
 import { OPS_MIGRATIONS, createScheduler } from "@repo/ops";
 import { SITEPROOF_MIGRATIONS } from "../../../apps/siteproof/src/lib/migrations";
-import { HOOKPILOT_MIGRATIONS } from "../../../apps/hookpilot/src/lib/migrations";
+import { WEBHOOKTRAIL_MIGRATIONS } from "../../../apps/webhooktrail/src/lib/migrations";
 import { APP_MIGRATIONS as DATAPOLISH_MIGRATIONS } from "../../../apps/datapolish/src/server/migrations";
 import { freshDatabase, hasPg, instances } from "./pg";
 
@@ -32,7 +32,7 @@ describe.skipIf(!hasPg)("real PostgreSQL", () => {
   it.each([
     ["siteproof", SITEPROOF_MIGRATIONS],
     ["datapolish", DATAPOLISH_MIGRATIONS],
-    ["hookpilot", HOOKPILOT_MIGRATIONS],
+    ["webhooktrail", WEBHOOKTRAIL_MIGRATIONS],
   ])("%s: full migration chain applies on a fresh database and is idempotent", async (_name, appMigrations) => {
     const own = await freshDatabase();
     const h = createDb(own.url, {});

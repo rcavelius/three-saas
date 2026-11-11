@@ -1,5 +1,5 @@
 /**
- * safeDeliver: SSRF-safe outbound delivery for webhook REPLAY (HookPilot).
+ * safeDeliver: SSRF-safe outbound delivery for webhook REPLAY (WebhookTrail).
  *
  * Differences from safeFetch (which is read-only crawling):
  *  - allows POST/PUT/PATCH/DELETE/GET with a request body (capped), because replaying a webhook needs it;
@@ -11,7 +11,7 @@
  *    general download facility.
  * DNS/IP validation and socket pinning are identical to safeFetch: public unicast only, ports 80/443 only,
  * connect to the exact validated IP. Callers must additionally restrict WHICH URLs a user may target
- * (HookPilot: verified destinations only) and rate-limit per account.
+ * (WebhookTrail: verified destinations only) and rate-limit per account.
  */
 import { Agent, request } from "undici";
 import type { Readable } from "node:stream";
@@ -122,7 +122,7 @@ export async function safeDeliver(input: string | URL, options: DeliverOptions):
     throw new SafeFetchError("BLOCKED_METHOD", "GET requests cannot carry a body");
   }
   const { headers, dropped } = sanitizeDeliverHeaders(options.headers);
-  headers["user-agent"] = options.userAgent ?? headers["user-agent"] ?? "HookPilot-Replay/1.0";
+  headers["user-agent"] = options.userAgent ?? headers["user-agent"] ?? "WebhookTrail-Replay/1.0";
 
   const resolver = options.resolver ?? systemResolver;
   const connectTimeoutMs = options.connectTimeoutMs ?? 5_000;

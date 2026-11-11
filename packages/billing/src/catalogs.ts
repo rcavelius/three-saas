@@ -5,7 +5,7 @@
  * Conventions:
  * - -1 = unlimited, 0 = not available on this plan.
  * - Free limits match the free tiers that were live before accounts existed.
- * - Paid limits for DataPolish and HookPilot match the values already shown on their pricing
+ * - Paid limits for DataPolish and WebhookTrail match the values already shown on their pricing
  *   pages; SiteProof paid crawl sizes/frequencies are new (pricing page only listed site counts).
  * - Lookup keys are "<app>_<plan>_monthly" and must never be reused for a different price
  *   (to change a price, create a new Stripe Price and transfer the lookup key to it).
@@ -78,8 +78,8 @@ export const DATAPOLISH_CATALOG: Catalog = defineCatalog({
   ],
 });
 
-export const HOOKPILOT_CATALOG: Catalog = defineCatalog({
-  app: "hookpilot",
+export const WEBHOOKTRAIL_CATALOG: Catalog = defineCatalog({
+  app: "webhooktrail",
   freePlanId: "free",
   plans: [
     {
@@ -102,7 +102,7 @@ export const HOOKPILOT_CATALOG: Catalog = defineCatalog({
       id: "developer",
       name: "Developer",
       priceMonthlyCents: 900,
-      stripeLookupKey: "hookpilot_developer_monthly",
+      stripeLookupKey: "webhooktrail_developer_monthly",
       limits: {
         endpoints: 25,
         endpointRetentionHours: 24 * 7,
@@ -119,7 +119,7 @@ export const HOOKPILOT_CATALOG: Catalog = defineCatalog({
       id: "pro",
       name: "Pro",
       priceMonthlyCents: 2900,
-      stripeLookupKey: "hookpilot_pro_monthly",
+      stripeLookupKey: "webhooktrail_pro_monthly",
       limits: {
         endpoints: 100,
         endpointRetentionHours: 24 * 30,
@@ -135,4 +135,4 @@ export const HOOKPILOT_CATALOG: Catalog = defineCatalog({
   ],
 });
 
-export const ALL_CATALOGS: readonly Catalog[] = [SITEPROOF_CATALOG, DATAPOLISH_CATALOG, HOOKPILOT_CATALOG];
+export const ALL_CATALOGS: readonly Catalog[] = [SITEPROOF_CATALOG, DATAPOLISH_CATALOG, WEBHOOKTRAIL_CATALOG];

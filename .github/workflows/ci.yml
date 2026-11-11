@@ -30,7 +30,7 @@ jobs:
       - run: npm ci --no-fund --no-audit
       - run: npm run typecheck
       - run: npm test
-      - run: npm run build -w @apps/siteproof -w @apps/datapolish -w @apps/hookpilot
+      - run: npm run build -w @apps/siteproof -w @apps/datapolish -w @apps/webhooktrail
       - run: npm audit --audit-level=high
 
   postgres:
@@ -70,7 +70,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [siteproof, datapolish, hookpilot]
+        app: [siteproof, datapolish, webhooktrail]
     services:
       postgres:
         image: postgres:17

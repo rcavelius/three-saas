@@ -1,6 +1,6 @@
 # @repo/billing
 
-Stripe subscriptions, entitlements and usage limits for SiteProof, DataPolish and HookPilot
+Stripe subscriptions, entitlements and usage limits for SiteProof, DataPolish and WebhookTrail
 (one catalog and one database per app). Interface: `docs/CONTRACTS.md` → "@repo/billing".
 
 ## Wiring (per app)
@@ -72,12 +72,12 @@ counted by the app inside `handle.transaction` after `withOrgLock(tx, orgId)`.
 | DataPolish | Free | 0 | 5 MB, 50,000 rows, 3 files/batch, 0 cloud workflows, 1 seat |
 | | Pro | 12 | 50 MB, 500,000 rows, 20 files/batch, 50 workflows, 1 seat |
 | | Business | 29 | 200 MB, 2,000,000 rows, 100 files/batch, unlimited workflows, 5 seats |
-| HookPilot | Free | 0 | 3 endpoints, 24 h retention, 100 requests stored, 3,000 req/month, 256 KB stored body, 1 MB max payload, 1 seat, no replay |
+| WebhookTrail | Free | 0 | 3 endpoints, 24 h retention, 100 requests stored, 3,000 req/month, 256 KB stored body, 1 MB max payload, 1 seat, no replay |
 | | Developer | 9 | 25 endpoints, 7 days, 2,000 stored, 100,000 req/month, 1 MB stored, 2 MB max, 1 seat, replay |
 | | Pro | 29 | 100 endpoints, 30 days, 10,000 stored, 1,000,000 req/month, 5 MB stored, 10 MB max, 5 seats, replay |
 
-DataPolish and HookPilot paid values match their existing pricing pages; SiteProof paid crawl
-sizes and frequencies, and HookPilot `requestsPerMonth`, are new choices.
+DataPolish and WebhookTrail paid values match their existing pricing pages; SiteProof paid crawl
+sizes and frequencies, and WebhookTrail `requestsPerMonth`, are new choices.
 
 ## Tests
 

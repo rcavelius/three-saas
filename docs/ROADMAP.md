@@ -13,10 +13,10 @@ Status reflects verified work only. "Done" means implemented and covered by pass
 - `@repo/security`: SSRF-safe fetch (public-IP only, DNS pinning, per-hop redirect checks, size/time caps, TLS inspection) — 142 tests.
 - SiteProof: polite crawler (robots.txt, page/depth/time caps), status, broken links, title/meta, canonical, alt text, sitemap, robots, HTTPS/cert/HSTS, mixed content; free scan UI with streamed progress, shareable report — 60 tests, smoke-tested on real sites.
 - DataPolish: in-browser CSV/XLSX engine (trim, blanks, dedupe, headers, dates with ambiguity flagging, numbers, find/replace, column mapping, merge), Web Worker, before/after preview, CSV/XLSX download, saved workflows, batch — 96 tests, driven in a browser.
-- HookPilot: anonymous endpoints, capture of all methods with body/rate/history limits, live inspector with masked secrets, test payloads, API docs, expiry cleanup cron — 48 tests, smoke-tested end to end.
+- WebhookTrail: anonymous endpoints, capture of all methods with body/rate/history limits, live inspector with masked secrets, test payloads, API docs, expiry cleanup cron — 48 tests, smoke-tested end to end.
 - All three pass `next build`.
 
-Known follow-ups from Phase 2: trusted client-IP header config per host; nonce-based CSP (currently `'unsafe-inline'` scripts); schedule SiteProof expired-report cleanup; zip downloads for DataPolish batch (needs `fflate`); SiteProof PDF export; HookPilot replay to verified targets.
+Known follow-ups from Phase 2: trusted client-IP header config per host; nonce-based CSP (currently `'unsafe-inline'` scripts); schedule SiteProof expired-report cleanup; zip downloads for DataPolish batch (needs `fflate`); SiteProof PDF export; WebhookTrail replay to verified targets.
 
 ## Phase 3: Commercial systems — done (2026-11-11), Stripe test mode via FakeStripe
 - `@repo/auth` (Better Auth): email/password, verification, reset, sessions, organizations/teams, seat limits, account deletion with data purge, trusted-IP rate limits.

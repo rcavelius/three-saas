@@ -411,7 +411,7 @@ describe("webhooks", () => {
       status: "active",
       created: 1,
       metadata: {},
-      items: { data: [{ id: "si_x", price: { id: "price_x", lookup_key: "hookpilot_pro_monthly" }, current_period_end: 2 }] },
+      items: { data: [{ id: "si_x", price: { id: "price_x", lookup_key: "webhooktrail_pro_monthly" }, current_period_end: 2 }] },
     });
     const res = await t.fake.deliverAll(t.billing);
     expect(res.map((r) => r.status)).toEqual([200, 200, 200]);

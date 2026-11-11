@@ -1,4 +1,4 @@
-# SiteProof · DataPolish · HookPilot
+# SiteProof · DataPolish · WebhookTrail
 
 Monorepo for three independently deployable SaaS products. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -14,7 +14,7 @@ npm test                 # all workspaces
 npm run typecheck
 npm run dev:siteproof    # http://localhost:3001
 npm run dev:datapolish   # http://localhost:3002
-npm run dev:hookpilot    # http://localhost:3003
+npm run dev:webhooktrail    # http://localhost:3003
 ```
 
 Each app has its own `.env.example` and README.
