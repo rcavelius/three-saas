@@ -1,0 +1,858 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DataGrid } from "@/components/DataGrid";
+import { StepCard } from "@/components/StepEditor";
+import { WorkflowPanel } from "@/components/WorkflowPanel";
+import { baseName, downloadBlob, MIME } from "@/lib/download";
+import { normalizeHeaders } from "@/lib/engine/ops/basic";
+import type { CsvExportOptions } from "@/lib/engine/export";
+import { detectKind, type XlsxDateMode } from "@/lib/engine/parse";
+import { isCellChanged } from "@/lib/engine/pipeline";
+import type { Step, StepType } from "@/lib/engine/schema";
+import { FREE_LIMITS, formatBytes } from "@/lib/limits";
+import { SAMPLE_CSV, SAMPLE_FILE_NAME } from "@/lib/sample";
+import { createStep, defaultSteps, renameRefs, STEP_META, templateFor } from "@/lib/steps";
+import { createEngineClient, type EngineClient } from "@/lib/worker/client";
+import type { ParseResponse, RunResponse } from "@/lib/worker/protocol";
+
+interface LoadedFile {
+  id: string;
+  name: string;
+  size: number;
+  bytes: Uint8Array;
+  parse: ParseResponse;
+  sheet?: string;
+  dateMode: XlsxDateMode;
+  hasHeader: boolean;
+}
+
+type Mode = "merge" | "batch";
+type View = "cleaned" | "original" | "removed";
+
+interface MergeState {
+  looseMatch: boolean;
+  addSource: boolean;
+  sourceName: string;
+  /** fileId -> (source column -> target column, "" = leave out) */
+  mappings: Record<string, Record<string, string>>;
+}
+
+const ADDABLE: StepType[] = ["findReplace", "dedupe", "formatNumbers", "renameColumns", "reorderColumns", "dropColumns", "mergeColumns", "splitColumn", "trim", "formatDates"];
+
+let fileCounter = 0;
+
+/** Map suggested column names through the default header tidy-up so default steps point at the right columns. */
+function tidyNames(columns: string[], names: string[]): string[] {
+  const tidy = normalizeHeaders({ columns, rows: [] }, { style: "keep" }).table.columns;
+  return names.map((n) => tidy[columns.indexOf(n)] ?? n);
+}
+
+export function Cleaner() {
+  const clientRef = useRef<EngineClient | null>(null);
+  const client = useCallback(() => (clientRef.current ??= createEngineClient()), []);
+  useEffect(() => () => clientRef.current?.dispose(), []);
+
+  const [files, setFiles] = useState<LoadedFile[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [mode, setMode] = useState<Mode>("merge");
+  const [steps, setSteps] = useState<Step[]>(() => defaultSteps([]));
+  const [merge, setMerge] = useState<MergeState>({ looseMatch: true, addSource: true, sourceName: "source_file", mappings: {} });
+  const [single, setSingle] = useState<RunResponse | null>(null);
+  const [batch, setBatch] = useState<{ fileId: string; res: RunResponse }[]>([]);
+  const [pending, setPending] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
+  const [loadErrors, setLoadErrors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("");
+  const [view, setView] = useState<View>("cleaned");
+  const [onlyChanged, setOnlyChanged] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
+  const [csvOpts, setCsvOpts] = useState<Required<CsvExportOptions>>({ delimiter: ",", bom: true, lineEnding: "crlf", guardFormulas: false });
+  const [dragOver, setDragOver] = useState(false);
+  const [addType, setAddType] = useState<StepType>("findReplace");
+  const fileInput = useRef<HTMLInputElement>(null);
+  const token = useRef(0);
+
+  const isBatch = files.length > 1 && mode === "batch";
+  const isMerge = files.length > 1 && mode === "merge";
+
+  // Run the pipeline whenever the inputs or steps change. Results from older runs are discarded.
+  useEffect(() => {
+    if (files.length === 0) {
+      setSingle(null);
+      setBatch([]);
+      setPending(false);
+      return;
+    }
+    const my = ++token.current;
+    setPending(true);
+    const timer = setTimeout(async () => {
+      try {
+        setStatus("Cleaning…");
+        if (isBatch) {
+          const out: { fileId: string; res: RunResponse }[] = [];
+          for (const f of files) {
+            const res = await client().run([{ name: f.name, table: f.parse.table }], null, steps);
+            if (my !== token.current) return;
+            out.push({ fileId: f.id, res });
+          }
+          setBatch(out);
+          setSingle(null);
+          const before = out.reduce((n, o) => n + o.res.input.rows.length, 0);
+          const after = out.reduce((n, o) => n + o.res.result.table.rows.length, 0);
+          setStatus(`Cleaned ${out.length} files: ${before.toLocaleString("en-US")} rows in, ${after.toLocaleString("en-US")} rows out.`);
+        } else {
+          const inputs = (isMerge ? files : files.filter((f) => f.id === activeId).concat(files).slice(0, 1)).map((f) => ({ name: f.name, table: f.parse.table }));
+          const mergeOpts = isMerge
+            ? { looseMatch: merge.looseMatch, sourceColumn: merge.addSource ? merge.sourceName || "source_file" : null, mappings: files.map((f) => merge.mappings[f.id]) }
+            : null;
+          const res = await client().run(inputs, mergeOpts, steps);
+          if (my !== token.current) return;
+          setSingle(res);
+          setBatch([]);
+          const r = res.result;
+          setStatus(
+            `Cleaned: ${res.input.rows.length.toLocaleString("en-US")} rows in, ${r.table.rows.length.toLocaleString("en-US")} rows out, ${r.changedCount.toLocaleString("en-US")} cells changed.`,
+          );
+        }
+        setRunError(null);
+        setPending(false);
+      } catch (e) {
+        if (my !== token.current) return;
+        setRunError(e instanceof Error ? e.message : String(e));
+        setStatus("Cleaning failed.");
+        setPending(false);
+      }
+    }, 180);
+    return () => clearTimeout(timer);
+  }, [files, steps, merge, isBatch, isMerge, activeId, client]);
+
+  const shown: RunResponse | null = isBatch ? (batch.find((b) => b.fileId === activeId)?.res ?? batch[0]?.res ?? null) : single;
+  const activeFile = files.find((f) => f.id === activeId) ?? files[0] ?? null;
+  const inputColumns = shown?.input.columns ?? activeFile?.parse.table.columns ?? [];
+
+  const addFiles = async (list: File[] | { name: string; bytes: Uint8Array }[]) => {
+    const errors: string[] = [];
+    const room = FREE_LIMITS.maxFiles - files.length;
+    if (list.length > room) errors.push(`The free plan handles ${FREE_LIMITS.maxFiles} files at once; ${list.length - Math.max(room, 0)} file(s) were not added.`);
+    const take = list.slice(0, Math.max(room, 0));
+    setLoading(true);
+    setStatus("Reading file…");
+    const added: LoadedFile[] = [];
+    for (const item of take) {
+      const name = item.name;
+      const size = item instanceof File ? item.size : item.bytes.byteLength;
+      if (detectKind(name) === "unsupported") {
+        errors.push(`${name}: not a CSV or Excel file (.csv, .tsv, .txt, .xlsx, .xls, .ods).`);
+        continue;
+      }
+      if (size > FREE_LIMITS.maxFileBytes) {
+        errors.push(`${name} is ${formatBytes(size)}; the free plan handles files up to ${formatBytes(FREE_LIMITS.maxFileBytes)}.`);
+        continue;
+      }
+      try {
+        const bytes = item instanceof File ? new Uint8Array(await item.arrayBuffer()) : item.bytes;
+        const parse = await client().parse(name, bytes, {});
+        if (parse.table.rows.length > FREE_LIMITS.maxRows) {
+          errors.push(`${name} has ${parse.table.rows.length.toLocaleString("en-US")} rows; the free plan handles up to ${FREE_LIMITS.maxRows.toLocaleString("en-US")}.`);
+          continue;
+        }
+        added.push({ id: `f${++fileCounter}`, name, size, bytes, parse, sheet: parse.sheet, dateMode: "display", hasHeader: true });
+      } catch (e) {
+        errors.push(`${name}: ${e instanceof Error ? e.message : "could not be read"}`);
+      }
+    }
+    setLoading(false);
+    setLoadErrors(errors);
+    if (added.length === 0) {
+      setStatus(errors.length ? "No file was added." : "");
+      return;
+    }
+    if (files.length === 0) {
+      const first = added[0]!;
+      setSteps(defaultSteps(tidyNames(first.parse.table.columns, first.parse.suggestions.numberColumns)));
+      setActiveId(first.id);
+      setView("cleaned");
+    }
+    setFiles((prev) => [...prev, ...added]);
+    setStatus(`Loaded ${added.map((a) => a.name).join(", ")}.`);
+  };
+
+  const loadSample = () => void addFiles([{ name: SAMPLE_FILE_NAME, bytes: new TextEncoder().encode(SAMPLE_CSV) }]);
+
+  const reparse = async (id: string, patch: Partial<Pick<LoadedFile, "sheet" | "dateMode" | "hasHeader">>) => {
+    const f = files.find((x) => x.id === id);
+    if (!f) return;
+    const next = { ...f, ...patch };
+    try {
+      const parse = await client().parse(f.name, f.bytes, { sheet: next.sheet, dateMode: next.dateMode, hasHeader: next.hasHeader });
+      if (parse.table.rows.length > FREE_LIMITS.maxRows) {
+        setLoadErrors([`That sheet has more than ${FREE_LIMITS.maxRows.toLocaleString("en-US")} rows (free plan limit).`]);
+        return;
+      }
+      setFiles((prev) => prev.map((x) => (x.id === id ? { ...next, parse } : x)));
+    } catch (e) {
+      setLoadErrors([e instanceof Error ? e.message : String(e)]);
+    }
+  };
+
+  const removeFile = (id: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== id));
+    if (activeId === id) setActiveId(files.find((f) => f.id !== id)?.id ?? null);
+  };
+
+  const startOver = () => {
+    setFiles([]);
+    setActiveId(null);
+    setSteps(defaultSteps([]));
+    setLoadErrors([]);
+    setStatus("Cleared. Nothing was kept.");
+  };
+
+  const resetSteps = () => {
+    const f = files[0];
+    setSteps(defaultSteps(f ? tidyNames(f.parse.table.columns, f.parse.suggestions.numberColumns) : []));
+    setView("original");
+    setStatus("Steps reset to the defaults. Showing the original file.");
+  };
+
+  const columnsBefore = (i: number): string[] => (i === 0 ? inputColumns : (shown?.result.steps[i - 1]?.columnsAfter ?? inputColumns));
+
+  const updateStep = (i: number, next: Step) => {
+    setSteps((prev) => {
+      const old = prev[i]!;
+      let out = prev.map((s, j) => (j === i ? next : s));
+      // When header style changes, keep later steps pointing at the same columns under their new names.
+      if (old.type === "normalizeHeaders" && next.type === "normalizeHeaders" && old.style !== next.style) {
+        const cols = columnsBefore(i);
+        const a = normalizeHeaders({ columns: cols, rows: [] }, { style: old.style }).table.columns;
+        const b = normalizeHeaders({ columns: cols, rows: [] }, { style: next.style }).table.columns;
+        const map: Record<string, string> = {};
+        a.forEach((name, k) => {
+          if (name !== b[k]) map[name] = b[k]!;
+        });
+        out = out.map((s, j) => (j > i ? renameRefs(s, map) : s));
+      }
+      return out;
+    });
+  };
+
+  const moveStep = (i: number, d: -1 | 1) =>
+    setSteps((prev) => {
+      const j = i + d;
+      if (j < 0 || j >= prev.length) return prev;
+      const copy = prev.slice();
+      [copy[i], copy[j]] = [copy[j]!, copy[i]!];
+      return copy;
+    });
+
+  const addStep = () => setSteps((prev) => [...prev, templateFor(addType, columnsBefore(prev.length))]);
+
+  // ---- derived views ----
+  const result = shown?.result ?? null;
+  const input = shown?.input ?? null;
+  const changedRows = useMemo(() => {
+    if (!result) return [];
+    const w = result.table.columns.length;
+    const out: number[] = [];
+    for (let r = 0; r < result.table.rows.length; r++) {
+      for (let c = 0; c < w; c++) {
+        if (result.changedFlags[r * w + c]) {
+          out.push(r);
+          break;
+        }
+      }
+    }
+    return out;
+  }, [result]);
+  const originalMarks = useMemo(() => {
+    if (!result || !input) return new Set<number>();
+    const marks = new Set<number>();
+    const w = result.table.columns.length;
+    const iw = input.columns.length;
+    for (let r = 0; r < result.table.rows.length; r++) {
+      for (let c = 0; c < w; c++) {
+        const oc = result.columnOrigins[c];
+        if (result.changedFlags[r * w + c] && oc !== null && oc !== undefined) marks.add(result.rowOrigins[r]! * iw + oc);
+      }
+    }
+    return marks;
+  }, [result, input]);
+  const removedByStep = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of result?.removed ?? []) m.set(STEP_META[r.stepType].label, (m.get(STEP_META[r.stepType].label) ?? 0) + 1);
+    return [...m.entries()];
+  }, [result]);
+
+  const ready = !!result && !pending && !runError;
+  const outName = isMerge ? "merged" : baseName(activeFile?.name ?? "data");
+
+  const downloadCsv = async () => {
+    if (!result) return;
+    const text = await client().csv(result.table, csvOpts);
+    downloadBlob(text, `${outName}-clean.${csvOpts.delimiter === "\t" ? "tsv" : "csv"}`, MIME.csv);
+  };
+  const downloadXlsx = async () => {
+    if (!result) return;
+    const bytes = await client().xlsx([{ name: outName, table: result.table }]);
+    downloadBlob(bytes as BlobPart, `${outName}-clean.xlsx`, MIME.xlsx);
+  };
+  const downloadOriginal = (f: LoadedFile) => downloadBlob(f.bytes as BlobPart, f.name, "application/octet-stream");
+  const downloadBatchXlsx = async () => {
+    const sheets = batch.map((b) => ({ name: files.find((f) => f.id === b.fileId)?.name ?? "sheet", table: b.res.result.table }));
+    const bytes = await client().xlsx(sheets);
+    downloadBlob(bytes as BlobPart, "batch-clean.xlsx", MIME.xlsx);
+  };
+  const downloadBatchCsvs = async () => {
+    for (const b of batch) {
+      const f = files.find((x) => x.id === b.fileId);
+      const text = await client().csv(b.res.result.table, csvOpts);
+      downloadBlob(text, `${baseName(f?.name ?? "data")}-clean.csv`, MIME.csv);
+      await new Promise((r) => setTimeout(r, 400));
+    }
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const list = Array.from(e.dataTransfer.files);
+    if (list.length) void addFiles(list);
+  };
+
+  const dropZone = (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={onDrop}
+      className={`ruled relative border ${dragOver ? "border-accent" : "border-rule-strong"} ${files.length ? "px-4 py-4" : "px-5 py-10 sm:py-14"}`}
+    >
+      <div className={`relative mx-auto flex max-w-xl flex-col items-center gap-3 bg-surface/95 text-center ${files.length ? "" : "px-4 py-6 border border-rule"}`}>
+        {files.length === 0 && (
+          <>
+            <p className="eyebrow">Step 1 · Load a file</p>
+            <p className="text-lg font-semibold">Drop a CSV or Excel file here</p>
+            <p className="text-sm text-ink-2">
+              Up to {FREE_LIMITS.maxFiles} files, {formatBytes(FREE_LIMITS.maxFileBytes)} and {FREE_LIMITS.maxRows.toLocaleString("en-US")} rows each. Read in your browser, never uploaded.
+            </p>
+          </>
+        )}
+        <div className="flex flex-wrap justify-center gap-2">
+          <button type="button" className="btn btn-primary" onClick={() => fileInput.current?.click()} disabled={loading || files.length >= FREE_LIMITS.maxFiles}>
+            {files.length ? "Add another file…" : "Choose file…"}
+          </button>
+          {files.length === 0 && (
+            <button type="button" className="btn" onClick={loadSample} disabled={loading}>
+              Try a sample file
+            </button>
+          )}
+        </div>
+        <input
+          ref={fileInput}
+          id="file-input"
+          type="file"
+          multiple
+          accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xls,.ods,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+          className="sr-only"
+          tabIndex={-1}
+          aria-label="Choose CSV or Excel files"
+          onChange={(e) => {
+            const list = Array.from(e.target.files ?? []);
+            e.target.value = "";
+            if (list.length) void addFiles(list);
+          }}
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6">
+      <p className="sr-only" aria-live="polite" role="status">
+        {status}
+      </p>
+
+      {files.length === 0 && dropZone}
+
+      {loadErrors.length > 0 && (
+        <div role="alert" className="mt-3 border-l-2 border-del-ink bg-del px-3 py-2 text-sm text-del-ink">
+          {loadErrors.map((e, i) => (
+            <p key={i}>{e}</p>
+          ))}
+        </div>
+      )}
+
+      {files.length > 0 && (
+        <div className="grid gap-5 lg:grid-cols-[minmax(320px,400px)_minmax(0,1fr)]">
+          {/* ---------- Left: files, mode, steps, workflows ---------- */}
+          <div className="flex min-w-0 flex-col gap-4">
+            <section aria-labelledby="files-heading" className="border border-rule bg-surface">
+              <div className="flex items-center justify-between border-b border-rule px-3 py-2">
+                <h2 id="files-heading" className="text-sm font-semibold">
+                  Files <span className="font-mono text-xs font-normal text-ink-3">{files.length}/{FREE_LIMITS.maxFiles}</span>
+                </h2>
+                <button type="button" className="text-[12px] text-ink-2 underline hover:text-ink" onClick={startOver}>
+                  Start over
+                </button>
+              </div>
+              <ul className="divide-y divide-rule">
+                {files.map((f) => (
+                  <li key={f.id} className={`px-3 py-2 ${f.id === activeFile?.id && !isMerge ? "bg-accent-wash/60" : ""}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        {files.length > 1 && !isMerge ? (
+                          <label className="flex items-center gap-2 text-[13px] font-medium">
+                            <input type="radio" name="active-file" className="accent-accent" checked={f.id === activeFile?.id} onChange={() => setActiveId(f.id)} />
+                            <span className="truncate">{f.name}</span>
+                          </label>
+                        ) : (
+                          <p className="truncate text-[13px] font-medium">{f.name}</p>
+                        )}
+                        <p className="font-mono text-[11px] text-ink-3">
+                          {formatBytes(f.size)} · {f.parse.table.rows.length.toLocaleString("en-US")} rows × {f.parse.table.columns.length} cols
+                          {f.parse.delimiter ? ` · ${f.parse.delimiter === "\t" ? "tab" : `"${f.parse.delimiter}"`} separated` : ""}
+                          {f.parse.encoding && f.parse.encoding !== "utf-8" ? ` · ${f.parse.encoding}` : ""}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 gap-1">
+                        <button type="button" className="btn btn-sm" onClick={() => downloadOriginal(f)} aria-label={`Download original ${f.name}`} title="Download original">
+                          Original ⤓
+                        </button>
+                        <button type="button" className="btn btn-sm px-1.5" onClick={() => removeFile(f.id)} aria-label={`Remove ${f.name}`}>
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-2">
+                      {f.parse.sheets && f.parse.sheets.length > 1 && (
+                        <label className="flex items-center gap-1.5">
+                          Sheet
+                          <select className="field min-h-0 w-auto py-0.5 text-[12px]" value={f.sheet} onChange={(e) => void reparse(f.id, { sheet: e.target.value })}>
+                            {f.parse.sheets.map((s) => (
+                              <option key={s}>{s}</option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      {f.parse.sheets && (
+                        <label className="flex items-center gap-1.5">
+                          Dates
+                          <select className="field min-h-0 w-auto py-0.5 text-[12px]" value={f.dateMode} onChange={(e) => void reparse(f.id, { dateMode: e.target.value as XlsxDateMode })}>
+                            <option value="display">as shown in Excel</option>
+                            <option value="iso">as ISO (YYYY-MM-DD)</option>
+                          </select>
+                        </label>
+                      )}
+                      <label className="flex items-center gap-1.5">
+                        <input type="checkbox" className="accent-accent" checked={f.hasHeader} onChange={(e) => void reparse(f.id, { hasHeader: e.target.checked })} />
+                        First row is the header
+                      </label>
+                    </div>
+                    {f.parse.warnings.length > 0 && (
+                      <ul className="mt-1 space-y-0.5 text-[11.5px] text-ink-2">
+                        {f.parse.warnings.map((w, i) => (
+                          <li key={i}>⚠ {w}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {files.length < FREE_LIMITS.maxFiles && <div className="border-t border-rule">{dropZone}</div>}
+            </section>
+
+            {files.length > 1 && (
+              <fieldset className="border border-rule bg-surface px-3 py-2">
+                <legend className="sr-only">What to do with several files</legend>
+                <p className="mb-1 text-sm font-semibold">Several files</p>
+                <label className="flex items-start gap-2 py-0.5 text-[13px]">
+                  <input type="radio" name="mode" className="mt-0.5 accent-accent" checked={mode === "merge"} onChange={() => setMode("merge")} />
+                  <span>
+                    <strong className="font-medium">Merge</strong> into one table (stack rows, line up columns by name)
+                  </span>
+                </label>
+                <label className="flex items-start gap-2 py-0.5 text-[13px]">
+                  <input type="radio" name="mode" className="mt-0.5 accent-accent" checked={mode === "batch"} onChange={() => setMode("batch")} />
+                  <span>
+                    <strong className="font-medium">Batch</strong>: clean each file separately with the same steps
+                  </span>
+                </label>
+              </fieldset>
+            )}
+
+            {isMerge && shown?.mergeReport && (
+              <MergePanel
+                files={files}
+                merge={merge}
+                setMerge={setMerge}
+                targets={shown.input.columns.filter((c) => !(merge.addSource && c === shown.input.columns[shown.input.columns.length - 1]))}
+                placements={shown.mergeReport.placements}
+                warnings={shown.mergeReport.warnings}
+              />
+            )}
+
+            <section aria-labelledby="steps-heading">
+              <div className="mb-2 flex items-end justify-between gap-2">
+                <div>
+                  <p className="eyebrow">Step 2 · Choose cleaning steps</p>
+                  <h2 id="steps-heading" className="text-sm font-semibold">
+                    Cleaning steps <span className="font-normal text-ink-3">(run top to bottom)</span>
+                  </h2>
+                </div>
+                <button type="button" className="text-[12px] text-ink-2 underline hover:text-ink" onClick={resetSteps}>
+                  Reset
+                </button>
+              </div>
+              <ol className="flex flex-col gap-2">
+                {steps.map((s, i) => (
+                  <StepCard
+                    key={s.id ?? i}
+                    step={s}
+                    index={i}
+                    total={steps.length}
+                    run={shown?.result.steps[i]?.step.id === s.id ? shown?.result.steps[i] : undefined}
+                    stale={pending}
+                    columns={columnsBefore(i)}
+                    update={(next) => updateStep(i, next)}
+                    remove={() => setSteps((prev) => prev.filter((_, j) => j !== i))}
+                    move={(d) => moveStep(i, d)}
+                  />
+                ))}
+              </ol>
+              <div className="mt-2 flex gap-2">
+                <label htmlFor="add-step" className="sr-only">
+                  Step to add
+                </label>
+                <select id="add-step" className="field" value={addType} onChange={(e) => setAddType(e.target.value as StepType)}>
+                  {ADDABLE.map((t) => (
+                    <option key={t} value={t}>
+                      {STEP_META[t].label}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" className="btn btn-sm shrink-0" onClick={addStep}>
+                  Add step
+                </button>
+              </div>
+            </section>
+
+            <WorkflowPanel
+              steps={steps}
+              onLoad={(s) => {
+                setSteps(s);
+                setStatus("Workflow applied.");
+              }}
+            />
+          </div>
+
+          {/* ---------- Right: preview and downloads ---------- */}
+          <section aria-labelledby="preview-heading" className="flex min-w-0 flex-col gap-3">
+            <div>
+              <p className="eyebrow">Step 3 · Check the result, then download</p>
+              <h2 id="preview-heading" className="text-base font-semibold">
+                {isMerge ? "Merged table" : activeFile?.name}
+              </h2>
+            </div>
+
+            {runError && (
+              <p role="alert" className="border-l-2 border-del-ink bg-del px-3 py-2 text-sm text-del-ink">
+                {runError}
+              </p>
+            )}
+
+            {isBatch && batch.length > 0 && (
+              <div className="overflow-x-auto border border-rule bg-surface">
+                <table className="w-full text-[13px]">
+                  <caption className="sr-only">Batch results per file</caption>
+                  <thead className="bg-sunken text-left text-xs text-ink-2">
+                    <tr>
+                      <th scope="col" className="px-3 py-1.5 font-semibold">File</th>
+                      <th scope="col" className="px-3 py-1.5 text-right font-semibold">Rows in</th>
+                      <th scope="col" className="px-3 py-1.5 text-right font-semibold">Rows out</th>
+                      <th scope="col" className="px-3 py-1.5 text-right font-semibold">Cells changed</th>
+                      <th scope="col" className="px-3 py-1.5 font-semibold">
+                        <span className="sr-only">Actions</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="font-mono">
+                    {batch.map((b) => {
+                      const f = files.find((x) => x.id === b.fileId);
+                      return (
+                        <tr key={b.fileId} className="border-t border-rule">
+                          <td className="max-w-[24ch] truncate px-3 py-1.5 font-sans">{f?.name}</td>
+                          <td className="px-3 py-1.5 text-right">{b.res.input.rows.length.toLocaleString("en-US")}</td>
+                          <td className="px-3 py-1.5 text-right">{b.res.result.table.rows.length.toLocaleString("en-US")}</td>
+                          <td className="px-3 py-1.5 text-right">{b.res.result.changedCount.toLocaleString("en-US")}</td>
+                          <td className="px-3 py-1.5 text-right">
+                            <button type="button" className="btn btn-sm font-sans" onClick={() => setActiveId(b.fileId)} aria-pressed={b.fileId === activeFile?.id}>
+                              Preview
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {result && input && (
+              <>
+                <dl className="grid grid-cols-2 border-l border-t border-rule bg-surface sm:grid-cols-4">
+                  {[
+                    ["Rows", `${input.rows.length.toLocaleString("en-US")} → ${result.table.rows.length.toLocaleString("en-US")}`],
+                    ["Rows removed", result.removed.length.toLocaleString("en-US")],
+                    ["Cells changed", result.changedCount.toLocaleString("en-US")],
+                    ["Columns", `${input.columns.length} → ${result.table.columns.length}`],
+                  ].map(([k, v]) => (
+                    <div key={k} className="border-b border-r border-rule px-3 py-2">
+                      <dt className="eyebrow">{k}</dt>
+                      <dd className={`font-mono text-lg tabular-nums ${pending ? "text-ink-3" : ""}`}>{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                {removedByStep.length > 0 && (
+                  <p className="text-[12.5px] text-ink-2">
+                    Removed: {removedByStep.map(([label, n]) => `${n} by “${label}”`).join(", ")}. Review them in the Removed rows tab before downloading.
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div role="tablist" aria-label="Preview" className="flex border border-rule-strong">
+                    {(
+                      [
+                        ["cleaned", "Cleaned"],
+                        ["original", "Original"],
+                        ["removed", `Removed rows (${result.removed.length})`],
+                      ] as [View, string][]
+                    ).map(([v, label]) => (
+                      <button
+                        key={v}
+                        type="button"
+                        role="tab"
+                        aria-selected={view === v}
+                        className={`px-3 py-1.5 text-[13px] font-medium ${view === v ? "bg-ink text-white" : "bg-surface text-ink-2 hover:bg-sunken"}`}
+                        onClick={() => setView(v)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {view === "cleaned" && (
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink-2">
+                      <label className="flex items-center gap-1.5">
+                        <input type="checkbox" className="accent-accent" checked={onlyChanged} onChange={(e) => setOnlyChanged(e.target.checked)} />
+                        Only changed rows
+                      </label>
+                      <label className="flex items-center gap-1.5">
+                        <input type="checkbox" className="accent-accent" checked={showOriginal} onChange={(e) => setShowOriginal(e.target.checked)} />
+                        Show old values
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                <div aria-busy={pending}>
+                  {view === "cleaned" && (
+                    <DataGrid
+                      key={`c-${result.table.rows.length}-${onlyChanged}`}
+                      caption="Cleaned data. Highlighted cells were changed."
+                      columns={result.table.columns}
+                      rows={result.table.rows}
+                      rowNumbers={result.rowOrigins.map((o) => o + 1)}
+                      visible={onlyChanged ? changedRows : undefined}
+                      isChanged={(r, c) => isCellChanged(result, r, c)}
+                      originalValue={(r, c) => {
+                        const oc = result.columnOrigins[c];
+                        if (oc === null || oc === undefined) return undefined;
+                        return input.rows[result.rowOrigins[r]!]?.[oc];
+                      }}
+                      showOriginal={showOriginal}
+                      headerNotes={result.table.columns.map((name, c) => {
+                        const oc = result.columnOrigins[c];
+                        if (oc === null || oc === undefined) return "new column";
+                        return input.columns[oc] !== name ? `was “${input.columns[oc]}”` : null;
+                      })}
+                    />
+                  )}
+                  {view === "original" && (
+                    <DataGrid
+                      key={`o-${input.rows.length}`}
+                      caption="Original data. Highlighted cells will be changed; dots mark stray spaces."
+                      columns={input.columns}
+                      rows={input.rows}
+                      isChanged={(r, c) => originalMarks.has(r * input.columns.length + c)}
+                      revealWhitespace
+                    />
+                  )}
+                  {view === "removed" && (
+                    <DataGrid
+                      key={`r-${result.removed.length}`}
+                      caption="Rows the cleaning steps removed, with the original row number and the reason."
+                      columns={input.columns}
+                      rows={result.removed.map((r) => r.values)}
+                      rowNumbers={result.removed.map((r) => r.originalIndex + 1)}
+                      extraColumn={{ label: "Removed by", values: result.removed.map((r) => STEP_META[r.stepType].label) }}
+                      tone="removed"
+                      revealWhitespace
+                    />
+                  )}
+                </div>
+
+                <section aria-labelledby="dl-heading" className="border border-rule bg-surface px-3 py-3">
+                  <h3 id="dl-heading" className="text-sm font-semibold">
+                    Download
+                  </h3>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button type="button" className="btn btn-primary" onClick={() => void downloadCsv()} disabled={!ready}>
+                      Download cleaned CSV
+                    </button>
+                    <button type="button" className="btn" onClick={() => void downloadXlsx()} disabled={!ready}>
+                      Download cleaned XLSX
+                    </button>
+                    {isBatch && (
+                      <>
+                        <button type="button" className="btn" onClick={() => void downloadBatchXlsx()} disabled={!ready}>
+                          All files → one XLSX
+                        </button>
+                        <button type="button" className="btn" onClick={() => void downloadBatchCsvs()} disabled={!ready}>
+                          All files → CSVs
+                        </button>
+                      </>
+                    )}
+                    {activeFile && !isMerge && (
+                      <button type="button" className="btn" onClick={() => downloadOriginal(activeFile)}>
+                        Download original
+                      </button>
+                    )}
+                  </div>
+                  {!ready && !runError && <p className="mt-2 text-[12px] text-ink-3">Updating preview… downloads unlock when the preview matches your steps.</p>}
+                  <fieldset className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px] text-ink-2">
+                    <legend className="label">CSV options</legend>
+                    <label className="flex items-center gap-1.5">
+                      Separator
+                      <select className="field min-h-0 w-auto py-0.5 text-[12px]" value={csvOpts.delimiter} onChange={(e) => setCsvOpts({ ...csvOpts, delimiter: e.target.value })}>
+                        <option value=",">comma</option>
+                        <option value=";">semicolon</option>
+                        <option value={"\t"}>tab</option>
+                      </select>
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <input type="checkbox" className="accent-accent" checked={csvOpts.bom} onChange={(e) => setCsvOpts({ ...csvOpts, bom: e.target.checked })} />
+                      Excel-friendly (UTF-8 BOM)
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <input
+                        type="checkbox"
+                        className="accent-accent"
+                        checked={csvOpts.lineEnding === "crlf"}
+                        onChange={(e) => setCsvOpts({ ...csvOpts, lineEnding: e.target.checked ? "crlf" : "lf" })}
+                      />
+                      Windows line endings (CRLF)
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <input type="checkbox" className="accent-accent" checked={csvOpts.guardFormulas} onChange={(e) => setCsvOpts({ ...csvOpts, guardFormulas: e.target.checked })} />
+                      Neutralise formulas (=, +, @)
+                    </label>
+                  </fieldset>
+                </section>
+              </>
+            )}
+            {!result && !runError && <p className="text-sm text-ink-3">{pending || loading ? "Cleaning…" : ""}</p>}
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MergePanel({
+  files,
+  merge,
+  setMerge,
+  targets,
+  placements,
+  warnings,
+}: {
+  files: LoadedFile[];
+  merge: MergeState;
+  setMerge: (m: MergeState) => void;
+  targets: string[];
+  placements: Record<string, string>[];
+  warnings: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section aria-labelledby="merge-heading" className="border border-rule bg-surface">
+      <div className="flex items-center justify-between border-b border-rule px-3 py-2">
+        <h2 id="merge-heading" className="text-sm font-semibold">
+          Merge settings
+        </h2>
+        <button type="button" className="text-[12px] font-medium text-accent hover:underline" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {open ? "Hide column matching" : "Column matching"}
+        </button>
+      </div>
+      <div className="space-y-1.5 px-3 py-2 text-[13px] text-ink-2">
+        <label className="flex items-center gap-2">
+          <input type="checkbox" className="accent-accent" checked={merge.looseMatch} onChange={(e) => setMerge({ ...merge, looseMatch: e.target.checked })} />
+          Match headers that differ only in case or punctuation (E-mail = email)
+        </label>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" className="accent-accent" checked={merge.addSource} onChange={(e) => setMerge({ ...merge, addSource: e.target.checked })} />
+          Add a column with the source file name
+        </label>
+        {warnings.length > 0 && (
+          <ul className="space-y-0.5 text-[11.5px]">
+            {warnings.slice(0, 6).map((w, i) => (
+              <li key={i}>⚠ {w}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {open && (
+        <div className="max-h-80 space-y-3 overflow-auto border-t border-rule bg-paper px-3 py-3">
+          {files.map((f, fi) => (
+            <fieldset key={f.id}>
+              <legend className="label truncate">{f.name}</legend>
+              <div className="space-y-1">
+                {f.parse.table.columns.map((col) => {
+                  const current = merge.mappings[f.id]?.[col] ?? placements[fi]?.[col] ?? col;
+                  return (
+                    <label key={col} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 text-[12px]">
+                      <span className="truncate font-mono" title={col}>
+                        {col}
+                      </span>
+                      <span aria-hidden="true" className="text-ink-3">
+                        →
+                      </span>
+                      <select
+                        className="field min-h-0 py-0.5 text-[12px]"
+                        aria-label={`Column for ${col} from ${f.name}`}
+                        value={current}
+                        onChange={(e) => setMerge({ ...merge, mappings: { ...merge.mappings, [f.id]: { ...merge.mappings[f.id], [col]: e.target.value } } })}
+                      >
+                        {Array.from(new Set([...targets, col])).map((t) => (
+                          <option key={t} value={t}>
+                            {t === col && !targets.includes(col) ? `${t} (own column)` : t}
+                          </option>
+                        ))}
+                        <option value="">(leave out)</option>
+                      </select>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+          <button type="button" className="btn btn-sm" onClick={() => setMerge({ ...merge, mappings: {} })}>
+            Reset matching
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}

@@ -1,0 +1,27 @@
+{
+  "name": "three-saas",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Monorepo for SiteProof, DataPolish and HookPilot",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:siteproof": "npm run dev -w @apps/siteproof",
+    "dev:datapolish": "npm run dev -w @apps/datapolish",
+    "dev:hookpilot": "npm run dev -w @apps/hookpilot",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.0"
+  }
+}
