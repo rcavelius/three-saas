@@ -7,3 +7,5 @@ build.log
 server.log
 test-results/
 playwright-report/
+e2e-report-*.json
+e2e-failure-*.png

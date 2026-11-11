@@ -26,8 +26,9 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 /** Internal ops dashboard: operators/owner only (auth_user.role), 404 for everyone else. Server-rendered only. */
 export default async function AdminPage() {
+  const h = new Headers(await headers());
   const p = await getPlatform();
-  const op = await getOperator(p, new Headers(await headers()));
+  const op = await getOperator(p, h);
   if (!op) notFound();
   const now = new Date();
   const [metrics, health, incidents, deadLetters, costs] = await Promise.all([

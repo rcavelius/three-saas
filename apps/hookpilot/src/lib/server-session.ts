@@ -5,8 +5,9 @@ import { getViewer, type Viewer } from "./viewer";
 
 /** Viewer for server components (reads the request's cookies). */
 export async function serverViewer(): Promise<{ p: Platform; viewer: Viewer; headers: Headers }> {
-  const p = await getPlatform();
+  // headers() first: it marks the page dynamic before anything touches the database.
   const h = new Headers(await headers());
+  const p = await getPlatform();
   const viewer = await getViewer(p, new Request(p.appUrl, { headers: h }));
   return { p, viewer, headers: h };
 }

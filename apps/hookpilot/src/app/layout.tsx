@@ -10,7 +10,10 @@ import "./globals.css";
 const grotesk = Inter_Tight({ subsets: ["latin"], variable: "--font-grotesk", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
 
-const APP_URL = process.env.APP_URL || "http://localhost:3003";
+// Nonce-based CSP needs per-request rendering of every page.
+export const dynamic = "force-dynamic";
+
+const APP_URL =process.env.APP_URL || "http://localhost:3003";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
