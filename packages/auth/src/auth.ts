@@ -1,5 +1,5 @@
 /**
- * createAuth: the one Better Auth configuration shared by SiteProof, DataPolish and WebhookTrail.
+ * createAuth: the one Better Auth configuration shared by ChangeKite, DataPolish and WebhookTrail.
  *
  * All crypto (password hashing, token generation, cookie signing, session storage) is Better Auth's.
  * This module only wires options, table names, emails, tenancy hooks and server helpers.
@@ -20,11 +20,11 @@ export interface CreateAuthOptions {
   handle: DbHandle<any>;
   /** Shown in emails. */
   appName: string;
-  /** APP_URL, e.g. https://siteproof.app (auth routes are mounted at /api/auth). */
+  /** APP_URL, e.g. https://changekite.com (auth routes are mounted at /api/auth). */
   baseURL: string;
   /** SESSION_SECRET, at least 32 characters. */
   secret: string;
-  /** Per-app cookie prefix ("sp", "dp", "wt") so apps on sibling domains never share cookies. */
+  /** Per-app cookie prefix ("ck", "dp", "wt") so apps on sibling domains never share cookies. */
   cookiePrefix: string;
   sendEmail: (msg: EmailMessage) => Promise<void>;
   emailTemplates?: Partial<AuthEmailTemplates>;

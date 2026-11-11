@@ -6,14 +6,14 @@
  * - -1 = unlimited, 0 = not available on this plan.
  * - Free limits match the free tiers that were live before accounts existed.
  * - Paid limits for DataPolish and WebhookTrail match the values already shown on their pricing
- *   pages; SiteProof paid crawl sizes/frequencies are new (pricing page only listed site counts).
+ *   pages; ChangeKite paid crawl sizes/frequencies are new (pricing page only listed site counts).
  * - Lookup keys are "<app>_<plan>_monthly" and must never be reused for a different price
  *   (to change a price, create a new Stripe Price and transfer the lookup key to it).
  */
 import { defineCatalog, type Catalog } from "./catalog";
 
-export const SITEPROOF_CATALOG: Catalog = defineCatalog({
-  app: "siteproof",
+export const CHANGEKITE_CATALOG: Catalog = defineCatalog({
+  app: "changekite",
   freePlanId: "free",
   plans: [
     {
@@ -33,7 +33,7 @@ export const SITEPROOF_CATALOG: Catalog = defineCatalog({
       id: "solo",
       name: "Solo",
       priceMonthlyCents: 1900,
-      stripeLookupKey: "siteproof_solo_monthly",
+      stripeLookupKey: "changekite_solo_monthly",
       limits: { sites: 3, pagesPerScan: 250, scanFrequencyHours: 24, historyDays: 90, teamSeats: 1 },
       features: { scheduledScans: true, emailAlerts: true, reportHistory: true, pdfReports: false, priorityQueue: false },
     },
@@ -41,7 +41,7 @@ export const SITEPROOF_CATALOG: Catalog = defineCatalog({
       id: "agency",
       name: "Agency",
       priceMonthlyCents: 7900,
-      stripeLookupKey: "siteproof_agency_monthly",
+      stripeLookupKey: "changekite_agency_monthly",
       limits: { sites: 20, pagesPerScan: 1000, scanFrequencyHours: 6, historyDays: 365, teamSeats: 5 },
       features: { scheduledScans: true, emailAlerts: true, reportHistory: true, pdfReports: true, priorityQueue: true },
     },
@@ -135,4 +135,4 @@ export const WEBHOOKTRAIL_CATALOG: Catalog = defineCatalog({
   ],
 });
 
-export const ALL_CATALOGS: readonly Catalog[] = [SITEPROOF_CATALOG, DATAPOLISH_CATALOG, WEBHOOKTRAIL_CATALOG];
+export const ALL_CATALOGS: readonly Catalog[] = [CHANGEKITE_CATALOG, DATAPOLISH_CATALOG, WEBHOOKTRAIL_CATALOG];

@@ -16,13 +16,13 @@ describe("subscription lifecycle", () => {
       mode: "subscription",
       client_reference_id: "org_a",
       allow_promotion_codes: false,
-      metadata: { orgId: "org_a", app: "siteproof", planId: "solo" },
-      subscription_data: { metadata: { orgId: "org_a", app: "siteproof", planId: "solo" } },
-      line_items: [{ price: t.fake.priceIdForLookupKey("siteproof_solo_monthly"), quantity: 1 }],
+      metadata: { orgId: "org_a", app: "changekite", planId: "solo" },
+      subscription_data: { metadata: { orgId: "org_a", app: "changekite", planId: "solo" } },
+      line_items: [{ price: t.fake.priceIdForLookupKey("changekite_solo_monthly"), quantity: 1 }],
     });
-    expect(params.success_url).toMatch(/^https:\/\/siteproof\.test\/billing\?checkout=success&session_id=\{CHECKOUT_SESSION_ID\}$/);
-    expect(params.cancel_url).toBe("https://siteproof.test/billing?checkout=canceled");
-    expect(t.fake.customersById.get(params.customer)!.metadata).toEqual({ orgId: "org_a", app: "siteproof" });
+    expect(params.success_url).toMatch(/^https:\/\/changekite\.test\/billing\?checkout=success&session_id=\{CHECKOUT_SESSION_ID\}$/);
+    expect(params.cancel_url).toBe("https://changekite.test/billing?checkout=canceled");
+    expect(t.fake.customersById.get(params.customer)!.metadata).toEqual({ orgId: "org_a", app: "changekite" });
 
     // Nothing changes until Stripe tells us (a redirect to success_url proves nothing).
     expect((await t.billing.getEntitlements("org_a")).planId).toBe("free");
@@ -62,13 +62,13 @@ describe("subscription lifecycle", () => {
     expect(ent.limits.sites).toBe(20);
     expect(t.seen.planChanged).toEqual([["org_a", "solo", "agency"]]);
     expect(t.fake.calls.update).toBe(1);
-    expect(t.fake.subscriptionsById.get(subId)!.items.data[0].price.lookup_key).toBe("siteproof_agency_monthly");
+    expect(t.fake.subscriptionsById.get(subId)!.items.data[0].price.lookup_key).toBe("changekite_agency_monthly");
     // The webhook for our own update arrives later: no second hook call.
     await t.fake.deliverAll(t.billing);
     expect(t.seen.planChanged).toHaveLength(1);
 
     t.advance(DAY);
-    t.fake.portalChangePrice(subId, "siteproof_solo_monthly");
+    t.fake.portalChangePrice(subId, "changekite_solo_monthly");
     await t.fake.deliverAll(t.billing);
     expect((await t.billing.getEntitlements("org_a")).planId).toBe("solo");
     expect(t.seen.planChanged).toEqual([
@@ -218,7 +218,7 @@ describe("checkout guards", () => {
 
   it("rejects a Stripe price whose amount differs from the catalog", async () => {
     const t = await setup();
-    for (const p of t.fake.pricesById.values()) if (p.lookup_key === "siteproof_solo_monthly") p.unit_amount = 900;
+    for (const p of t.fake.pricesById.values()) if (p.lookup_key === "changekite_solo_monthly") p.unit_amount = 900;
     await expect(t.billing.createCheckoutSession("org_a", "solo", "x@example.test")).rejects.toMatchObject({ code: "price_not_configured" });
   });
 
@@ -271,9 +271,9 @@ describe("webhooks", () => {
     const s = await t.billing.createCheckoutSession("org_a", "solo", "x@example.test");
     const subId = t.fake.completeCheckout(s.id); // created, checkout.completed, invoice.paid @ t0
     t.advance(5000);
-    t.fake.portalChangePrice(subId, "siteproof_agency_monthly"); // updated @ t0+5s
+    t.fake.portalChangePrice(subId, "changekite_agency_monthly"); // updated @ t0+5s
     t.advance(5000);
-    t.fake.portalChangePrice(subId, "siteproof_solo_monthly"); // updated @ t0+10s (newest)
+    t.fake.portalChangePrice(subId, "changekite_solo_monthly"); // updated @ t0+10s (newest)
 
     const res = await t.fake.deliverAll(t.billing, { order: "reverse" });
     expect(res.map((r) => r.type)).toEqual([

@@ -2,7 +2,7 @@
   "name": "three-saas",
   "private": true,
   "version": "0.1.0",
-  "description": "Monorepo for SiteProof, DataPolish and WebhookTrail",
+  "description": "Monorepo for ChangeKite, DataPolish and WebhookTrail",
   "workspaces": [
     "packages/*",
     "apps/*",
@@ -12,7 +12,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev:siteproof": "npm run dev -w @apps/siteproof",
+    "dev:changekite": "npm run dev -w @apps/changekite",
     "dev:datapolish": "npm run dev -w @apps/datapolish",
     "dev:webhooktrail": "npm run dev -w @apps/webhooktrail",
     "test": "npm run test --workspaces --if-present",

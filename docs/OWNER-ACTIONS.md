@@ -23,7 +23,7 @@ The apps route these to `/admin` (open incidents, dead-letter jobs, billing even
 
 - Refunds outside policy, chargebacks and disputes (the AI/automation never grants refunds or makes legal commitments).
 - Support requests the help pages don't answer; account-ownership disputes; data access/deletion requests that fail self-service.
-- Abuse: WebhookTrail endpoints used for spam or phishing, SiteProof used against sites that object (opt-out requests via the `/bot` page), law-enforcement or legal requests.
+- Abuse: WebhookTrail endpoints used for spam or phishing, ChangeKite used against sites that object (opt-out requests via the `/bot` page), law-enforcement or legal requests.
 - Critical incidents: outages, repeated dead-letter jobs, webhook backlog, budget overruns, backup verification failures.
 - Reviewing any drafted SEO content before it is published.
 

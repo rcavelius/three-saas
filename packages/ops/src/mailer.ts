@@ -43,7 +43,7 @@ export interface Mailer {
 
 export interface MailerOptions {
   handle: DbHandle<any>;
-  /** e.g. "SiteProof <hello@mail.siteproof.app>" */
+  /** e.g. "ChangeKite <hello@mail.changekite.com>" */
   from: string;
   resendApiKey?: string;
   brand: Brand;

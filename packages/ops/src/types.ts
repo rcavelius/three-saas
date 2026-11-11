@@ -13,7 +13,7 @@ export type Severity = "info" | "warning" | "critical";
 
 /** Per-app branding used by every email this package renders. */
 export interface Brand {
-  /** Product name shown in emails, e.g. "SiteProof". */
+  /** Product name shown in emails, e.g. "ChangeKite". */
   name: string;
   /** Public base URL of the app (https://...). */
   url: string;

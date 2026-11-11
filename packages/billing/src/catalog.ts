@@ -10,7 +10,7 @@ export interface PlanDef {
   name: string;
   /** Monthly price in USD cents; 0 for the free plan. */
   priceMonthlyCents: number;
-  /** Stripe Price lookup key, e.g. "siteproof_solo_monthly". Absent for the free plan. */
+  /** Stripe Price lookup key, e.g. "changekite_solo_monthly". Absent for the free plan. */
   stripeLookupKey?: string;
   /** Numeric limits; -1 means unlimited. Every plan of a catalog has the same limit keys. */
   limits: Record<string, number>;
@@ -19,7 +19,7 @@ export interface PlanDef {
 }
 
 export interface Catalog {
-  /** App identifier, e.g. "siteproof". Also stored in Stripe metadata. */
+  /** App identifier, e.g. "changekite". Also stored in Stripe metadata. */
   app: string;
   plans: PlanDef[];
   freePlanId: string;

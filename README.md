@@ -1,4 +1,4 @@
-# SiteProof · DataPolish · WebhookTrail
+# ChangeKite · DataPolish · WebhookTrail
 
 Monorepo for three independently deployable SaaS products. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -12,7 +12,7 @@ Node.js 22+ (developed on 24). No Docker or local Postgres needed: development a
 npm install
 npm test                 # all workspaces
 npm run typecheck
-npm run dev:siteproof    # http://localhost:3001
+npm run dev:changekite    # http://localhost:3001
 npm run dev:datapolish   # http://localhost:3002
 npm run dev:webhooktrail    # http://localhost:3003
 ```

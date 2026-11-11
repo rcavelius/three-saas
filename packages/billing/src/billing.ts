@@ -59,7 +59,7 @@ export interface BillingOptions {
   stripe: StripeGateway;
   /** Required unless the gateway is notConfiguredGateway(). */
   webhookSecret?: string;
-  /** APP_URL, e.g. https://siteproof.example. Used for redirect URLs and the route Origin check. */
+  /** APP_URL, e.g. https://changekite.example. Used for redirect URLs and the route Origin check. */
   appUrl: string;
   hooks?: BillingHooks;
   /** Clock (tests inject one). */

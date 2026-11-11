@@ -34,7 +34,7 @@ export function createAuth(opts: {
   appName: string;              // shown in emails
   baseURL: string;              // APP_URL
   secret: string;               // SESSION_SECRET (>= 32 chars)
-  cookiePrefix: string;         // e.g. "sp", "dp", "wt" so apps on sibling domains never share cookies
+  cookiePrefix: string;         // e.g. "ck", "dp", "wt" so apps on sibling domains never share cookies
   sendEmail: (msg: EmailMessage) => Promise<void>;
   emailTemplates?: Partial<AuthEmailTemplates>; // per-app branding
   onBeforeUserDelete?: (userId: string, orgIdsOwnedSolely: string[]) => Promise<void>; // cancel billing, purge data
@@ -62,7 +62,7 @@ export interface PlanDef {
   id: string;                       // "free" | "solo" | ...
   name: string;
   priceMonthlyCents: number;        // 0 for free
-  stripeLookupKey?: string;         // e.g. "siteproof_solo_monthly"; absent for free
+  stripeLookupKey?: string;         // e.g. "changekite_solo_monthly"; absent for free
   limits: Record<string, number>;   // e.g. { sites: 3, pagesPerScan: 500 }  (-1 = unlimited)
   features: Record<string, boolean>;
 }

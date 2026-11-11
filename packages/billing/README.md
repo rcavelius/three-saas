@@ -1,6 +1,6 @@
 # @repo/billing
 
-Stripe subscriptions, entitlements and usage limits for SiteProof, DataPolish and WebhookTrail
+Stripe subscriptions, entitlements and usage limits for ChangeKite, DataPolish and WebhookTrail
 (one catalog and one database per app). Interface: `docs/CONTRACTS.md` → "@repo/billing".
 
 ## Wiring (per app)
@@ -8,7 +8,7 @@ Stripe subscriptions, entitlements and usage limits for SiteProof, DataPolish an
 ```ts
 const billing = createBilling({
   handle,                                   // DbHandle; migrations include BILLING_MIGRATIONS
-  catalog: SITEPROOF_CATALOG,               // from @repo/billing
+  catalog: CHANGEKITE_CATALOG,               // from @repo/billing
   stripe: stripeGatewayFromEnv(process.env),// throws on live keys unless STRIPE_LIVE_MODE_AUTHORIZED=true
   webhookSecret: env.STRIPE_WEBHOOK_SECRET,
   appUrl: env.APP_URL,
@@ -66,7 +66,7 @@ counted by the app inside `handle.transaction` after `withOrgLock(tx, orgId)`.
 
 | App | Plan | $/mo | Limits |
 |---|---|---|---|
-| SiteProof | Free | 0 | 0 monitored sites (one-off scans), 25 pages/scan, no scheduled scans, no history, 1 seat |
+| ChangeKite | Free | 0 | 0 monitored sites (one-off scans), 25 pages/scan, no scheduled scans, no history, 1 seat |
 | | Solo | 19 | 3 sites, 250 pages/scan, every 24 h, 90 days history, 1 seat |
 | | Agency | 79 | 20 sites, 1,000 pages/scan, every 6 h, 365 days history, 5 seats, PDF reports, priority queue |
 | DataPolish | Free | 0 | 5 MB, 50,000 rows, 3 files/batch, 0 cloud workflows, 1 seat |
@@ -76,7 +76,7 @@ counted by the app inside `handle.transaction` after `withOrgLock(tx, orgId)`.
 | | Developer | 9 | 25 endpoints, 7 days, 2,000 stored, 100,000 req/month, 1 MB stored, 2 MB max, 1 seat, replay |
 | | Pro | 29 | 100 endpoints, 30 days, 10,000 stored, 1,000,000 req/month, 5 MB stored, 10 MB max, 5 seats, replay |
 
-DataPolish and WebhookTrail paid values match their existing pricing pages; SiteProof paid crawl
+DataPolish and WebhookTrail paid values match their existing pricing pages; ChangeKite paid crawl
 sizes and frequencies, and WebhookTrail `requestsPerMonth`, are new choices.
 
 ## Tests
