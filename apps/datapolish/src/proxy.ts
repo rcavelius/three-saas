@@ -5,9 +5,16 @@
  */
 import type { NextRequest } from "next/server";
 import { cspProxy } from "@repo/ops/next";
+import { stagingGate } from "@repo/ops/staging";
 
 const dev = process.env.NODE_ENV !== "production";
 const base = cspProxy({ dev });
+/** Non-public staging deployments: Basic auth on every page and API (STAGING_PASSWORD), noindex. */
+const staging = stagingGate({
+  password: process.env.STAGING_PASSWORD,
+  realm: "DataPolish staging",
+  exempt: ["/api/cron/", "/api/health", "/api/billing/webhook"],
+});
 
 /** `upgrade-insecure-requests` would break a production build served over plain http://localhost (e2e). */
 const plainHttpLocal = (() => {
@@ -20,7 +27,11 @@ const plainHttpLocal = (() => {
 })();
 
 export function proxy(req: NextRequest) {
+  const denied = staging(req);
+  if (denied) return denied;
+  if (req.nextUrl.pathname.startsWith("/api/")) return; // API routes: no CSP needed, just the gate
   const res = base(req);
+  if (process.env.STAGING_PASSWORD) res.headers.set("X-Robots-Tag", "noindex, nofollow");
   if (plainHttpLocal) {
     const csp = res.headers.get("Content-Security-Policy");
     if (csp) res.headers.set("Content-Security-Policy", csp.replace(/;\s*upgrade-insecure-requests/, ""));
@@ -29,15 +40,12 @@ export function proxy(req: NextRequest) {
   return res;
 }
 
-// Copied from CSP_PROXY_MATCHER in @repo/ops/next (Next requires a static literal here).
+// Based on CSP_PROXY_MATCHER in @repo/ops/next (Next requires a static literal here). No `missing`
+// prefetch exclusion: a client-controlled header must never let a request skip the staging gate.
 export const config = {
   matcher: [
     {
-      source: "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|txt|xml|woff2?)$).*)",
-      missing: [
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "purpose", value: "prefetch" },
-      ],
+      source: "/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|txt|xml|woff2?)$).*)"
     },
   ],
 };

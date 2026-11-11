@@ -27,3 +27,6 @@ test-results/
 
 # agent worktrees
 .claude/worktrees/
+
+# netlify
+.netlify/

@@ -236,7 +236,9 @@ export async function healthRouteHandler(p: Platform, req: Request): Promise<Res
 }
 
 export async function cronRouteHandler(p: Platform, req: Request): Promise<Response> {
-  return cronTickRoute({ scheduler: p.scheduler, secret: p.env.cronSecret })(req);
+  // Serverless hosts cap function time (Netlify free: ~10 s), so the tick budget is configurable.
+  const budgetMs = Number(process.env.CRON_TICK_BUDGET_MS) > 0 ? Number(process.env.CRON_TICK_BUDGET_MS) : undefined;
+  return cronTickRoute({ scheduler: p.scheduler, secret: p.env.cronSecret, budgetMs })(req);
 }
 
 /**

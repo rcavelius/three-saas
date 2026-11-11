@@ -9,7 +9,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Self-contained server bundle for the Docker image (see /Dockerfile). Tracing root = monorepo root
   // so workspace packages are included.
-  output: "standalone",
+  // Netlify's Next.js adapter packages the server itself.
+  output: process.env.NETLIFY === "true" ? undefined : "standalone",
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   reactStrictMode: true,
   poweredByHeader: false,

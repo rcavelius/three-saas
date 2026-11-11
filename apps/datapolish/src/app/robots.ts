@@ -5,6 +5,8 @@ export const dynamic = "force-dynamic";
 
 export default function robots(): MetadataRoute.Robots {
   const base = appUrl();
+  // Staging must never be indexed.
+  if (process.env.STAGING_PASSWORD) return { rules: [{ userAgent: "*", disallow: "/" }] };
   return {
     rules: [
       {

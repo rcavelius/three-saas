@@ -1,0 +1,15 @@
+# Netlify build for DataPolish (monorepo: npm workspaces at the repo root).
+# The site's base directory is apps/datapolish; Netlify installs the root workspace and builds this package.
+# Secrets (SESSION_SECRET, CRON_SECRET, STAGING_PASSWORD, Stripe/Resend keys) are set as Netlify env vars,
+# never here.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

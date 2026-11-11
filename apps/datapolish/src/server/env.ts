@@ -33,6 +33,20 @@ function opt(v: string | undefined): string | undefined {
   return t ? t : undefined;
 }
 
+/**
+ * DATABASE_URL wins; on Netlify the provisioned database arrives as NETLIFY_DB_URL. The in-process PGlite
+ * fallback is for local development only: serverless file systems are ephemeral, so a production
+ * deployment without a Postgres URL must fail loudly instead of silently losing data.
+ */
+function resolveDatabaseUrl(env: Record<string, string | undefined>, production: boolean): string {
+  const url = opt(env.DATABASE_URL) ?? opt(env.NETLIFY_DB_URL);
+  if (url) return url;
+  if (production && (env.NETLIFY === "true" || env.REQUIRE_POSTGRES === "1")) {
+    throw new Error("DATABASE_URL (or NETLIFY_DB_URL) is required for this deployment");
+  }
+  return DEFAULT_DATABASE_URL;
+}
+
 export function loadEnv(env: Record<string, string | undefined> = process.env): AppEnv {
   const production = env.NODE_ENV === "production";
   const appUrl = new URL(opt(env.APP_URL) ?? "http://localhost:3002").origin;
@@ -43,7 +57,7 @@ export function loadEnv(env: Record<string, string | undefined> = process.env): 
   }
   return {
     appUrl,
-    databaseUrl: opt(env.DATABASE_URL) ?? DEFAULT_DATABASE_URL,
+    databaseUrl: resolveDatabaseUrl(env, production),
     sessionSecret,
     cronSecret: opt(env.CRON_SECRET),
     healthDetailsSecret: opt(env.HEALTH_DETAILS_SECRET) ?? opt(env.CRON_SECRET),
