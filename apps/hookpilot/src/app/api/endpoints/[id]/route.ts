@@ -12,7 +12,7 @@ export async function GET(req: Request, { params }: Ctx): Promise<Response> {
   const { id } = await params;
   const ctx = await ownedEndpointContext(req, id, { mutating: false, allowExpired: true });
   if (ctx instanceof Response) return ctx;
-  return json({ endpoint: toEndpointDTO(ctx.endpoint, ctx.p.appUrl, ctx.limits, ctx.viewer) });
+  return json({ endpoint: toEndpointDTO(ctx.endpoint, ctx.p.appUrl, ctx.limits, ctx.viewer), signedIn: Boolean(ctx.viewer.user) });
 }
 
 /** Rename, change expiry (expiring endpoints only), set or reset the custom response. */
