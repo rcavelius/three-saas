@@ -58,6 +58,7 @@ export async function notifyOwner(ex: SqlExecutor, opts: NotifyOwnerOptions): Pr
   }
 
   for (const inc of criticals) {
+    if (inc.acknowledged_at) continue; // an operator is on it
     const key = inc.fingerprint ?? inc.id;
     const { rows } = await ex.query<{ last: Date | null }>(
       `SELECT max(notified_at) AS last FROM incidents WHERE (fingerprint = $1 OR id::text = $1)`,

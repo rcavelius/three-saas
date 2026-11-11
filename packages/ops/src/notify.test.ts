@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { DbHandle } from "@repo/database";
 import { notifyOwner } from "./notify";
-import { raiseIncident, resolveIncident } from "./incidents";
+import { acknowledgeIncident, raiseIncident, resolveIncident } from "./incidents";
 import { getHeartbeat } from "./state";
 import type { EmailMessage } from "./types";
 import { brand, makeDb } from "./test/fixtures";
@@ -104,5 +104,31 @@ describe("notifyOwner", () => {
     const r = await notifyOwner(ex(), { mailer, brand, ownerEmail: OWNER, now: at("2026-05-01T09:00:00Z") });
     expect(r.digestSent).toBe(false);
     expect(sent).toEqual([]);
+  });
+});
+
+describe("acknowledged incidents", () => {
+  it("stop paging the owner, stay open for dedup, and re-page if severity escalates", async () => {
+    const t = at("2026-05-02T03:00:00Z");
+    const w = await raiseIncident(ex(), { fingerprint: "q", severity: "warning", source: "jobs", title: "Queue slow" }, { now: t });
+    expect(await acknowledgeIncident(ex(), w.id, "operator@example.com", { now: t })).toBe(true);
+    // Same severity again: still acknowledged, same row.
+    const again = await raiseIncident(ex(), { fingerprint: "q", severity: "warning", source: "jobs", title: "Queue slow" }, { now: t });
+    expect(again.id).toBe(w.id);
+    const { rows } = await ex().query<{ acknowledged_at: Date | null; status: string }>(
+      `SELECT acknowledged_at, status FROM incidents WHERE id = $1`,
+      [w.id],
+    );
+    expect(rows[0]).toMatchObject({ status: "open" });
+    expect(rows[0]!.acknowledged_at).not.toBeNull();
+    // Escalation to critical clears the acknowledgement and pages.
+    await raiseIncident(ex(), { fingerprint: "q", severity: "critical", source: "jobs", title: "Queue stuck" }, { now: t });
+    let r = await notifyOwner(ex(), { mailer, brand, ownerEmail: OWNER, now: t });
+    expect(r.criticalSent).toEqual(["q"]);
+    // Acknowledge the critical: no further emails even after the throttle window.
+    await acknowledgeIncident(ex(), w.id, "operator@example.com", { now: t });
+    r = await notifyOwner(ex(), { mailer, brand, ownerEmail: OWNER, now: at("2026-05-02T12:00:00Z"), digestHourUtc: 23 });
+    expect(r.criticalSent).toEqual([]);
+    expect(sent).toHaveLength(1);
   });
 });

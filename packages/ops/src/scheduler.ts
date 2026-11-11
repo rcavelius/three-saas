@@ -93,9 +93,10 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
   }
 
   let synced: Promise<void> | null = null;
-  const syncSchedules = () => {
+  // `at` is the tick's own start time, so a brand-new schedule is due in the very tick that created it.
+  const syncSchedules = (at: Date) => {
     synced ??= (async () => {
-      const now = clock().toISOString();
+      const now = at.toISOString();
       for (const s of byName.values()) {
         // New schedules run on the first tick; existing ones keep their next_run_at.
         await ex.query(
@@ -243,7 +244,7 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
         errors: [],
       };
       try {
-        await syncSchedules();
+        await syncSchedules(startedAt);
         await enqueueDueSchedules(startedAt, report);
       } catch (err) {
         report.errors.push(`schedules: ${errorMessage(err)}`);

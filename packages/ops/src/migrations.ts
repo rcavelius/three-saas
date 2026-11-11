@@ -75,4 +75,12 @@ CREATE TABLE IF NOT EXISTS ops_settings (
 CREATE INDEX IF NOT EXISTS cost_entries_period_idx ON cost_entries (period_start);
 `,
   },
+  {
+    // Acknowledged incidents stay 'open' (dedup and auto-resolve keep working) but stop paging the owner.
+    id: "ops_0004_incident_ack",
+    sql: `
+ALTER TABLE incidents ADD COLUMN IF NOT EXISTS acknowledged_at timestamptz;
+ALTER TABLE incidents ADD COLUMN IF NOT EXISTS acknowledged_by text;
+`,
+  },
 ];

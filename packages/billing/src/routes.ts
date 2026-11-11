@@ -41,8 +41,8 @@ function statusOf(e: unknown): number | null {
 function sameOrigin(req: Request, appUrl: string): boolean {
   const origin = req.headers.get("origin");
   if (origin) return origin === appUrl;
-  const site = req.headers.get("sec-fetch-site");
-  return site === null || site === "same-origin" || site === "none";
+  // Browsers send Origin on every POST; without it, only accept an explicit same-origin fetch.
+  return req.headers.get("sec-fetch-site") === "same-origin";
 }
 
 async function authorize(req: Request, billing: Billing, resolve: ResolveOwnerOrg): Promise<OwnerOrg | Response> {

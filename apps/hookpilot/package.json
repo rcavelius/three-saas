@@ -11,9 +11,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@repo/auth": "*",
+    "@repo/billing": "*",
     "@repo/config": "*",
     "@repo/database": "*",
     "@repo/monitoring": "*",
+    "@repo/ops": "*",
     "@repo/security": "*",
     "next": "^16.4.6",
     "react": "^19.3.1",

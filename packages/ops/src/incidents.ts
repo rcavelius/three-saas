@@ -33,6 +33,8 @@ export interface IncidentRow {
   last_seen_at: Date;
   notified_at: Date | null;
   resolved_at: Date | null;
+  acknowledged_at: Date | null;
+  acknowledged_by: string | null;
 }
 
 export const SEVERITIES: Severity[] = ["info", "warning", "critical"];
@@ -57,12 +59,32 @@ export async function raiseIncident(
        title = EXCLUDED.title,
        details = EXCLUDED.details,
        severity = CASE WHEN ${rank("EXCLUDED.severity")} > ${rank("incidents.severity")}
-                       THEN EXCLUDED.severity ELSE incidents.severity END
+                       THEN EXCLUDED.severity ELSE incidents.severity END,
+       acknowledged_at = CASE WHEN ${rank("EXCLUDED.severity")} > ${rank("incidents.severity")}
+                       THEN NULL ELSE incidents.acknowledged_at END
      RETURNING id, severity, occurrences::int AS occurrences, (xmax = 0) AS created`,
     [i.severity, i.source.slice(0, 100), i.title.slice(0, 300), details, i.fingerprint, now],
   );
   const r = rows[0]!;
   return { id: r.id, severity: r.severity, occurrences: Number(r.occurrences), created: Boolean(r.created) };
+}
+
+/**
+ * An operator has seen the incident and is handling it: it stays open (still deduplicated, still auto-resolvable)
+ * but critical alerts for it are no longer emailed. A new occurrence at a HIGHER severity clears the acknowledgement.
+ */
+export async function acknowledgeIncident(
+  ex: SqlExecutor,
+  id: string,
+  by: string,
+  opts: { now?: Date } = {},
+): Promise<boolean> {
+  const { rows } = await ex.query<{ id: string }>(
+    `UPDATE incidents SET acknowledged_at = $2, acknowledged_by = $3
+     WHERE id = $1 AND status = 'open' AND acknowledged_at IS NULL RETURNING id`,
+    [id, (opts.now ?? new Date()).toISOString(), by.slice(0, 200)],
+  );
+  return rows.length > 0;
 }
 
 export async function resolveIncident(ex: SqlExecutor, id: string, opts: { now?: Date } = {}): Promise<boolean> {
@@ -87,7 +109,7 @@ export async function autoResolve(ex: SqlExecutor, fingerprint: string, opts: { 
 export async function listOpenIncidents(ex: SqlExecutor, opts: { severity?: Severity } = {}): Promise<IncidentRow[]> {
   const { rows } = await ex.query<IncidentRow>(
     `SELECT id, fingerprint, severity, source, title, details, status, occurrences::int AS occurrences,
-            created_at, last_seen_at, notified_at, resolved_at
+            created_at, last_seen_at, notified_at, resolved_at, acknowledged_at, acknowledged_by
      FROM incidents WHERE status = 'open' AND ($1::text IS NULL OR severity = $1)
      ORDER BY ${rank("severity")} DESC, last_seen_at DESC`,
     [opts.severity ?? null],
@@ -98,7 +120,7 @@ export async function listOpenIncidents(ex: SqlExecutor, opts: { severity?: Seve
 export async function getOpenIncident(ex: SqlExecutor, fingerprint: string): Promise<IncidentRow | null> {
   const { rows } = await ex.query<IncidentRow>(
     `SELECT id, fingerprint, severity, source, title, details, status, occurrences::int AS occurrences,
-            created_at, last_seen_at, notified_at, resolved_at
+            created_at, last_seen_at, notified_at, resolved_at, acknowledged_at, acknowledged_by
      FROM incidents WHERE status = 'open' AND fingerprint = $1`,
     [fingerprint],
   );
