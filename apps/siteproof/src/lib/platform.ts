@@ -28,6 +28,7 @@ import {
   createOpsJobs,
   createScheduler,
   defaultOpsSchedules,
+  getClientIp,
   paymentFailedEmail,
   planChangedEmail,
   raiseIncident,
@@ -50,9 +51,6 @@ import { SCAN_SITE_QUEUE, scheduleDueSites, siteScanJobHandler, type MonitorDeps
 import { dispatchPendingAlerts } from "./monitoring/alerts";
 
 export const ALL_MIGRATIONS = [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS, ...SITEPROOF_MIGRATIONS];
-
-/** Internal header carrying the client IP resolved with TRUSTED_PROXY; any client-sent value is removed. */
-export const CLIENT_IP_HEADER = "x-siteproof-client-ip";
 
 export interface Platform {
   env: SiteproofEnv;
@@ -249,7 +247,8 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
       }
     },
     getMemberLimit: async (orgId) => (await billing.getEntitlements(orgId)).limits.teamSeats ?? 1,
-    ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
+    // Better Auth's rate limiter uses the same TRUSTED_PROXY resolution as every other limit.
+    resolveClientIp: (h) => getClientIp(h, clientIp),
     rateLimitEnabled: o.authRateLimit ?? true,
   });
 

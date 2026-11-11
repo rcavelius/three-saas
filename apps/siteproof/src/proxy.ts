@@ -1,19 +1,14 @@
 import type { NextRequest } from "next/server";
 import { cspProxy } from "@repo/ops/next";
 
-const inner = cspProxy({ dev: process.env.NODE_ENV !== "production" });
-// A plain-http origin (local production smoke tests) cannot use upgrade-insecure-requests: it would turn
-// every same-origin asset request into an https request that nothing answers.
+// A plain-http origin (local production smoke tests) cannot use upgrade-insecure-requests or HSTS.
 const plainHttp = (process.env.APP_URL ?? "").startsWith("http://");
+const inner = cspProxy({ dev: process.env.NODE_ENV !== "production", upgradeInsecureRequests: plainHttp ? false : undefined });
 
 /** Per-request nonce CSP + security headers (Next 16 proxy). */
 export function proxy(req: NextRequest) {
   const res = inner(req);
-  if (plainHttp) {
-    const csp = res.headers.get("Content-Security-Policy");
-    if (csp) res.headers.set("Content-Security-Policy", csp.replace(/;\s*upgrade-insecure-requests/, ""));
-    res.headers.delete("Strict-Transport-Security");
-  }
+  if (plainHttp) res.headers.delete("Strict-Transport-Security");
   return res;
 }
 
