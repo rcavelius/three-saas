@@ -87,3 +87,29 @@ Typecheck (`tsc --noEmit`) on all 10 workspaces: **PASS**.
 - HookPilot hosts public capture URLs: abuse (phishing landing pages are prevented by text/plain + `CSP: sandbox`, but spam/volume abuse is possible) needs an operator runbook and a kill switch per endpoint (exists: delete/pause).
 - SiteProof crawls third-party sites on user request: polite crawling, robots.txt, per-host limits and a `/bot` page are in place; an opt-out contact address must be published before launch.
 - Privacy policy and terms are drafts and must be reviewed by a lawyer.
+
+## Update — real infrastructure (2026-11-11, later)
+
+Executed against real services; nothing below was simulated.
+
+| Check | Result | Evidence |
+|---|---|---|
+| Docker images (all three) build and boot against PostgreSQL 17 | PASS | GitHub Actions, run on commit 46e1902: pages 200, nonce CSP, cron auth 401/200, migrations applied, non-root user |
+| Real PostgreSQL 17: multi-connection concurrency (job claims, rate limits, quotas, scheduler), Better Auth on node-postgres, all migration chains | PASS | GitHub Actions `postgres` job |
+| Backup and restore (pg_dump/pg_restore, every table's row count + checksum identical) | PASS | GitHub Actions `postgres` job (backup drill) |
+| Unit/integration suites, typecheck, production builds, npm audit (CI) | PASS | GitHub Actions `test` job |
+| DataPolish staging online with real infrastructure | PASS | https://datapolish-staging.netlify.app (password-protected, noindex) on Netlify + Netlify Postgres |
+| Staging protection (no password → 401 on pages and APIs, prefetch-header bypass refused) | PASS | curl against staging |
+| Hosted scheduled jobs | PASS | Netlify scheduled function: 200 every 5 min in Netlify request logs; help-article sync and email jobs ran hosted |
+| Real transactional email (Resend) | PASS | verification, plan-changed x3, canceled emails show "delivered" in Resend (sent to Resend's test inbox) |
+| Email verification link end to end | PASS | link from the delivered email verified and signed in the test user on staging |
+| Stripe test-mode Checkout session from the app | PASS | real `checkout.stripe.com` session created by staging |
+| Stripe Customer Portal session | PASS | real `billing.stripe.com` session created by staging |
+| Stripe webhooks: subscribe → upgrade → cancel at period end → cancel | PASS | real signed webhooks; staging entitlements Pro → Business (5 seats) → cancel scheduled → Free |
+| No-upload privacy proof + public-page a11y/CSP/390 px on staging | PASS | Playwright (headless Edge) against the staging URL |
+| AI support chat answering from docs | PASS (live) | staging chat answered a cancellation question in AI mode via Netlify AI Gateway (budget capped at $1/month on staging) |
+| Completing Stripe Checkout with a test card in the browser | NOT TESTED | entering card data in a hosted page is not something the agent may do; subscription created through Stripe's API with a test payment method instead |
+| Failed renewal → past_due → grace → free on real Stripe | NOT TESTED | needs Stripe test clocks; covered by FakeStripe tests |
+| Owner incident emails on staging | NOT TESTED | OWNER_ALERT_EMAIL not set (owner's address not shared with external services without approval) |
+| Restore of the hosted Netlify database snapshot | NOT TESTED | restores are destructive and need owner confirmation; Netlify takes a snapshot on every publish |
+| SiteProof and HookPilot hosted staging | NOT TESTED | not deployed yet (next step) |
