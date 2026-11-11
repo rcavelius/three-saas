@@ -54,6 +54,16 @@ Scheduled work (scans, cleanup, reconciliation, budgets, digests) runs from the 
 9. External uptime monitor (free tier): monitor `https://<domain>/api/health` every 5 min, alert to the owner email.
 10. Go live with billing only after owner authorization: switch to `sk_live_` keys, set `STRIPE_LIVE_MODE_AUTHORIZED=true`, recreate prices in live mode, new webhook secret.
 
+## Staging (live): DataPolish on Netlify
+
+- Project `datapolish-staging` on the owner's free Netlify team: https://datapolish-staging.netlify.app
+- Protected by HTTP Basic auth on every page and API (`STAGING_PASSWORD`; any username), `X-Robots-Tag: noindex`, robots.txt disallow-all. Exempt: `/api/cron/`, `/api/health`, `/api/billing/webhook` (each authenticates itself).
+- Database: Netlify Database (Postgres), provisioned because `@netlify/database` is a dependency; the app reads `NETLIFY_DB_URL` and runs its own migrations on first request (advisory-locked).
+- Scheduler: `apps/datapolish/netlify/functions/cron-tick.mts` runs every 5 minutes and POSTs `/api/cron/tick` with `CRON_SECRET` (`CRON_TICK_BUDGET_MS=7000` to stay inside Netlify's function time limit).
+- Client IP: `TRUSTED_PROXY=netlify` (`X-Nf-Client-Connection-Ip`).
+- Deploys: from a clean `git archive` of `main` via the Netlify connector (uploads committed files only). Root `netlify.toml` selects `apps/datapolish`.
+- Secrets live only in Netlify env vars and in the git-ignored `.secrets/datapolish-staging.json` on the owner's PC.
+
 ## Rollback
 
 `fly releases` → `fly deploy --image <previous image>`. Migrations are forward-only and additive; never drop columns in the same release that stops using them.

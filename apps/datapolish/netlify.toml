@@ -13,3 +13,8 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+
+# Netlify's Next.js runtime (OpenNext). Declared explicitly because auto-detection did not run for this
+# monorepo package. Not version-pinned on purpose: Netlify keeps it current.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
