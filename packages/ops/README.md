@@ -1,6 +1,6 @@
 # @repo/ops
 
-Shared operations layer for ChangeKite, DataPolish and WebhookTrail: scheduler + job runner, transactional
+Shared operations layer for ChangeKite, GridRinse and WebhookTrail: scheduler + job runner, transactional
 email outbox, incidents and owner alerts, health checks, budgets, billing health, owner metrics,
 first-party analytics, client IP handling and Next.js security headers.
 

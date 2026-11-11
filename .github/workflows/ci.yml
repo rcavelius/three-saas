@@ -30,7 +30,7 @@ jobs:
       - run: npm ci --no-fund --no-audit
       - run: npm run typecheck
       - run: npm test
-      - run: npm run build -w @apps/changekite -w @apps/datapolish -w @apps/webhooktrail
+      - run: npm run build -w @apps/changekite -w @apps/gridrinse -w @apps/webhooktrail
       - run: npm audit --audit-level=high
 
   postgres:
@@ -70,7 +70,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [changekite, datapolish, webhooktrail]
+        app: [changekite, gridrinse, webhooktrail]
     services:
       postgres:
         image: postgres:17

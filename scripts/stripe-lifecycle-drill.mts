@@ -5,14 +5,14 @@
  *   npx tsx scripts/stripe-lifecycle-drill.mts <step> <customerEmail> [secretsFile]
  *   steps: subscribe-pro | upgrade-business | cancel-at-period-end | resume | cancel-now | status
  *
- * Reads STRIPE_SECRET_KEY from the secrets JSON (default .secrets/datapolish-staging.json) and refuses
+ * Reads STRIPE_SECRET_KEY from the secrets JSON (default .secrets/gridrinse-staging.json) and refuses
  * anything that is not an sk_test_ key. Uses Stripe's test payment method tokens (pm_card_visa); no card
  * numbers are entered anywhere. Prints only object ids and states, never keys.
  */
 import { readFileSync } from "node:fs";
 import Stripe from "stripe";
 
-const [step, email, secretsFile = ".secrets/datapolish-staging.json"] = process.argv.slice(2);
+const [step, email, secretsFile = ".secrets/gridrinse-staging.json"] = process.argv.slice(2);
 const key: string = JSON.parse(readFileSync(secretsFile, "utf8")).STRIPE_SECRET_KEY ?? "";
 if (!key.startsWith("sk_test_")) throw new Error("Refusing to run: not a Stripe TEST secret key");
 if (!step || !email) throw new Error("usage: <step> <customerEmail> [secretsFile]");
@@ -21,7 +21,7 @@ const stripe = new Stripe(key);
 const customers = await stripe.customers.list({ email, limit: 1 });
 const customer = customers.data[0];
 if (!customer) throw new Error(`No Stripe customer for ${email} (start a checkout in the app first)`);
-const prices = await stripe.prices.list({ lookup_keys: ["datapolish_pro_monthly", "datapolish_business_monthly"], active: true });
+const prices = await stripe.prices.list({ lookup_keys: ["gridrinse_pro_monthly", "gridrinse_business_monthly"], active: true });
 const price = (lk: string) => prices.data.find((p) => p.lookup_key === lk)!.id;
 const subs = await stripe.subscriptions.list({ customer: customer.id, status: "all", limit: 5 });
 const live = subs.data.find((s) => ["active", "trialing", "past_due"].includes(s.status));
@@ -45,7 +45,7 @@ switch (step) {
     show(
       await stripe.subscriptions.create({
         customer: customer.id,
-        items: [{ price: price("datapolish_pro_monthly") }],
+        items: [{ price: price("gridrinse_pro_monthly") }],
         metadata: customer.metadata,
       }),
     );
@@ -55,7 +55,7 @@ switch (step) {
     if (!live) throw new Error("No live subscription");
     show(
       await stripe.subscriptions.update(live.id, {
-        items: [{ id: live.items.data[0]!.id, price: price("datapolish_business_monthly") }],
+        items: [{ id: live.items.data[0]!.id, price: price("gridrinse_business_monthly") }],
         proration_behavior: "create_prorations",
       }),
     );

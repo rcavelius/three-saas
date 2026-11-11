@@ -2,7 +2,7 @@
   "name": "three-saas",
   "private": true,
   "version": "0.1.0",
-  "description": "Monorepo for ChangeKite, DataPolish and WebhookTrail",
+  "description": "Monorepo for ChangeKite, GridRinse and WebhookTrail",
   "workspaces": [
     "packages/*",
     "apps/*",
@@ -13,7 +13,7 @@
   },
   "scripts": {
     "dev:changekite": "npm run dev -w @apps/changekite",
-    "dev:datapolish": "npm run dev -w @apps/datapolish",
+    "dev:gridrinse": "npm run dev -w @apps/gridrinse",
     "dev:webhooktrail": "npm run dev -w @apps/webhooktrail",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",

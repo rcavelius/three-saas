@@ -1,4 +1,4 @@
-# ChangeKite · DataPolish · WebhookTrail
+# ChangeKite · GridRinse · WebhookTrail
 
 Monorepo for three independently deployable SaaS products. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -13,7 +13,7 @@ npm install
 npm test                 # all workspaces
 npm run typecheck
 npm run dev:changekite    # http://localhost:3001
-npm run dev:datapolish   # http://localhost:3002
+npm run dev:gridrinse   # http://localhost:3002
 npm run dev:webhooktrail    # http://localhost:3003
 ```
 

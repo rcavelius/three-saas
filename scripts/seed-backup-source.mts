@@ -1,13 +1,13 @@
 /**
- * Creates and fills a database for the backup/restore drill: full DataPolish migration chain plus real
+ * Creates and fills a database for the backup/restore drill: full GridRinse migration chain plus real
  * rows written through the application packages (a verified user with a personal org, jobs, incidents,
  * analytics, usage counters).   DATABASE_URL=postgres://.../backup_src npx tsx scripts/seed-backup-source.mts
  */
 import { createDb, enqueueJob, rateLimit } from "@repo/database";
 import { createAuth, type EmailMessage } from "@repo/auth";
-import { createBilling, DATAPOLISH_CATALOG, notConfiguredGateway } from "@repo/billing";
+import { createBilling, GRIDRINSE_CATALOG, notConfiguredGateway } from "@repo/billing";
 import { raiseIncident, trackEvent } from "@repo/ops";
-import { ALL_MIGRATIONS } from "../apps/datapolish/src/server/migrations";
+import { ALL_MIGRATIONS } from "../apps/gridrinse/src/server/migrations";
 
 const url = process.env.DATABASE_URL;
 if (!url?.startsWith("postgres")) throw new Error("DATABASE_URL must be a postgres:// URL");
@@ -33,7 +33,7 @@ for (let i = 0; i < 5; i++) {
   );
   if (res.status !== 200) throw new Error(`sign-up failed: ${res.status}`);
 }
-const billing = createBilling({ handle, catalog: DATAPOLISH_CATALOG, stripe: notConfiguredGateway(), appUrl: "http://localhost:3998" });
+const billing = createBilling({ handle, catalog: GRIDRINSE_CATALOG, stripe: notConfiguredGateway(), appUrl: "http://localhost:3998" });
 for (let i = 0; i < 20; i++) {
   await enqueueJob(handle.executor, "drill.job", { i });
   await trackEvent(handle.executor, { name: "pageview", path: `/p/${i}`, anonymousId: `anon_${i}aaaaaaaa` });

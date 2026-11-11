@@ -9,7 +9,7 @@ import { BILLING_MIGRATIONS, createBilling, defineCatalog, notConfiguredGateway 
 import { OPS_MIGRATIONS, createScheduler } from "@repo/ops";
 import { CHANGEKITE_MIGRATIONS } from "../../../apps/changekite/src/lib/migrations";
 import { WEBHOOKTRAIL_MIGRATIONS } from "../../../apps/webhooktrail/src/lib/migrations";
-import { APP_MIGRATIONS as DATAPOLISH_MIGRATIONS } from "../../../apps/datapolish/src/server/migrations";
+import { APP_MIGRATIONS as GRIDRINSE_MIGRATIONS } from "../../../apps/gridrinse/src/server/migrations";
 import { freshDatabase, hasPg, instances } from "./pg";
 
 const SHARED = [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS];
@@ -31,7 +31,7 @@ describe.skipIf(!hasPg)("real PostgreSQL", () => {
 
   it.each([
     ["changekite", CHANGEKITE_MIGRATIONS],
-    ["datapolish", DATAPOLISH_MIGRATIONS],
+    ["gridrinse", GRIDRINSE_MIGRATIONS],
     ["webhooktrail", WEBHOOKTRAIL_MIGRATIONS],
   ])("%s: full migration chain applies on a fresh database and is idempotent", async (_name, appMigrations) => {
     const own = await freshDatabase();
