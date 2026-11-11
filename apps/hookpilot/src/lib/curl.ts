@@ -1,3 +1,4 @@
+import { maskBodyText } from "./mask-body";
 import { displayHeaderValue, maskQueryString } from "./sensitive";
 
 /** Headers that curl sets itself or that proxies added; replaying them would be wrong. */
@@ -34,7 +35,8 @@ export interface CurlInput {
   bodyText: string | null;
   bodySize: number;
   truncated: boolean;
-  /** When false (default), secrets are masked. */
+  contentType?: string | null;
+  /** When false (default), secrets (headers, query params, body fields) are masked. */
   revealSecrets?: boolean;
 }
 
@@ -51,7 +53,8 @@ export function buildCurl(r: CurlInput): string {
   const notes: string[] = [];
   if (r.bodySize > 0) {
     if (r.bodyText !== null) {
-      parts.push(`--data-binary ${shellQuote(r.bodyText)}`);
+      const body = reveal ? r.bodyText : maskBodyText(r.bodyText, r.contentType ?? null).text;
+      parts.push(`--data-binary ${shellQuote(body)}`);
     } else {
       parts.push(`--data-binary @body.bin`);
       notes.push("# binary body: save it as body.bin first (Copy body / raw download)");
