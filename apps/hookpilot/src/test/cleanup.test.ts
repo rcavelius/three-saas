@@ -94,7 +94,10 @@ describe("retention by plan history", () => {
 
   it("runs from the scheduler (scheduler.tick enqueues and runs hookpilot.retention)", async () => {
     const p = await getPlatform();
-    const report = await p.scheduler.tick({ budgetMs: 20_000 });
+    // @repo/ops syncs new schedules with a clock read taken AFTER the tick's start time, so a brand-new
+    // schedule can miss the very first tick by a millisecond; it is due on the next one.
+    const first = await p.scheduler.tick({ budgetMs: 20_000 });
+    const report = first.enqueued.length ? first : (await new Promise((r) => setTimeout(r, 5)), await p.scheduler.tick({ budgetMs: 20_000 }));
     expect(report.enqueued.map((e) => e.queue)).toContain("hookpilot.retention");
     expect(report.errors).toEqual([]);
     expect(report.deadLettered).toEqual([]);
