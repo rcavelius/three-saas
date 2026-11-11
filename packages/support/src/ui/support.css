@@ -1,0 +1,114 @@
+/*
+ * Shared support UI styles. Each app sets its brand through the custom properties on a wrapper
+ * (e.g. <div className="sup-root" style={{ "--sup-accent": "#1d3a66" }}>) or in its globals.css.
+ */
+/* Zero-specificity defaults so any app rule for .sup-root wins regardless of stylesheet order. */
+:where(.sup-root) {
+  --sup-accent: #2563eb;
+  --sup-accent-fg: #ffffff;
+  --sup-fg: #111827;
+  --sup-muted: #4b5563;
+  --sup-border: #d1d5db;
+  --sup-surface: #ffffff;
+  --sup-soft: #f3f4f6;
+  --sup-radius: 8px;
+  color: var(--sup-fg);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.sup-root a { color: var(--sup-accent); text-decoration: underline; text-underline-offset: 2px; }
+.sup-root a:focus-visible, .sup-root button:focus-visible, .sup-root input:focus-visible,
+.sup-root textarea:focus-visible, .sup-root select:focus-visible {
+  outline: 3px solid var(--sup-accent);
+  outline-offset: 2px;
+}
+
+.sup-muted, .sup-meta, .sup-hint { color: var(--sup-muted); }
+.sup-meta, .sup-hint { font-size: 0.875rem; margin: 0.25rem 0; }
+.sup-label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+.sup-h2 { font-size: 1.15rem; font-weight: 700; margin: 1.75rem 0 0.75rem; }
+
+.sup-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.sup-row > .sup-input { flex: 1 1 14rem; width: auto; }
+.sup-field { margin-bottom: 1rem; }
+.sup-input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  font-size: 1rem; /* >= 16px: no zoom on iOS */
+  color: var(--sup-fg);
+  background: var(--sup-surface);
+  border: 1px solid var(--sup-border);
+  border-radius: var(--sup-radius);
+  box-sizing: border-box;
+}
+textarea.sup-input { resize: vertical; }
+
+.sup-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--sup-accent-fg);
+  background: var(--sup-accent);
+  border: 1px solid var(--sup-accent);
+  border-radius: var(--sup-radius);
+  cursor: pointer;
+}
+.sup-button:disabled { opacity: 0.6; cursor: progress; }
+.sup-button-secondary { color: var(--sup-accent); background: transparent; }
+
+.sup-notice { padding: 0.75rem 1rem; border-radius: var(--sup-radius); border: 1px solid var(--sup-border); background: var(--sup-soft); margin: 0 0 1rem; }
+.sup-notice-error { border-color: #b91c1c; background: #fef2f2; color: #7f1d1d; }
+.sup-notice-success { border-color: #15803d; background: #f0fdf4; color: #14532d; }
+
+.sup-cards, .sup-tickets, .sup-links, .sup-thread { list-style: none; margin: 0; padding: 0; }
+.sup-card, .sup-ticket-row { padding: 0.85rem 0; border-bottom: 1px solid var(--sup-border); }
+.sup-card p { margin: 0.25rem 0 0; }
+.sup-card-title { font-weight: 600; }
+.sup-links li { margin: 0.25rem 0; }
+
+.sup-md h2 { font-size: 1.3rem; font-weight: 700; margin: 1.75rem 0 0.6rem; }
+.sup-md h3 { font-size: 1.1rem; font-weight: 700; margin: 1.25rem 0 0.5rem; }
+.sup-md p { margin: 0 0 1rem; }
+.sup-md ul { list-style: disc; padding-left: 1.4rem; margin: 0 0 1rem; }
+.sup-md ol { list-style: decimal; padding-left: 1.4rem; margin: 0 0 1rem; }
+.sup-md li { margin: 0.25rem 0; }
+.sup-md code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; background: var(--sup-soft); padding: 0.1em 0.3em; border-radius: 4px; }
+.sup-md pre { background: var(--sup-soft); padding: 0.85rem 1rem; border-radius: var(--sup-radius); overflow-x: auto; margin: 0 0 1rem; }
+.sup-md pre code { background: none; padding: 0; }
+.sup-plain p { margin: 0 0 0.75rem; white-space: pre-wrap; }
+
+.sup-chat { border: 1px solid var(--sup-border); border-radius: var(--sup-radius); background: var(--sup-surface); padding: 1rem; }
+.sup-chat-log { max-height: 28rem; overflow-y: auto; margin-bottom: 1rem; }
+.sup-bubble { padding: 0.75rem 0.9rem; border-radius: var(--sup-radius); margin-bottom: 0.75rem; }
+.sup-bubble-user { background: var(--sup-soft); margin-left: 1.5rem; }
+.sup-bubble-assistant { border: 1px solid var(--sup-border); margin-right: 1.5rem; }
+.sup-bubble-who { font-size: 0.8rem; font-weight: 700; color: var(--sup-muted); margin: 0 0 0.25rem; }
+.sup-bubble-text { margin: 0 0 0.5rem; white-space: pre-wrap; }
+.sup-chat-form .sup-row { margin-top: 0.5rem; }
+
+.sup-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+.sup-badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--sup-soft); color: var(--sup-fg); border: 1px solid var(--sup-border); margin-left: 0.25rem; }
+.sup-badge-waiting_on_customer { background: #fef9c3; border-color: #a16207; color: #713f12; }
+.sup-badge-resolved, .sup-badge-closed { background: #f0fdf4; border-color: #15803d; color: #14532d; }
+.sup-badge-escalated { background: #fef2f2; border-color: #b91c1c; color: #7f1d1d; }
+
+.sup-thread .sup-msg { border-left: 3px solid var(--sup-border); padding: 0.25rem 0 0.25rem 0.85rem; margin-bottom: 1rem; }
+.sup-msg-operator { border-left-color: var(--sup-accent) !important; }
+.sup-msg-assistant { border-left-color: #a16207 !important; }
+.sup-msg-system { opacity: 0.85; }
+.sup-actions { display: grid; gap: 1rem; margin-top: 1.5rem; }
+
+.sup-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin-bottom: 1rem; }
+.sup-table-wrap { overflow-x: auto; }
+.sup-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.sup-table th, .sup-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--sup-border); vertical-align: top; }
+.sup-escalated { background: #fef2f2; }

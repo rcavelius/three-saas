@@ -22,7 +22,9 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   reactStrictMode: true,
   poweredByHeader: false,
-  transpilePackages: ["@repo/auth", "@repo/billing", "@repo/config", "@repo/database", "@repo/monitoring", "@repo/ops", "@repo/security"],
+  transpilePackages: ["@repo/auth", "@repo/billing", "@repo/config", "@repo/database", "@repo/monitoring", "@repo/ops", "@repo/security", "@repo/support"],
+  // Help articles are read from disk at startup (support.sync_articles); ship them with the standalone server.
+  outputFileTracingIncludes: { "/**": ["./content/help/**/*"] },
   serverExternalPackages: ["@electric-sql/pglite", "undici", "pdfkit", "pg"],
   async headers() {
     return [

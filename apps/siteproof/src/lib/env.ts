@@ -40,6 +40,13 @@ const siteproofEnvSchema = z
     MONITOR_GLOBAL_CONCURRENCY: z.coerce.number().int().positive().max(50).default(2),
     /** Scheduled scans of one target host per hour, across all orgs. */
     MONITOR_HOST_SCANS_PER_HOUR: z.coerce.number().int().positive().max(100).default(4),
+    /** Support assistant (Claude). Unset key => the help center and tickets work, chat answers fall back to search. */
+    ANTHROPIC_API_KEY: optionalString,
+    SUPPORT_AI_MODEL: optionalString,
+    SUPPORT_AI_MONTHLY_BUDGET_CENTS: z.coerce.number().int().min(0).max(10_000_000).default(500),
+    SUPPORT_AI_DAILY_BUDGET_CENTS: z.coerce.number().int().min(0).max(10_000_000).optional(),
+    /** Escalated tickets are emailed here (falls back to OWNER_ALERT_EMAIL). */
+    SUPPORT_OPERATOR_EMAIL: optionalString,
     /** Days an anonymous report link stays valid. */
     REPORT_RETENTION_DAYS: z.coerce.number().int().positive().max(3650).default(90),
   })

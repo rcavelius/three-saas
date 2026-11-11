@@ -60,6 +60,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             (SELECT count(*)::int FROM jobs WHERE queue = 'scan.site' AND status = 'queued') AS queued`,
   );
   const msg = typeof sp.msg === "string" ? sp.msg.slice(0, 120) : null;
+  const supportCounts = await p.support.adminCounts();
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
@@ -72,6 +73,19 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           </Notice>
         </div>
       )}
+
+      <section aria-labelledby="support" className="mt-10 border border-rule bg-sheet p-4">
+        <h2 id="support" className="font-display text-2xl font-semibold">
+          Support
+        </h2>
+        <p className="mt-2 text-ink-soft">
+          {supportCounts.open} active tickets · {supportCounts.waitingOnOperator} waiting on us ·{" "}
+          <strong className={supportCounts.escalated ? "text-fail" : undefined}>{supportCounts.escalated} escalated</strong> ·{" "}
+          <a href="/admin/support" className="text-accent underline">
+            Open the support queue
+          </a>
+        </p>
+      </section>
 
       <section aria-labelledby="health" className="mt-10">
         <h2 id="health" className="font-display text-2xl font-semibold">

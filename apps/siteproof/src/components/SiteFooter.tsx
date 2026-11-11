@@ -13,6 +13,8 @@ export function SiteFooter() {
             <li><Link className="hover:text-ink hover:underline" href="/docs">Checks</Link></li>
             <li><Link className="hover:text-ink hover:underline" href="/guides">Guides</Link></li>
             <li><Link className="hover:text-ink hover:underline" href="/pricing">Pricing</Link></li>
+            <li><Link className="hover:text-ink hover:underline" href="/help">Help center</Link></li>
+            <li><Link className="hover:text-ink hover:underline" href="/support">Contact support</Link></li>
             <li><Link className="hover:text-ink hover:underline" href="/bot">SiteProofBot</Link></li>
             <li><Link className="hover:text-ink hover:underline" href="/privacy">Privacy</Link></li>
             <li><Link className="hover:text-ink hover:underline" href="/terms">Terms</Link></li>

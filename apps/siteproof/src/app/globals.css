@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/* Help center + support UI (@repo/support) in SiteProof's paper-and-ink palette. */
+.sup-root {
+  --sup-accent: var(--color-accent);
+  --sup-fg: var(--color-ink);
+  --sup-muted: var(--color-muted);
+  --sup-border: var(--color-rule);
+  --sup-surface: var(--color-sheet);
+  --sup-soft: var(--color-paper-deep);
+  --sup-radius: 2px;
+}
+
 /* SiteProof: a printed inspection report. Warm paper, near-black ink, one ink-blue accent.
    Red / amber / green are reserved for status and never used decoratively. */
 @theme {
