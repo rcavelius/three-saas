@@ -6,6 +6,7 @@ export type SafeFetchErrorCode =
   | "BLOCKED_HOST"
   | "BLOCKED_ADDRESS"
   | "BLOCKED_METHOD"
+  | "BLOCKED_HEADER"
   | "BLOCKED_POLICY"
   | "DNS_FAILURE"
   | "TOO_MANY_REDIRECTS"

@@ -67,7 +67,7 @@ export interface SafeResponse {
   text(): string;
 }
 
-function pinnedLookup(hostname: string, address: string): LookupFunction {
+export function pinnedLookup(hostname: string, address: string): LookupFunction {
   const family = ipFamily(address);
   return ((host: string, opts: { all?: boolean }, cb: (...args: unknown[]) => void) => {
     if (host.replace(/^\[|\]$/g, "").toLowerCase() !== hostname.toLowerCase()) {
@@ -79,7 +79,7 @@ function pinnedLookup(hostname: string, address: string): LookupFunction {
   }) as unknown as LookupFunction;
 }
 
-function flattenHeaders(h: Record<string, string | string[] | undefined>): Record<string, string> {
+export function flattenHeaders(h: Record<string, string | string[] | undefined>): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(h)) {
     if (v === undefined) continue;
@@ -88,7 +88,7 @@ function flattenHeaders(h: Record<string, string | string[] | undefined>): Recor
   return out;
 }
 
-async function readBody(
+export async function readBody(
   body: Readable,
   encoding: string | undefined,
   maxBytes: number,
@@ -127,7 +127,7 @@ async function readBody(
   return { body: Buffer.concat(chunks, size), truncated: false };
 }
 
-function mapError(err: unknown, url: string, deadline: AbortSignal): SafeFetchError {
+export function mapError(err: unknown, url: string, deadline: AbortSignal): SafeFetchError {
   if (err instanceof SafeFetchError) return err;
   const e = err as { name?: string; code?: string; message?: string };
   if (deadline.aborted || e?.name === "AbortError" || e?.code === "UND_ERR_CONNECT_TIMEOUT" || e?.code === "UND_ERR_HEADERS_TIMEOUT" || e?.code === "UND_ERR_BODY_TIMEOUT") {

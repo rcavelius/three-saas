@@ -12,3 +12,12 @@ export {
   type RedirectHop,
 } from "./safe-fetch";
 export { inspectTls, type TlsInfo, type InspectTlsOptions } from "./tls-inspect";
+export {
+  safeDeliver,
+  sanitizeDeliverHeaders,
+  DELIVER_METHODS,
+  MAX_DELIVER_BODY_BYTES,
+  type DeliverMethod,
+  type DeliverOptions,
+  type DeliverResult,
+} from "./deliver";
