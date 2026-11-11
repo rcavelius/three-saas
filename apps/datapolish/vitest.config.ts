@@ -11,5 +11,8 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.{ts,tsx}"],
     environment: "node",
+    // Server tests run Better Auth (scrypt) and PGlite in memory.
+    testTimeout: 120_000,
+    hookTimeout: 120_000,
   },
 });

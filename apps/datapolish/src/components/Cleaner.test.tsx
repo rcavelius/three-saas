@@ -1,20 +1,33 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DATAPOLISH_CATALOG, getFreePlan } from "@repo/billing";
+import { processingLimits } from "@/lib/limits";
 import { Cleaner } from "./Cleaner";
 
 const blobs: { blob: Blob; name: string }[] = [];
+const free = getFreePlan(DATAPOLISH_CATALOG);
+const freeLimits = processingLimits(free.id, free.name, free.limits);
+/** Every network call the component makes: only first-party analytics beacons are allowed. */
+const sent: { url: string; body: string }[] = [];
 
 beforeEach(() => {
   blobs.length = 0;
+  sent.length = 0;
   let lastBlob: Blob | null = null;
   vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: (b: Blob) => ((lastBlob = b), "blob:test"), revokeObjectURL: () => {} }));
   vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
     if (lastBlob) blobs.push({ blob: lastBlob, name: this.download });
   });
-  const fetchSpy = vi.fn(() => Promise.reject(new Error("network calls are not allowed")));
+  const fetchSpy = vi.fn((url: string, init?: RequestInit) => {
+    sent.push({ url: String(url), body: typeof init?.body === "string" ? init.body : "" });
+    if (String(url) === "/api/events") return Promise.resolve(new Response(null, { status: 204 }));
+    return Promise.reject(new Error("network calls are not allowed"));
+  });
   vi.stubGlobal("fetch", fetchSpy);
 });
+
+const anonymous = async () => null;
 
 afterEach(() => {
   cleanup();
@@ -25,8 +38,8 @@ afterEach(() => {
 const status = () => document.querySelector('[role="status"]')!.textContent ?? "";
 
 describe("Cleaner (main flow)", () => {
-  it("loads the sample, previews changes, asks about ambiguous dates and downloads CSV without any network call", async () => {
-    render(<Cleaner />);
+  it("loads the sample, previews changes, asks about ambiguous dates and downloads CSV; only content-free analytics leave the page", async () => {
+    render(<Cleaner freeLimits={freeLimits} loadEntitlements={anonymous} />);
     fireEvent.click(screen.getByRole("button", { name: "Try a sample file" }));
 
     await waitFor(() => expect(status()).toMatch(/Cleaned: 20 rows in, 16 rows out/), { timeout: 5000 });
@@ -60,11 +73,19 @@ describe("Cleaner (main flow)", () => {
     expect(text).toContain("Order ID,Customer Name,Email,Order Date,Signup Date,Amount");
     expect(text).toContain("10232,Tom Becker,tom.becker@example.org,2024-01-15,2023-06-05,89.99");
     expect(text).toContain("10234,Liam O'Brien,liam.obrien@example.com,2024-01-18,2023-08-07,-45.00");
-    expect(fetch).not.toHaveBeenCalled();
+    // The only requests were analytics beacons, and none carries a file name or a cell value.
+    expect(sent.length).toBeGreaterThan(0);
+    for (const s of sent) {
+      expect(s.url).toBe("/api/events");
+      expect(s.body).not.toMatch(/sample-orders|Becker|tom\.becker|10232|89\.99|Order ID/i);
+      const ev = JSON.parse(s.body) as { name: string; props: Record<string, unknown> };
+      expect(ev.name).toBe("tool_used");
+      for (const v of Object.values(ev.props)) expect(typeof v === "number" || /^[a-z_]+$/.test(String(v))).toBe(true);
+    }
   });
 
   it("rejects unsupported and oversized files with a clear message", async () => {
-    render(<Cleaner />);
+    render(<Cleaner freeLimits={freeLimits} loadEntitlements={anonymous} />);
     const input = document.getElementById("file-input") as HTMLInputElement;
     const big = new File(["x"], "big.csv", { type: "text/csv" });
     Object.defineProperty(big, "size", { value: 6 * 1024 * 1024 });

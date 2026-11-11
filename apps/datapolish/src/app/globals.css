@@ -10,14 +10,15 @@
   --color-sunken: #eef1f4;
   --color-ink: #1a1e23;
   --color-ink-2: #48515b;
-  --color-ink-3: #6b7480;
+  /* ink-3 and mark-edge were darkened to keep 4.5:1 contrast on sunken and highlighter backgrounds (axe). */
+  --color-ink-3: #5d6570;
   --color-rule: #dbe0e6;
   --color-rule-strong: #b3bcc6;
   --color-accent: #1a43b8;
   --color-accent-ink: #12328c;
   --color-accent-wash: #e9eefb;
   --color-mark: #fff2b3;
-  --color-mark-edge: #c79a00;
+  --color-mark-edge: #7a5d00;
   --color-del: #fbe9e9;
   --color-del-ink: #a32020;
   --color-ok: #146c43;

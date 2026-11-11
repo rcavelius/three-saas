@@ -20,4 +20,5 @@ export const MIME = {
   csv: "text/csv;charset=utf-8",
   xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   json: "application/json",
+  zip: "application/zip",
 } as const;

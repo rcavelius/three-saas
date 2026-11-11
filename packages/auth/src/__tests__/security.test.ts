@@ -118,6 +118,27 @@ describe("origin / CSRF", () => {
   });
 });
 
+describe("trusted client IP resolver", () => {
+  it("rotating X-Forwarded-For or a forged internal header cannot dodge the sign-in limit", async () => {
+    const t = await setup({ resolveClientIp: (h) => h.get("fly-client-ip") });
+    await t.verifiedUser("ip@example.com");
+    const statuses: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      const r = await t.call("/sign-in/email", {
+        body: { email: "ip@example.com", password: "wrong password!!" },
+        headers: { "fly-client-ip": "203.0.113.50", "x-repo-client-ip": `198.51.100.${i}` },
+      });
+      statuses.push(r.status);
+    }
+    expect(statuses[5]).toBe(429);
+    const { rows } = await t.handle.executor.query<{ key: string }>(
+      `SELECT key FROM auth_rate_limit WHERE key LIKE '%/sign-in/email'`,
+    );
+    expect(rows.map((r) => r.key)).toEqual(["203.0.113.50|/sign-in/email"]);
+    await t.close();
+  });
+});
+
 describe("rate limiting (database storage)", () => {
   it("sign-in returns 429 after 5 attempts per minute from one IP, other IPs unaffected", async () => {
     const t = await fresh();
