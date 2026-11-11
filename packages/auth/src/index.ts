@@ -1,5 +1,5 @@
 export { AUTH_MIGRATIONS } from "./migrations";
-export { createAuth, buildAuthOptions, highestRole, personalOrgSlug } from "./auth";
+export { createAuth, buildAuthOptions, highestRole, personalOrgSlug, CLIENT_IP_HEADER } from "./auth";
 export type { AppAuth, AuthSession, CreateAuthOptions, OrgRole } from "./auth";
 export { AuthError, isAuthError } from "./errors";
 export type { AuthErrorStatus } from "./errors";

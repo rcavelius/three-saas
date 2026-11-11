@@ -13,7 +13,7 @@
  */
 import type { DbHandle, SqlExecutor } from "@repo/database";
 import { getFreePlan, getPlan, planByLookupKey, type Catalog, type PlanDef } from "./catalog";
-import {
+import { BillingNotConfiguredError,
   invoiceSubscriptionId,
   normalizeSubscription,
   type GatewayEvent,
@@ -51,7 +51,8 @@ export interface BillingOptions {
   handle: DbHandle<any>;
   catalog: Catalog;
   stripe: StripeGateway;
-  webhookSecret: string;
+  /** Required unless the gateway is notConfiguredGateway(). */
+  webhookSecret?: string;
   /** APP_URL, e.g. https://siteproof.example. Used for redirect URLs and the route Origin check. */
   appUrl: string;
   hooks?: BillingHooks;
@@ -204,7 +205,8 @@ export function createBilling(opts: BillingOptions): Billing {
   const now = opts.now ?? (() => new Date());
   const graceMs = (opts.gracePeriodDays ?? 7) * DAY_MS;
   const freePlan = getFreePlan(catalog);
-  if (!opts.webhookSecret) throw new Error("createBilling: webhookSecret is required");
+  const configured = stripe.mode !== "none";
+  if (configured && !opts.webhookSecret) throw new Error("createBilling: webhookSecret is required");
   let appOrigin: URL;
   try {
     appOrigin = new URL(opts.appUrl);
@@ -565,11 +567,12 @@ export function createBilling(opts: BillingOptions): Billing {
 
   async function handleWebhook(rawBody: string, signatureHeader: string | null) {
     const text = (status: number, body: string) => ({ status, body });
+    if (!configured) return text(503, "billing not configured");
     if (!signatureHeader) return text(400, "missing Stripe-Signature header");
     if (typeof rawBody !== "string" || rawBody.length === 0) return text(400, "empty body");
     let event: GatewayEvent;
     try {
-      event = stripe.webhooks.constructEvent(rawBody, signatureHeader, opts.webhookSecret);
+      event = stripe.webhooks.constructEvent(rawBody, signatureHeader, opts.webhookSecret!);
     } catch {
       return text(400, "invalid signature");
     }
@@ -725,6 +728,7 @@ export function createBilling(opts: BillingOptions): Billing {
     if (!plan || plan.id === freePlan.id || !plan.stripeLookupKey) {
       throw new BillingError("invalid_plan", `Unknown or free plan "${planId}"`, 400);
     }
+    if (!configured) throw new BillingNotConfiguredError();
     const row = await loadSub(ex, orgId);
     if (row && SUBSCRIBED_STATUSES.has(row.status)) {
       throw new BillingError(
@@ -752,6 +756,7 @@ export function createBilling(opts: BillingOptions): Billing {
 
   async function createPortalSession(orgId: string) {
     requireOrgId(orgId);
+    if (!configured) throw new BillingNotConfiguredError();
     const customer = await getCustomerId(orgId);
     if (!customer) throw new BillingError("no_customer", "No billing account yet; choose a plan first.", 404);
     return stripe.billingPortal.sessions.create({ customer, return_url: appUrl + paths.portalReturn });
@@ -797,6 +802,7 @@ export function createBilling(opts: BillingOptions): Billing {
   }
 
   async function reconcile() {
+    if (!configured) return { checked: 0, fixed: 0, errors: 0 };
     const { rows } = await ex.query<{ org_id: string; stripe_customer_id: string }>(
       `SELECT org_id, stripe_customer_id FROM billing_customers ORDER BY org_id`,
     );

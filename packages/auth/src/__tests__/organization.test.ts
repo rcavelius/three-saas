@@ -184,22 +184,25 @@ describe("invitations and roles", () => {
     expect(ok.status).toBe(200);
   });
 
-  it("getMemberLimit caps seats", async () => {
+  it("getMemberLimit caps seats: invitations are refused once members + pending invites fill the plan", async () => {
     const res = await t.call("/organization/create", { body: { name: "Tiny", slug: "tiny" }, jar: owner.jar });
     const tinyId = ((await res.json()) as { id: string }).id;
-    memberLimit = 1;
+    memberLimit = 2;
     try {
-      const inv = await t.call("/organization/invite-member", {
+      const first = await t.call("/organization/invite-member", {
         body: { email: "eve@example.com", role: "member", organizationId: tinyId },
         jar: owner.jar,
       });
-      if (inv.status === 200) {
-        const { id } = (await inv.json()) as { id: string };
-        const acc = await t.call("/organization/accept-invitation", { body: { invitationId: id }, jar: eve.jar });
-        expect(acc.status).toBe(403);
-      } else {
-        expect(inv.status).toBe(403);
-      }
+      expect(first.status).toBe(200); // 1 member + 0 pending < 2
+      const second = await t.call("/organization/invite-member", {
+        body: { email: "mallory@example.com", role: "member", organizationId: tinyId },
+        jar: owner.jar,
+      });
+      expect(second.status).toBe(403); // 1 member + 1 pending = 2
+      memberLimit = 1;
+      const { id } = (await first.json()) as { id: string };
+      const acc = await t.call("/organization/accept-invitation", { body: { invitationId: id }, jar: eve.jar });
+      expect(acc.status).toBe(403); // limit lowered after inviting: acceptance is still capped
       expect(await membersOf(tinyId)).toHaveLength(1);
     } finally {
       memberLimit = 100;
