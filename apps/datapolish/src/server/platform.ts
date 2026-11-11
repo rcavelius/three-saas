@@ -42,6 +42,7 @@ import { authEmailTemplates } from "./emails";
 import { isLocalAppUrl, loadEnv, type AppEnv } from "./env";
 import { ALL_MIGRATIONS } from "./migrations";
 import { workflowRepo, type WorkflowRepo } from "./workflows";
+import { createSupport, type AnthropicLike, type Support } from "@repo/support";
 
 export const CATALOG = DATAPOLISH_CATALOG;
 export const COOKIE_PREFIX = "dp";
@@ -57,6 +58,7 @@ export interface Platform {
   mailer: Mailer;
   scheduler: Scheduler;
   workflows: WorkflowRepo;
+  support: Support;
   brand: Brand;
   logger: Logger;
   now: () => Date;
@@ -75,6 +77,8 @@ export interface PlatformOptions {
   authRateLimit?: boolean;
   /** Extra outgoing-email observer (tests). */
   onEmail?: (m: EmailMessage) => void;
+  /** Tests: a mocked Anthropic client for the support assistant. */
+  supportAiClient?: AnthropicLike;
 }
 
 /** Stand-in gateway when no Stripe key is configured: every call fails with a clear 503. */
@@ -196,6 +200,7 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
 
   const workflows = workflowRepo(handle);
 
+  let supportRef: Support | null = null;
   const auth = createAuth({
     handle,
     appName: "DataPolish",
@@ -217,8 +222,34 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
       await ex.query(`UPDATE workflows SET created_by = NULL WHERE created_by = $1`, [userId]);
       // First-party analytics rows are de-linked from the person.
       await ex.query(`UPDATE analytics_events SET user_id = NULL WHERE user_id = $1`, [userId]);
+      await supportRef?.purge(orgIds, userId);
     },
   });
+
+  const support = createSupport({
+    app: "datapolish",
+    handle,
+    auth,
+    mailer,
+    brand,
+    appUrl: env.appUrl,
+    clientIp: env.clientIp,
+    tokenSecret: env.sessionSecret,
+    operatorEmail: env.supportOperatorEmail ?? env.ownerAlertEmail,
+    contentDir: path.resolve(process.cwd(), "content/help"),
+    getPlanName: async (orgId) => planName((await billing.getEntitlements(orgId)).planId),
+    ai: {
+      apiKey: env.anthropicApiKey,
+      model: env.supportAiModel,
+      monthlyBudgetCents: env.supportAiMonthlyBudgetCents,
+      dailyBudgetCents: env.supportAiDailyBudgetCents,
+      client: o.supportAiClient,
+    },
+    logger: logger.child({ part: "support" }),
+    now,
+  });
+  supportRef = support;
+  void support.ensureArticles();
 
   const opsJobs = createOpsJobs({
     handle,
@@ -241,7 +272,7 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
       await ex.query(`DELETE FROM analytics_events WHERE created_at < $1`, [new Date(t.getTime() - 396 * 86_400_000).toISOString()]);
     },
   };
-  const jobs = { ...opsJobs, ...appJobs };
+  const jobs = { ...opsJobs, ...support.jobs, ...appJobs };
   const scheduler = createScheduler({
     handle,
     jobs,
@@ -249,12 +280,13 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
     now,
     schedules: [
       ...defaultOpsSchedules(opsJobs),
+      ...support.schedules,
       { name: "billing.reconcile", intervalSeconds: 3600, maxAttempts: 3 },
       { name: "datapolish.cleanup", intervalSeconds: 86_400, maxAttempts: 3 },
     ],
   });
 
-  return { env, handle, auth, billing, billingConfigured: stripe !== null, mailer, scheduler, workflows, brand, logger, now, ownerEmails };
+  return { env, handle, auth, billing, billingConfigured: stripe !== null, mailer, scheduler, workflows, support, brand, logger, now, ownerEmails };
 }
 
 const g = globalThis as unknown as { __datapolishPlatform?: Promise<Platform> };

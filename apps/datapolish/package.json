@@ -17,6 +17,7 @@
     "@repo/database": "*",
     "@repo/monitoring": "*",
     "@repo/ops": "*",
+    "@repo/support": "*",
     "fflate": "^0.8.3",
     "next": "^16.4.6",
     "papaparse": "^5.7.0",

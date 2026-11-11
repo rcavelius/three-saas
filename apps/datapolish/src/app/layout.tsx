@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { AccountNav, PageviewTracker } from "@/components/SiteChrome";
 import { appUrl } from "@/lib/site";
+import "@repo/support/styles.css";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-plex-sans", display: "swap" });
@@ -33,6 +34,7 @@ const nav = [
   { href: "/guides", label: "Guides" },
   { href: "/pricing", label: "Pricing" },
   { href: "/privacy", label: "Privacy" },
+  { href: "/help", label: "Help" },
 ];
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -77,6 +79,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {[
                 ["/guides", "Guides"],
                 ["/pricing", "Pricing"],
+                ["/help", "Help center"],
+                ["/support", "Contact support"],
                 ["/privacy", "Privacy"],
                 ["/terms", "Terms"],
               ].map(([href, label]) => (
