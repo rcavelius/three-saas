@@ -27,6 +27,9 @@ export function SiteHeader({ signedIn, operator }: { signedIn: boolean; operator
           <Link className="hidden sm:inline px-2 py-1 rounded-sm hover:text-fg" href="/guides">
             Guides
           </Link>
+          <Link className="hidden sm:inline px-2 py-1 rounded-sm hover:text-fg" href="/help">
+            Help
+          </Link>
         </nav>
         <div className="ml-auto flex items-center gap-1 text-[13px]">
           {signedIn ? (
@@ -73,6 +76,12 @@ export function SiteFooter() {
         </Link>
         <Link className="hover:text-fg" href="/pricing">
           Pricing
+        </Link>
+        <Link className="hover:text-fg" href="/help">
+          Help center
+        </Link>
+        <Link className="hover:text-fg" href="/support">
+          Contact support
         </Link>
         <Link className="hover:text-fg" href="/privacy">
           Privacy (draft)

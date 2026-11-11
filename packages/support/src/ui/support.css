@@ -111,4 +111,4 @@ textarea.sup-input { resize: vertical; }
 .sup-table-wrap { overflow-x: auto; }
 .sup-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .sup-table th, .sup-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--sup-border); vertical-align: top; }
-.sup-escalated { background: #fef2f2; }
+.sup-escalated { background: var(--sup-danger-soft, #fef2f2); }
