@@ -18,18 +18,18 @@ Status reflects verified work only. "Done" means implemented and covered by pass
 
 Known follow-ups from Phase 2: trusted client-IP header config per host; nonce-based CSP (currently `'unsafe-inline'` scripts); schedule SiteProof expired-report cleanup; zip downloads for DataPolish batch (needs `fflate`); SiteProof PDF export; HookPilot replay to verified targets.
 
-## Phase 3: Commercial systems — next
-- `@repo/auth`: email + password and magic-link sign-in, sessions, email verification, account deletion.
-- `@repo/billing`: Stripe Checkout, Customer Portal (upgrade/downgrade/cancel), idempotent webhook handler, entitlements per plan, failed-payment emails.
-- Plan limits enforced server-side in each app; SiteProof scheduled scans and alert emails; HookPilot saved endpoints, teams, replay to verified targets; DataPolish account-synced workflows.
+## Phase 3: Commercial systems — done (2026-11-11), Stripe test mode via FakeStripe
+- `@repo/auth` (Better Auth): email/password, verification, reset, sessions, organizations/teams, seat limits, account deletion with data purge, trusted-IP rate limits.
+- `@repo/billing`: Stripe Checkout, Customer Portal, plan changes, dunning grace period, verified idempotent out-of-order-safe webhooks, reconciliation, server-side entitlements, atomic usage; runs "not configured" without keys; refuses live keys unless the owner authorizes.
+- Integrated in all three apps with account, team, billing and admin pages.
 
-## Phase 4: Autonomous operations
-- Worker process per app, job failure incidents, uptime heartbeat, budget alerts, backup verification.
-- Help center + AI support assistant with strict scope (no refunds/legal commitments/private data), ticket categorisation, escalation queue.
-- Owner dashboard (MRR, new subs, cancellations, churn, conversion, traffic, costs, failed jobs, incidents) from real data; operator console.
+## Phase 4: Autonomous operations — done
+- `@repo/ops`: Postgres scheduler (retry, dead letters, escalation), incidents with dedup/acknowledgement, owner alerts (critical immediately, daily warning digest), health/uptime, budgets and usage ceilings, billing health, owner metrics from real rows, first-party analytics, nonce CSP.
+- Not built: AI support assistant and ticket system (help pages + FAQ exist); provider cost import APIs (costs are entered in /admin).
 
-## Phase 5: SEO and deployment
-- Sitemaps, structured data, guides, internal linking, Search Console instructions, deployment configs (Dockerfiles / platform configs), CI.
+## Phase 5: SEO and deployment — done (pending owner accounts)
+- Sitemaps, robots, canonical URLs, JSON-LD, FAQ, original guides per app; Search Console steps in each app's docs/SEO.md.
+- Dockerfile, Fly configs, deployment guide, cost model at 0/100/1,000 customers.
 
-## Phase 6: QA
-- Playwright E2E (signup → checkout in Stripe test mode → cancel), mobile and accessibility checks, security boundary tests, data deletion, job retries.
+## Phase 6: QA — release gates run; see RELEASE-REPORT.md
+- Remaining NOT TESTED gates need owner accounts: real Stripe test mode, real email, real Postgres, Docker image, external uptime, backups.

@@ -1,33 +1,34 @@
 # Owner and operator actions
 
-The products are built to automate routine work (signup, billing, scans, cleanup, notifications, first-line support). They are **not** able to run permanently with zero human oversight. This file lists what genuinely needs a person.
+The products automate routine work: signup, verification, billing, plan changes, dunning emails, scans and alerts, cleanup, retention, reconciliation, health checks and owner alerts. They are **not** able to run permanently with zero human oversight. This file lists what genuinely needs a person.
 
-## One-time, owner only (blocks public launch)
+## Exact owner actions, in order (each one is the owner's decision; nothing here has been done)
 
-| # | Action | Why a human | Blocks |
+| # | Action | Unblocks | Time |
 |---|---|---|---|
-| 1 | Choose and buy 3 domains | Purchase and registrant identity | Public deployment, email sending, Search Console |
-| 2 | Create a Stripe account and complete business verification (KYC), bank account, tax settings | Legal identity and payouts | Live billing (test mode works without it) |
-| 3 | Create hosting, database, and email provider accounts with a payment method; set budget alerts | Paid services need the owner's authorization | Deployment |
-| 4 | Legal review of the privacy policy and terms drafts in each app | Drafts are not legal advice | Public launch |
-| 5 | Decide the legal entity / sole trader setup and sales-tax handling (Stripe Tax or otherwise) | Legal and tax obligations | Live billing |
-| 6 | Verify each domain in Google Search Console (DNS TXT record) | Requires domain control | SEO reporting |
-| 7 | Approve the first production deployment | Public deployment authorization | Launch |
+| 1 | Choose and buy three domains (one per product). | Everything public | 30 min |
+| 2 | Create a Stripe account, complete business verification (identity, bank, tax settings). Give me a **test-mode** secret key (`sk_test_…`) as an environment variable, not in chat. | Real-Stripe test lifecycle gate | 1–2 h + Stripe review |
+| 3 | Create accounts with payment methods: Fly.io (hosting), Neon (Postgres), Resend (email). Turn on spend alerts in each (suggested: Fly $50, Neon $30, Resend at plan limit). | Deployment, real-Postgres and email gates | 1 h |
+| 4 | Have a lawyer review `/privacy` and `/terms` of all three apps (drafts in each app). | Public launch | external |
+| 5 | Decide the legal entity and sales-tax handling (e.g. Stripe Tax). | Live billing | external |
+| 6 | Authorize the first deployment to the test environment (staging subdomains). I then deploy, run the gates marked NOT TESTED in RELEASE-REPORT.md, and report. | Release gates | — |
+| 7 | Add DNS records I provide: Fly certificates, Resend SPF/DKIM/DMARC, Google Search Console TXT. | Email deliverability, SEO | 30 min |
+| 8 | Grant yourself the dashboard role once signed up: `UPDATE auth_user SET role = 'owner' WHERE email = '<you>';` (exact command per app in each README). | /admin dashboards | 5 min |
+| 9 | Authorize go-live with live billing: set `STRIPE_LIVE_MODE_AUTHORIZED=true` and live keys yourself. The code refuses live keys without it. | Taking real money | 15 min |
+| 10 | Choose a contracted operator (or yourself) for the exceptions below, and set `OWNER_ALERT_EMAIL`. | Incident handling | — |
 
-Credentials are given to the platform as environment variables only; never commit them to the repo.
+## Exceptions that need a person (a few hours per month)
 
-## Exceptional tasks for a contracted operator (a few hours per month)
+The apps route these to `/admin` (open incidents, dead-letter jobs, billing events) and to the owner alert email (critical incidents immediately, warnings in one daily digest):
 
-These are routed to an operator queue (incidents and escalated support tickets) rather than handled automatically:
+- Refunds outside policy, chargebacks and disputes (the AI/automation never grants refunds or makes legal commitments).
+- Support requests the help pages don't answer; account-ownership disputes; data access/deletion requests that fail self-service.
+- Abuse: HookPilot endpoints used for spam or phishing, SiteProof used against sites that object (opt-out requests via the `/bot` page), law-enforcement or legal requests.
+- Critical incidents: outages, repeated dead-letter jobs, webhook backlog, budget overruns, backup verification failures.
+- Reviewing any drafted SEO content before it is published.
 
-- Refunds outside the automatic policy, chargebacks and disputes.
-- Support requests the AI assistant could not resolve, account-ownership disputes, data access/deletion requests that fail automated checks.
-- Abuse reports (e.g. HookPilot endpoints used for phishing, SiteProof used to scan sites aggressively) and law-enforcement or legal requests.
-- Critical incidents: outage longer than the alert threshold, backup verification failure, payment webhook failures, budget alerts.
-- Reviewing AI-drafted SEO content before publishing.
+Operators acknowledge an incident in `/admin` to stop repeat alerts; escalation to a higher severity alerts again.
 
-The operator console (Phase 4) will give an operator access to these queues without full owner/database access.
+## Development blockers
 
-## Current blockers for development
-
-None. Everything up to production deployment can be built and tested locally with Stripe test mode and PGlite.
+None for development. The remaining release gates (real Stripe test mode, real email, real Postgres, Docker image, external uptime) need actions 2, 3 and 6.
