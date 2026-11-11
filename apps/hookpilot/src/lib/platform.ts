@@ -22,6 +22,7 @@ import {
   createOpsJobs,
   createScheduler,
   defaultOpsSchedules,
+  getClientIp,
   raiseIncident,
   type Brand,
   type ClientIpConfig,
@@ -108,10 +109,6 @@ export const UNCONFIGURED_STRIPE: StripeGateway = {
   },
 };
 
-function ipAddressHeadersFor(): string[] {
-  return [AUTH_IP_HEADER];
-}
-
 export async function createPlatform(o: PlatformOptions): Promise<Platform> {
   if (o.databaseUrl.startsWith("pglite:")) {
     const target = o.databaseUrl.slice("pglite:".length);
@@ -177,7 +174,8 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
       await mailer.send(m);
     },
     emailTemplates: authEmailTemplates(brand),
-    ipAddress: { ipAddressHeaders: ipAddressHeadersFor() },
+    // Same trusted-proxy rule as every other rate limit; client-sent IP headers are ignored.
+    resolveClientIp: (h) => getClientIp(h, o.clientIp),
     rateLimitEnabled: o.rateLimitAuth ?? true,
     getMemberLimit: async (orgId) => (await billing.getEntitlements(orgId)).limits.teamSeats ?? 1,
     onBeforeUserDelete: async (_userId, orgIds) => {

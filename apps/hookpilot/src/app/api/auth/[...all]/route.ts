@@ -1,6 +1,5 @@
-import { getClientIp } from "@repo/ops";
 import { apiError } from "@/lib/http";
-import { AUTH_IP_HEADER, getPlatform, type Platform } from "@/lib/platform";
+import { getPlatform, type Platform } from "@/lib/platform";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,16 +35,12 @@ async function seatCheck(p: Platform, req: Request, body: ArrayBuffer): Promise<
 }
 
 /**
- * Better Auth routes. The client IP used for auth rate limiting is resolved here with the same
- * trusted-proxy rule as every other limit (TRUSTED_PROXY) and passed in a header Better Auth is
- * configured to read; any client-sent copy of that header is dropped.
+ * Better Auth routes. Client IP for auth rate limiting comes from createAuth's resolveClientIp
+ * (same TRUSTED_PROXY rule as every other limit; client-sent values are overwritten).
  */
 async function handler(req: Request): Promise<Response> {
   const p = await getPlatform();
   const headers = new Headers(req.headers);
-  headers.delete(AUTH_IP_HEADER);
-  const ip = getClientIp(req.headers, p.clientIp);
-  if (ip) headers.set(AUTH_IP_HEADER, ip);
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
   const body = hasBody ? await req.arrayBuffer() : undefined;
   if (body && new URL(req.url).pathname.endsWith("/organization/invite-member")) {
