@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Scanner } from "@/components/Scanner";
+import { JsonLd } from "@/components/JsonLd";
+import { softwareApplicationJsonLd } from "@/lib/marketing";
+import { env } from "@/lib/env";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 import { CHECK_DOCS } from "@/lib/check-docs";
 
 function firstSentence(s: string): string {
@@ -10,6 +16,7 @@ function firstSentence(s: string): string {
 export default function HomePage() {
   return (
     <>
+      <JsonLd data={softwareApplicationJsonLd(new URL(env().APP_URL).origin)} />
       <section className="mx-auto max-w-6xl px-5 pb-16 pt-12 sm:px-8 sm:pt-20">
         <p className="eyebrow">Free website inspection</p>
         <h1 className="mt-4 max-w-4xl font-display text-[2.6rem] font-semibold leading-[1.04] tracking-tight sm:text-7xl">
@@ -68,6 +75,14 @@ export default function HomePage() {
             Our crawler identifies itself as <span className="num text-[0.92em]">SiteProofBot/1.0</span> and obeys robots.txt.{" "}
             <Link href="/bot" className="text-accent underline underline-offset-4">
               Read about the crawler
+            </Link>
+            .
+          </p>
+          <p>
+            Looking after several sites? The paid plans re-scan them on a schedule, keep the history and email you only when
+            something meaningful changes: the site goes down, a new broken link, a certificate about to expire.{" "}
+            <Link href="/pricing" className="text-accent underline underline-offset-4">
+              See plans
             </Link>
             .
           </p>

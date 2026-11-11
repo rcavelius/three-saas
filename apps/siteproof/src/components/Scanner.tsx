@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { ScanProgress, ScanReport } from "@/lib/scanner/types";
 import { Report } from "./Report";
 import { CopyLink } from "./CopyLink";
+import { track } from "@/lib/client/track";
 
 type StreamEvent =
   | { type: "accepted"; url: string }
@@ -134,6 +135,7 @@ export function Scanner() {
             if (p.type === "phase") setAnnounce(PHASE_LABEL[p.phase] ?? p.message);
           } else if (ev.type === "result") {
             finished = true;
+            track("tool_used", { tool: "scan", score: ev.report.score });
             setState({ kind: "done", id: ev.id, reportUrl: ev.reportUrl, report: ev.report });
             setAnnounce(`Scan finished. Score ${ev.report.score} out of 100, ${ev.report.counts.critical} critical issues.`);
           } else if (ev.type === "error") {

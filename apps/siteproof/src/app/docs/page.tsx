@@ -6,6 +6,7 @@ import { SCORE_RULES } from "@/lib/scanner/score";
 export const metadata: Metadata = {
   title: "What we check",
   description: "How each SiteProof check works, why it matters, and how findings are graded.",
+  alternates: { canonical: "/docs" },
 };
 
 export default function DocsPage() {

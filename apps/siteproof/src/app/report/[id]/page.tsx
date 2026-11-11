@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { Report } from "@/components/Report";
 import { CopyLink } from "@/components/CopyLink";
 import { PrintButton } from "@/components/PrintButton";
-import { getDb } from "@/lib/db";
-import { getScan, SCAN_ID_PATTERN } from "@/lib/scans-repo";
+import { getPlatform } from "@/lib/platform";
+import { loadViewableScan } from "@/lib/report-access";
+import { SCAN_ID_PATTERN } from "@/lib/scans-repo";
 
 export const dynamic = "force-dynamic";
 
@@ -18,26 +20,43 @@ export const metadata: Metadata = {
 export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!SCAN_ID_PATTERN.test(id)) notFound();
-  const scan = await getScan((await getDb()).executor, id);
+  const p = await getPlatform();
+  const scan = await loadViewableScan(p, await headers(), id);
   if (!scan) notFound();
+  const account = scan.orgId !== null;
+  const pdf = account ? (await p.billing.getEntitlements(scan.orgId!)).features.pdfReports === true : false;
 
   return (
     <div className="mx-auto max-w-5xl px-3 py-10 sm:px-8">
       <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3 text-sm">
-        <Link href="/" className="text-accent underline underline-offset-4">
-          &larr; Run another inspection
-        </Link>
-        <div className="flex gap-2">
-          <CopyLink path={`/report/${id}`} />
+        {account && scan.siteId ? (
+          <Link href={`/dashboard/sites/${scan.siteId}`} className="text-accent underline underline-offset-4">
+            &larr; Back to the site
+          </Link>
+        ) : (
+          <Link href="/" className="text-accent underline underline-offset-4">
+            &larr; Run another inspection
+          </Link>
+        )}
+        <div className="flex flex-wrap gap-2">
+          {!account && <CopyLink path={`/report/${id}`} />}
           <a href={`/api/report/${id}`} className="border border-ink px-3 py-1.5 hover:bg-paper-deep">
             JSON
           </a>
-          <PrintButton />
+          {pdf ? (
+            <a href={`/api/reports/${id}/pdf`} className="border border-ink px-3 py-1.5 hover:bg-paper-deep">
+              Download PDF
+            </a>
+          ) : (
+            <PrintButton />
+          )}
         </div>
       </div>
       <Report report={scan.report} id={id} />
       <p className="no-print mt-4 text-xs text-muted">
-        Anyone with this link can view the report. Reports are deleted automatically after the retention period.
+        {account
+          ? "Only members of this workspace can open this report."
+          : "Anyone with this link can view the report. Reports are deleted automatically after the retention period."}
       </p>
     </div>
   );

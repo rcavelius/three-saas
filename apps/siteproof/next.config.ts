@@ -1,32 +1,18 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV !== "production";
-
-// No third-party origins at all: fonts are self-hosted by next/font, scans go to our own API.
-// 'unsafe-inline' for scripts is needed for Next's inline bootstrap without a nonce proxy; see README.
-const csp = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self'",
-  "connect-src 'self'",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  ...(isDev ? [] : ["upgrade-insecure-requests"]),
-].join("; ");
-
-const securityHeaders = [
-  { key: "Content-Security-Policy", value: csp },
+/**
+ * The Content-Security-Policy (per-request nonce) and the page security headers come from src/proxy.ts
+ * (@repo/ops cspProxy). The proxy skips /api routes, so those get their static headers here; there is
+ * deliberately no CSP header in this file, so two policies can never conflict.
+ */
+const apiHeaders = [
+  { key: "Cache-Control", value: "no-store" },
+  { key: "X-Robots-Tag", value: "noindex" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-  ...(isDev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]),
+  { key: "Content-Security-Policy", value: "default-src 'none'; frame-ancestors 'none'" },
 ];
 
 const nextConfig: NextConfig = {
@@ -36,13 +22,12 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   reactStrictMode: true,
   poweredByHeader: false,
-  transpilePackages: ["@repo/config", "@repo/database", "@repo/monitoring", "@repo/security"],
-  serverExternalPackages: ["@electric-sql/pglite", "undici"],
+  transpilePackages: ["@repo/auth", "@repo/billing", "@repo/config", "@repo/database", "@repo/monitoring", "@repo/ops", "@repo/security"],
+  serverExternalPackages: ["@electric-sql/pglite", "undici", "pdfkit", "pg"],
   async headers() {
     return [
-      { source: "/:path*", headers: securityHeaders },
+      { source: "/api/:path*", headers: apiHeaders },
       { source: "/report/:id*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
-      { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }, { key: "X-Robots-Tag", value: "noindex" }] },
     ];
   },
 };

@@ -8,6 +8,7 @@ import { z } from "zod";
 import { checkTargetUrl } from "@repo/security";
 import { rateLimit, type SqlExecutor } from "@repo/database";
 import type { Logger } from "@repo/monitoring";
+import { getClientIp, rateLimitKeyForIp, type ClientIpConfig } from "@repo/ops";
 import { runScan, type RunScanOptions } from "./scanner/scan";
 import type { ScanDeps, ScanReport } from "./scanner/types";
 import { saveScan } from "./scans-repo";
@@ -26,14 +27,9 @@ export function normalizeInputUrl(input: string): string {
   return `https://${s.replace(/^\/+/, "")}`;
 }
 
-/** Client IP from the ONE header your proxy sets. For X-Forwarded-For the right-most entry is the proxy-added one. */
-export function clientIp(headers: Headers, trustedHeader: string | undefined): string {
-  if (!trustedHeader) return "untrusted";
-  const raw = headers.get(trustedHeader);
-  if (!raw) return "unknown";
-  const parts = raw.split(",").map((s) => s.trim()).filter(Boolean);
-  const ip = trustedHeader.toLowerCase() === "x-forwarded-for" ? parts[parts.length - 1] : parts[0];
-  return (ip ?? "unknown").slice(0, 64);
+/** Rate-limit bucket for a request: the client IP resolved per TRUSTED_PROXY (IPv6 bucketed by /64). */
+export function clientBucket(headers: Headers, cfg: ClientIpConfig): string {
+  return rateLimitKeyForIp(getClientIp(headers, cfg));
 }
 
 export function hashKey(value: string): string {
@@ -66,7 +62,8 @@ export interface ScanHandlerOptions {
   ipLimitPerHour: number;
   targetLimitPerHour: number;
   retentionDays: number;
-  trustedIpHeader?: string;
+  /** From TRUSTED_PROXY via clientIpConfigFromEnv; "none" puts every client in one bucket. */
+  clientIp: ClientIpConfig;
   appUrl: string;
   logger?: Logger;
   scanOptions?: Pick<RunScanOptions, "limits">;
@@ -142,8 +139,8 @@ export function createScanHandler(o: ScanHandlerOptions) {
       o.logger?.error("db unavailable", { err });
       return json(503, { error: "The service is temporarily unavailable." });
     }
-    const ip = clientIp(req.headers, o.trustedIpHeader);
-    const ipLimit = await rateLimit(ex, `scan:ip:${hashKey(ip)}`, o.ipLimitPerHour, 3_600_000);
+    const bucket = clientBucket(req.headers, o.clientIp);
+    const ipLimit = await rateLimit(ex, `scan:ip:${hashKey(bucket)}`, o.ipLimitPerHour, 3_600_000);
     if (!ipLimit.allowed) {
       const retry = Math.max(1, Math.ceil((ipLimit.resetAt.getTime() - Date.now()) / 1000));
       return json(

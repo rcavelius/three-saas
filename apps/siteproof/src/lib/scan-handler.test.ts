@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { SafeFetchError, type SafeResponse } from "@repo/security";
-import { clientIp, createScanHandler, normalizeInputUrl, ScanSlots, type ScanHandlerOptions } from "./scan-handler";
+import { clientBucket, createScanHandler, normalizeInputUrl, ScanSlots, type ScanHandlerOptions } from "./scan-handler";
 import { openDb } from "./db";
 import { getScan, SCAN_ID_PATTERN } from "./scans-repo";
 import type { ScanDeps } from "./scanner/types";
@@ -47,7 +47,7 @@ function handler(overrides: Partial<ScanHandlerOptions> = {}) {
     ipLimitPerHour: 100,
     targetLimitPerHour: 100,
     retentionDays: 90,
-    trustedIpHeader: "x-forwarded-for",
+    clientIp: { mode: "xff", trustedHops: 1 },
     appUrl: "http://localhost:3001",
     scanOptions: { limits: { delayMs: 0, timeBudgetMs: 10_000 } },
     ...overrides,
@@ -70,11 +70,14 @@ describe("input helpers", () => {
     expect(normalizeInputUrl("http://example.com")).toBe("http://example.com");
     expect(normalizeInputUrl("javascript:alert(1)")).toBe("javascript:alert(1)");
   });
-  it("only trusts the configured IP header, right-most X-Forwarded-For entry", () => {
-    const h = new Headers({ "x-forwarded-for": "6.6.6.6, 198.51.100.7", "x-real-ip": "1.2.3.4" });
-    expect(clientIp(h, undefined)).toBe("untrusted");
-    expect(clientIp(h, "x-forwarded-for")).toBe("198.51.100.7");
-    expect(clientIp(h, "x-real-ip")).toBe("1.2.3.4");
+  it("buckets clients by the TRUSTED_PROXY header only (spoofed left-most X-Forwarded-For is ignored)", () => {
+    const h = new Headers({ "x-forwarded-for": "6.6.6.6, 198.51.100.7", "fly-client-ip": "1.2.3.4" });
+    expect(clientBucket(h, { mode: "none" })).toBe("ip:unknown");
+    expect(clientBucket(h, { mode: "xff", trustedHops: 1 })).toBe("ip4:198.51.100.7");
+    expect(clientBucket(h, { mode: "fly" })).toBe("ip4:1.2.3.4");
+    // a client prepending addresses cannot change its bucket
+    const spoofed = new Headers({ "x-forwarded-for": "10.0.0.1, 9.9.9.9, 198.51.100.7" });
+    expect(clientBucket(spoofed, { mode: "xff", trustedHops: 1 })).toBe("ip4:198.51.100.7");
   });
 });
 

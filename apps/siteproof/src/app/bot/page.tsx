@@ -7,6 +7,7 @@ import { env } from "@/lib/env";
 export const metadata: Metadata = {
   title: "SiteProofBot",
   description: "What SiteProofBot is, how it behaves, and how to block or slow it.",
+  alternates: { canonical: "/bot" },
 };
 
 export default function BotPage() {
