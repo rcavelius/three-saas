@@ -19,7 +19,11 @@ async function main() {
   }
   const stripe = new Stripe(key, { maxNetworkRetries: 2 });
 
-  for (const catalog of ALL_CATALOGS) {
+  // STRIPE_SETUP_APPS=datapolish (comma-separated) limits the run to one product's Stripe account.
+  const only = (process.env.STRIPE_SETUP_APPS ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  const catalogs = only.length ? ALL_CATALOGS.filter((c) => only.includes(c.app)) : ALL_CATALOGS;
+  if (only.length && catalogs.length !== only.length) throw new Error(`Unknown app in STRIPE_SETUP_APPS: ${only.join(",")}`);
+  for (const catalog of catalogs) {
     for (const plan of catalog.plans) {
       if (!plan.stripeLookupKey) continue;
       const productId = `${catalog.app}_${plan.id}`;
