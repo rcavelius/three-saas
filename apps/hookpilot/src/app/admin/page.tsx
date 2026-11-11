@@ -47,6 +47,7 @@ export default async function AdminPage() {
     `SELECT id, type, outcome, received_at, error FROM billing_events ORDER BY received_at DESC LIMIT 15`,
   );
 
+  const supportCounts = await p.support.adminCounts();
   const kpis: [string, Metric][] = [
     ["MRR", metrics.mrrCents],
     ["Active paid subscriptions", metrics.activePaidSubscriptions],
@@ -71,6 +72,16 @@ export default async function AdminPage() {
           Signed in as {op.email} ({op.role}). Generated {now.toISOString()}.
         </p>
       </div>
+
+      <Card title="Support">
+        <p className="text-[13px] text-fg-muted">
+          {supportCounts.open} active tickets · {supportCounts.waitingOnOperator} waiting on us ·{" "}
+          <strong className={supportCounts.escalated ? "text-err" : undefined}>{supportCounts.escalated} escalated</strong> ·{" "}
+          <a href="/admin/support" className="text-signal underline">
+            Open the support queue
+          </a>
+        </p>
+      </Card>
 
       <Card title="Business">
         <dl className="grid gap-3 grid-cols-2 md:grid-cols-4">

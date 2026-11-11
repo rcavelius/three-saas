@@ -12,6 +12,7 @@ import { createPlatform, installPlatform, type Platform } from "@/lib/platform";
 import { parseSiteproofEnv } from "@/lib/env";
 import type { ScanDeps } from "@/lib/scanner/types";
 import { authRouteHandler } from "@/lib/auth-route";
+import type { AnthropicLike } from "@repo/support";
 
 export const APP = "http://localhost:3101";
 export const PASSWORD = "correct horse battery staple";
@@ -102,7 +103,7 @@ function absorb(jar: Jar, res: Response): void {
   }
 }
 
-export async function createHarness(envOver: Record<string, string> = {}): Promise<Harness> {
+export async function createHarness(envOver: Record<string, string> = {}, extra: { supportAiClient?: AnthropicLike } = {}): Promise<Harness> {
   const clock = {
     offsetMs: 0,
     advance(ms: number) {
@@ -135,6 +136,7 @@ export async function createHarness(envOver: Record<string, string> = {}): Promi
     now,
     scanDeps: () => virtualDeps(web, certDays),
     scanLimitOverrides: { delayMs: 0, timeBudgetMs: 20_000 },
+    supportAiClient: extra.supportAiClient,
     logger: { debug() {}, info() {}, warn() {}, error() {}, child() { return this; } },
   });
   installPlatform(p);

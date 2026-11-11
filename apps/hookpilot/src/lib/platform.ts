@@ -40,10 +40,13 @@ import { enforcePlanLimits, purgeOrgData } from "./org-data";
 import { CATALOG } from "./plans";
 import { schema, type HookPilotSchema } from "./schema";
 import type { DbHandle } from "@repo/database";
+import { resolve } from "node:path";
+import { getPlan } from "@repo/billing";
+import { SUPPORT_MIGRATIONS, createSupport, type AnthropicLike, type Support } from "@repo/support";
 
 export type HookPilotDb = DbHandle<HookPilotSchema>;
 
-export const ALL_MIGRATIONS = [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS, ...HOOKPILOT_MIGRATIONS];
+export const ALL_MIGRATIONS = [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS, ...SUPPORT_MIGRATIONS, ...HOOKPILOT_MIGRATIONS];
 
 /** Header the auth route sets from getClientIp() so Better Auth rate-limits by the trusted client IP only. */
 export const AUTH_IP_HEADER = "x-hp-client-ip";
@@ -68,6 +71,16 @@ export interface PlatformOptions {
   storedRowsCeiling?: number;
   mailerFetch?: FetchLike;
   rateLimitAuth?: boolean;
+  /** Support assistant (Claude). Unset key => chat falls back to help-article search. */
+  anthropicApiKey?: string;
+  supportAiModel?: string;
+  supportAiMonthlyBudgetCents?: number;
+  supportAiDailyBudgetCents?: number;
+  /** Escalated tickets are emailed here (falls back to ownerEmail). */
+  supportOperatorEmail?: string;
+  /** Tests: a mocked Anthropic client. */
+  supportAiClient?: AnthropicLike;
+  now?: () => Date;
 }
 
 export interface Platform {
@@ -83,6 +96,7 @@ export interface Platform {
   brand: Brand;
   replay: { policy?: AddressPolicy; resolver?: Resolver; selfHosts: string[] };
   storedRowsCeiling: number;
+  support: Support;
 }
 
 const notConfigured = (): never => {
@@ -178,13 +192,41 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
     resolveClientIp: (h) => getClientIp(h, o.clientIp),
     rateLimitEnabled: o.rateLimitAuth ?? true,
     getMemberLimit: async (orgId) => (await billing.getEntitlements(orgId)).limits.teamSeats ?? 1,
-    onBeforeUserDelete: async (_userId, orgIds) => {
+    onBeforeUserDelete: async (userId, orgIds) => {
       for (const orgId of orgIds) {
         if (o.stripe) await billing.cancelImmediately(orgId);
         await purgeOrgData(ex, orgId);
       }
+      await p.support?.purge(orgIds, userId);
     },
   });
+
+  const support = createSupport({
+    app: "hookpilot",
+    handle,
+    auth,
+    mailer,
+    brand,
+    appUrl,
+    clientIp: o.clientIp,
+    tokenSecret: o.sessionSecret,
+    operatorEmail: o.supportOperatorEmail ?? o.ownerEmail,
+    contentDir: resolve(process.cwd(), "content/help"),
+    getPlanName: async (orgId) => {
+      const id = (await billing.getEntitlements(orgId)).planId;
+      return getPlan(CATALOG, id)?.name ?? id;
+    },
+    ai: {
+      apiKey: o.anthropicApiKey,
+      model: o.supportAiModel,
+      monthlyBudgetCents: o.supportAiMonthlyBudgetCents,
+      dailyBudgetCents: o.supportAiDailyBudgetCents,
+      client: o.supportAiClient,
+    },
+    logger: appLogger("support"),
+    now: o.now,
+  });
+  void support.ensureArticles();
 
   Object.assign(p, {
     auth,
@@ -196,6 +238,7 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
       selfHosts: [new URL(appUrl).hostname, ...(o.selfHosts ?? [])],
     },
     storedRowsCeiling: o.storedRowsCeiling ?? 2_000_000,
+    support,
   });
 
   const opsJobs = createOpsJobs({
@@ -204,8 +247,8 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
     ownerEmail: o.ownerEmail,
     dashboardUrl: `${appUrl}/admin`,
   });
-  const jobs = { ...opsJobs, ...appJobs(p) };
-  const schedules = [...defaultOpsSchedules(opsJobs), ...appSchedules(p)];
+  const jobs = { ...opsJobs, ...support.jobs, ...appJobs(p) };
+  const schedules = [...defaultOpsSchedules(opsJobs), ...support.schedules, ...appSchedules(p)];
   p.scheduler = createScheduler({ handle, jobs, schedules, logger: appLogger("scheduler") });
   return p;
 }
@@ -231,7 +274,19 @@ export function platformOptionsFromEnv(env: Record<string, string | undefined> =
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean),
     storedRowsCeiling: env.HP_STORED_ROWS_CEILING ? Number(env.HP_STORED_ROWS_CEILING) : undefined,
+    anthropicApiKey: env.ANTHROPIC_API_KEY?.trim() || undefined,
+    supportAiModel: env.SUPPORT_AI_MODEL?.trim() || undefined,
+    supportAiMonthlyBudgetCents: cents(env.SUPPORT_AI_MONTHLY_BUDGET_CENTS) ?? 500,
+    supportAiDailyBudgetCents: cents(env.SUPPORT_AI_DAILY_BUDGET_CENTS),
+    supportOperatorEmail: env.SUPPORT_OPERATOR_EMAIL?.trim() || undefined,
   };
+}
+
+function cents(v: string | undefined): number | undefined {
+  if (!v?.trim()) return undefined;
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < 0 || n > 10_000_000) throw new Error("SUPPORT_AI_*_BUDGET_CENTS must be a whole number of cents");
+  return n;
 }
 
 const g = globalThis as unknown as { __hookpilotPlatform?: Promise<Platform> };

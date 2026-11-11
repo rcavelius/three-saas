@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/* Help center + support UI (@repo/support) in DataPolish's instrument palette. */
+.sup-root {
+  --sup-accent: var(--color-accent);
+  --sup-fg: var(--color-ink);
+  --sup-muted: var(--color-ink-2);
+  --sup-border: var(--color-rule-strong);
+  --sup-surface: var(--color-surface);
+  --sup-soft: var(--color-sunken);
+  --sup-radius: 3px;
+}
+
 /*
  * DataPolish: a precision-instrument look. Cool white paper, graphite ink, hairline rules taken from
  * real spreadsheets, one ink-blue accent. Highlighter yellow marks changed cells; a rose wash marks removals.

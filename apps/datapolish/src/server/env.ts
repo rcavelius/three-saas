@@ -20,6 +20,13 @@ export interface AppEnv {
   uptimeUrls?: string;
   /** Local development only: also write every outgoing email as a .txt file here (see devMailSink). */
   devMailDir?: string;
+  /** Support assistant (Claude). Unset => chat falls back to help-article search. */
+  anthropicApiKey?: string;
+  supportAiModel?: string;
+  supportAiMonthlyBudgetCents: number;
+  supportAiDailyBudgetCents?: number;
+  /** Escalated tickets are emailed here (falls back to ownerAlertEmail). */
+  supportOperatorEmail?: string;
   production: boolean;
   version: string;
 }
@@ -47,6 +54,13 @@ function resolveDatabaseUrl(env: Record<string, string | undefined>, production:
   return DEFAULT_DATABASE_URL;
 }
 
+function centsOr(v: string | undefined, fallback: number): number {
+  const n = Number(opt(v));
+  if (opt(v) === undefined) return fallback;
+  if (!Number.isInteger(n) || n < 0 || n > 10_000_000) throw new Error("SUPPORT_AI_*_BUDGET_CENTS must be a whole number of cents");
+  return n;
+}
+
 export function loadEnv(env: Record<string, string | undefined> = process.env): AppEnv {
   const production = env.NODE_ENV === "production";
   const appUrl = new URL(opt(env.APP_URL) ?? "http://localhost:3002").origin;
@@ -70,6 +84,11 @@ export function loadEnv(env: Record<string, string | undefined> = process.env): 
     supportEmail: opt(env.SUPPORT_EMAIL),
     uptimeUrls: opt(env.UPTIME_URLS),
     devMailDir: opt(env.DEV_MAIL_DIR),
+    anthropicApiKey: opt(env.ANTHROPIC_API_KEY),
+    supportAiModel: opt(env.SUPPORT_AI_MODEL),
+    supportAiMonthlyBudgetCents: centsOr(env.SUPPORT_AI_MONTHLY_BUDGET_CENTS, 500),
+    supportAiDailyBudgetCents: opt(env.SUPPORT_AI_DAILY_BUDGET_CENTS) ? centsOr(env.SUPPORT_AI_DAILY_BUDGET_CENTS, 25) : undefined,
+    supportOperatorEmail: opt(env.SUPPORT_OPERATOR_EMAIL),
     production,
     version: opt(env.GIT_SHA) ?? "dev",
   };

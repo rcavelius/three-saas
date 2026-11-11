@@ -5,6 +5,7 @@ import { Pageview } from "@/components/Pageview";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getOperator } from "@/lib/admin";
 import { getPlatform } from "@/lib/platform";
+import "@repo/support/styles.css";
 import "./globals.css";
 
 const grotesk = Inter_Tight({ subsets: ["latin"], variable: "--font-grotesk", display: "swap" });

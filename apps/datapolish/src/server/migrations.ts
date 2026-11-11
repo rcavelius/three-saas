@@ -2,6 +2,7 @@ import { AUTH_MIGRATIONS } from "@repo/auth";
 import { BILLING_MIGRATIONS } from "@repo/billing";
 import { CORE_MIGRATIONS, type Migration } from "@repo/database";
 import { OPS_MIGRATIONS } from "@repo/ops";
+import { SUPPORT_MIGRATIONS } from "@repo/support";
 
 /**
  * DataPolish's own tables. The database holds accounts, billing, ops and saved workflows ONLY.
@@ -27,4 +28,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS workflows_org_name_uq ON workflows (org_id, lo
   },
 ];
 
-export const ALL_MIGRATIONS: Migration[] = [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS, ...APP_MIGRATIONS];
+export const ALL_MIGRATIONS: Migration[] = [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS, ...SUPPORT_MIGRATIONS, ...APP_MIGRATIONS];

@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* Help center + support UI (@repo/support) on the dark console. */
+.sup-root {
+  --sup-accent: var(--color-signal);
+  --sup-accent-fg: var(--color-signal-ink);
+  --sup-fg: var(--color-fg);
+  --sup-muted: var(--color-fg-muted);
+  --sup-border: var(--color-line-strong);
+  --sup-surface: var(--color-surface);
+  --sup-soft: var(--color-surface-3);
+  --sup-danger-soft: #2a1413;
+  --sup-radius: 6px;
+}
+
 /*
  * HookPilot: dark "flight deck" console. Graphite surfaces, one amber signal colour,
  * method colours only on badges. Contrast checked against --color-bg / --color-surface.

@@ -49,8 +49,9 @@ import { deleteExpiredScans } from "./scans-repo";
 import { enforceSiteLimits, purgeOrgData } from "./monitoring/sites";
 import { SCAN_SITE_QUEUE, scheduleDueSites, siteScanJobHandler, type MonitorDeps } from "./monitoring/monitor";
 import { dispatchPendingAlerts } from "./monitoring/alerts";
+import { SUPPORT_MIGRATIONS, createSupport, type AnthropicLike, type Support } from "@repo/support";
 
-export const ALL_MIGRATIONS = [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS, ...SITEPROOF_MIGRATIONS];
+export const ALL_MIGRATIONS = [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS, ...SUPPORT_MIGRATIONS, ...SITEPROOF_MIGRATIONS];
 
 export interface Platform {
   env: SiteproofEnv;
@@ -64,6 +65,7 @@ export interface Platform {
   clientIp: ClientIpConfig;
   logger: Logger;
   monitor: MonitorDeps;
+  support: Support;
   billingRoutes: { checkout: RouteFn; portal: RouteFn; webhook: RouteFn };
   /** AuthError -> Response, using this platform's copy of the class (bundles may hold several). */
   authErrorResponse(err: unknown): Response | null;
@@ -84,6 +86,8 @@ export interface PlatformOptions {
   /** Tests only. */
   authRateLimit?: boolean;
   scanLimitOverrides?: MonitorDeps["scanLimitOverrides"];
+  /** Tests: a mocked Anthropic client for the support assistant. */
+  supportAiClient?: AnthropicLike;
 }
 
 export async function openDb(url: string): Promise<DbHandle<typeof coreSchema>> {
@@ -230,6 +234,7 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
   });
   billingRef = billing;
 
+  let supportRef: Support | null = null;
   const auth = createAuth({
     handle,
     appName: "SiteProof",
@@ -240,17 +245,43 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
       await mailer.send(m);
     },
     emailTemplates: brandedAuthTemplates(brand),
-    onBeforeUserDelete: async (_userId, orgIds) => {
+    onBeforeUserDelete: async (userId, orgIds) => {
       for (const orgId of orgIds) {
         await billing.cancelImmediately(orgId);
         await purgeOrgData(handle.executor, orgId);
       }
+      await supportRef?.purge(orgIds, userId);
     },
     getMemberLimit: async (orgId) => (await billing.getEntitlements(orgId)).limits.teamSeats ?? 1,
     // Better Auth's rate limiter uses the same TRUSTED_PROXY resolution as every other limit.
     resolveClientIp: (h) => getClientIp(h, clientIp),
     rateLimitEnabled: o.authRateLimit ?? true,
   });
+
+  const support = createSupport({
+    app: "siteproof",
+    handle,
+    auth,
+    mailer,
+    brand,
+    appUrl,
+    clientIp,
+    tokenSecret: e.SESSION_SECRET,
+    operatorEmail: e.SUPPORT_OPERATOR_EMAIL ?? e.OWNER_ALERT_EMAIL,
+    contentDir: resolve(process.cwd(), "content/help"),
+    getPlanName: async (orgId) => planName((await billing.getEntitlements(orgId)).planId),
+    ai: {
+      apiKey: e.ANTHROPIC_API_KEY,
+      model: e.SUPPORT_AI_MODEL,
+      monthlyBudgetCents: e.SUPPORT_AI_MONTHLY_BUDGET_CENTS,
+      dailyBudgetCents: e.SUPPORT_AI_DAILY_BUDGET_CENTS,
+      client: o.supportAiClient,
+    },
+    logger: logger.child({ part: "support" }),
+    now,
+  });
+  supportRef = support;
+  void support.ensureArticles();
 
   const monitor: MonitorDeps = {
     handle,
@@ -296,7 +327,7 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
       ctx.logger.info("cleanup", { scansDeleted: n });
     },
   };
-  const jobs = { ...opsJobs, ...appJobs };
+  const jobs = { ...opsJobs, ...support.jobs, ...appJobs };
   const scheduler = createScheduler({
     handle,
     jobs,
@@ -305,6 +336,7 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
     jobTimeoutMs: 240_000,
     schedules: [
       ...defaultOpsSchedules(opsJobs),
+      ...support.schedules,
       ...(billingEnabled ? [{ name: "billing.reconcile", intervalSeconds: 3600, maxAttempts: 3 }] : []),
       { name: "sites.schedule", intervalSeconds: 60, maxAttempts: 2 },
       { name: "alerts.dispatch", intervalSeconds: 300, maxAttempts: 3 },
@@ -324,7 +356,7 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
   };
   const authErrorResponse = (err: unknown) => (isAuthError(err) ? err.toResponse() : null);
 
-  return { env: e, handle, auth, mailer, billing, billingEnabled, scheduler, brand, clientIp, logger, monitor, billingRoutes, authErrorResponse, now };
+  return { env: e, handle, auth, mailer, billing, billingEnabled, scheduler, brand, clientIp, logger, monitor, support, billingRoutes, authErrorResponse, now };
 }
 
 const g = globalThis as unknown as { __siteproofPlatform?: Promise<Platform> };

@@ -33,6 +33,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     ),
   ]);
 
+  const supportCounts = await p.support.adminCounts();
   const money = (m: Metric) => (m.value === null ? "n/a" : `$${(m.value / 100).toFixed(2)}`);
   const num = (m: Metric) => (m.value === null ? "n/a" : m.unit === "ratio" ? `${(m.value * 100).toFixed(1)}%` : String(m.value));
   const cards: [string, string, boolean | undefined][] = [
@@ -62,6 +63,17 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           Action: {done.replace(/[^a-z-]/g, "")}
         </p>
       )}
+
+      <section className="mt-6 border border-rule bg-surface p-3">
+        <h2 className="text-lg font-semibold">Support</h2>
+        <p className="mt-1 text-sm text-ink-2">
+          {supportCounts.open} active tickets · {supportCounts.waitingOnOperator} waiting on us ·{" "}
+          <strong className={supportCounts.escalated ? "text-del-ink" : undefined}>{supportCounts.escalated} escalated</strong> ·{" "}
+          <a href="/admin/support" className="text-accent underline">
+            Open the support queue
+          </a>
+        </p>
+      </section>
 
       <section className="mt-6">
         <h2 className="text-lg font-semibold">

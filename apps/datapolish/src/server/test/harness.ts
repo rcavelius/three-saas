@@ -12,6 +12,7 @@ import { silentLogger } from "@repo/ops";
 import { loadEnv } from "../env";
 import { createPlatform, type Platform } from "../platform";
 import * as routes from "../routes";
+import type { AnthropicLike } from "@repo/support";
 
 export const BASE = "http://localhost:3102";
 export const PASSWORD = "correct horse battery staple";
@@ -48,7 +49,9 @@ export interface CallOpts {
 
 type Handler = (p: Platform, req: Request, id: string) => Promise<Response>;
 
-export async function makeApp(o: { authRateLimit?: boolean; now?: () => Date; trustedProxy?: string; stripe?: "fake" | "none" } = {}) {
+export async function makeApp(
+  o: { authRateLimit?: boolean; now?: () => Date; trustedProxy?: string; stripe?: "fake" | "none"; env?: Record<string, string>; supportAiClient?: AnthropicLike } = {},
+) {
   const now = o.now ?? (() => new Date());
   const emails: EmailMessage[] = [];
   const fake = new FakeStripe({ webhookSecret: WHSEC, catalogs: [DATAPOLISH_CATALOG], now });
@@ -61,6 +64,7 @@ export async function makeApp(o: { authRateLimit?: boolean; now?: () => Date; tr
     CRON_SECRET: CRON,
     DATABASE_URL: "pglite:memory",
     OWNER_ALERT_EMAIL: "owner@datapolish.test",
+    ...o.env,
   });
   const p = await createPlatform({
     env,
@@ -70,6 +74,7 @@ export async function makeApp(o: { authRateLimit?: boolean; now?: () => Date; tr
     logger: silentLogger,
     authRateLimit: o.authRateLimit ?? false,
     onEmail: (m) => emails.push(m),
+    supportAiClient: o.supportAiClient,
   });
 
   async function call(handler: Handler, path: string, opts: CallOpts = {}, id = ""): Promise<Response> {

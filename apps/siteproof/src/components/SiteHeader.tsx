@@ -6,6 +6,7 @@ const NAV = [
   { href: "/docs", label: "What we check" },
   { href: "/guides", label: "Guides" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/help", label: "Help" },
 ];
 
 export async function SiteHeader() {

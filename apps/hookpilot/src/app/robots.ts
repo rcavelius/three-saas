@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         // Private: API, accounts, ops, inspector pages and capture URLs.
-        disallow: ["/api/", "/account", "/admin", "/app", "/e/", "/h/", "/verify-email", "/reset-password", "/accept-invitation/"],
+        disallow: ["/api/", "/account", "/admin", "/app", "/e/", "/h/", "/verify-email", "/reset-password", "/accept-invitation/", "/support/tickets"],
       },
     ],
     sitemap: `${base}/sitemap.xml`,

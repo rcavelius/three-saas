@@ -1,0 +1,31 @@
+{
+  "name": "@repo/support",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ui": "./src/ui/index.tsx",
+    "./client": "./src/ui/client.tsx",
+    "./styles.css": "./src/ui/support.css"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "@repo/auth": "*",
+    "@repo/database": "*",
+    "@repo/monitoring": "*",
+    "@repo/ops": "*",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@repo/billing": "*",
+    "@types/react": "^19.2.0"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  }
+}
