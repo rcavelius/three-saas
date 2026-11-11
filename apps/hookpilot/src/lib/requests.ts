@@ -68,13 +68,29 @@ export async function listRequests(ex: SqlExecutor, endpointId: string, q: ListR
       OR (body IS NOT NULL AND (position(convert_to(${raw}, 'UTF8') IN body) > 0 OR encode(body, 'escape') ILIKE ${pat})))`);
   }
   const limit = q.limit;
+  // ?after= (live polling) takes the OLDEST rows after the cursor so a client that was away
+  // catches up page by page without gaps; the page is still returned newest first.
+  const order = q.after ? "ASC" : "DESC";
   const { rows } = await ex.query<SummaryRow>(
-    `SELECT ${SUMMARY_COLS} FROM captured_requests WHERE ${where.join(" AND ")} ORDER BY captured_requests.seq DESC LIMIT ${p(limit + 1)}`,
+    `SELECT ${SUMMARY_COLS} FROM captured_requests WHERE ${where.join(" AND ")} ORDER BY captured_requests.seq ${order} LIMIT ${p(limit + 1)}`,
     params,
   );
   const hasMore = rows.length > limit;
   const page = rows.slice(0, limit).map(toSummary);
-  return { requests: page, nextCursor: hasMore && !q.after ? page[page.length - 1]!.cursor : null };
+  if (q.after) return { requests: page.reverse(), nextCursor: null, hasMore };
+  return { requests: page, nextCursor: hasMore ? page[page.length - 1]!.cursor : null };
+}
+
+/**
+ * Cheap fingerprint of an endpoint's stored requests for ETag / If-None-Match: any insert raises
+ * max(seq), any delete or prune changes the count, so equal stats + equal query = equal response.
+ */
+export async function requestStats(ex: SqlExecutor, endpointId: string): Promise<{ maxSeq: string; count: number }> {
+  const { rows } = await ex.query<{ max_seq: string | null; n: number }>(
+    `SELECT max(seq)::text AS max_seq, count(*)::int AS n FROM captured_requests WHERE endpoint_id = $1`,
+    [endpointId],
+  );
+  return { maxSeq: rows[0]?.max_seq ?? "0", count: Number(rows[0]?.n ?? 0) };
 }
 
 export async function getRequest(ex: SqlExecutor, endpointId: string, requestId: string): Promise<RequestDetailDTO | null> {
@@ -115,8 +131,38 @@ export interface NewCapturedRequest {
   bodySize: number;
   truncated: boolean;
   contentType: string | null;
-  sourceIp: string;
+  sourceIp: string | null;
   maxRequests: number;
+}
+
+export interface RawCapturedRequest {
+  id: string;
+  method: string;
+  headers: [string, string][];
+  body: Buffer;
+  bodySize: number;
+  truncated: boolean;
+  contentType: string | null;
+}
+
+/** Full stored request for replay (caller has already checked endpoint visibility). */
+export async function getRawRequest(ex: SqlExecutor, endpointId: string, requestId: string): Promise<RawCapturedRequest | null> {
+  const { rows } = await ex.query<DetailRow>(
+    `SELECT ${SUMMARY_COLS}, headers, body FROM captured_requests WHERE endpoint_id = $1 AND id = $2`,
+    [endpointId, requestId],
+  );
+  const r = rows[0];
+  if (!r) return null;
+  const headers = typeof r.headers === "string" ? (JSON.parse(r.headers) as [string, string][]) : r.headers;
+  return {
+    id: r.id,
+    method: r.method,
+    headers,
+    body: r.body ? Buffer.from(r.body) : Buffer.alloc(0),
+    bodySize: Number(r.body_size),
+    truncated: Boolean(r.body_truncated),
+    contentType: r.content_type,
+  };
 }
 
 /** Stores a request, bumps the endpoint counter and prunes the oldest beyond the history limit. */

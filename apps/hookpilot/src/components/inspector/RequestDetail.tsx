@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { buildCurl } from "@/lib/curl";
 import { base64ToBytes, decodeText, formatBytes, parseQuery, relativeTime } from "@/lib/format";
 import { displayHeaderValue, isSensitiveHeader, isSensitiveQueryKey, MASK, maskQueryString } from "@/lib/sensitive";
-import type { RequestDetailDTO } from "@/lib/types";
+import { maskBodyText } from "@/lib/mask-body";
+import type { EndpointDTO, RequestDetailDTO } from "@/lib/types";
 import { CopyButton, MethodBadge } from "../ui";
 import { BodyViewer } from "./BodyViewer";
+import { ReplayPanel } from "./ReplayPanel";
 
 function Section({ title, count, children }: { title: string; count?: number; children: React.ReactNode }) {
   return (
@@ -23,11 +25,13 @@ function Section({ title, count, children }: { title: string; count?: number; ch
 export function RequestDetail({
   request,
   captureUrl,
+  endpoint,
   onDelete,
   now,
 }: {
   request: RequestDetailDTO;
   captureUrl: string;
+  endpoint?: EndpointDTO;
   onDelete: () => void;
   now: number;
 }) {
@@ -35,10 +39,11 @@ export function RequestDetail({
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const bytes = useMemo(() => base64ToBytes(request.bodyBase64), [request.bodyBase64]);
   const text = useMemo(() => decodeText(bytes, request.truncated), [bytes, request.truncated]);
+  const bodySecrets = useMemo(() => (text === null ? 0 : maskBodyText(text, request.contentType).count), [text, request.contentType]);
   const query = parseQuery(request.query);
   const shownQuery = revealAll ? request.query : maskQueryString(request.query);
   const sensitiveCount =
-    request.headers.filter(([k]) => isSensitiveHeader(k)).length + query.filter(([k]) => isSensitiveQueryKey(k)).length;
+    request.headers.filter(([k]) => isSensitiveHeader(k)).length + query.filter(([k]) => isSensitiveQueryKey(k)).length + bodySecrets;
   const isRevealed = (key: string) => revealAll || revealed.has(key);
   const toggle = (key: string) =>
     setRevealed((s) => {
@@ -58,6 +63,7 @@ export function RequestDetail({
       bodyText: text,
       bodySize: request.bodySize,
       truncated: request.truncated,
+      contentType: request.contentType,
       revealSecrets: revealAll,
     });
 
@@ -176,8 +182,12 @@ export function RequestDetail({
           bodySize={request.bodySize}
           truncated={request.truncated}
           bodyBase64={request.bodyBase64}
+          reveal={revealAll}
+          onReveal={() => setRevealAll(true)}
         />
       </Section>
+
+      {endpoint && <ReplayPanel endpoint={endpoint} request={request} bodyText={text} />}
     </article>
   );
 }

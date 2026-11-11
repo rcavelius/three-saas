@@ -17,6 +17,10 @@ export default defineConfig({
       DATABASE_URL: "pglite:memory",
       APP_URL: "http://localhost:3003",
       CRON_SECRET: "test-cron-secret-0123456789abcdef",
+      SESSION_SECRET: "test-session-secret-0123456789-0123456789-abcdef",
+      // Client IPs come only from Fly-Client-IP in tests, so spoofed X-Forwarded-For is ignored.
+      TRUSTED_PROXY: "fly",
+      STRIPE_SECRET_KEY: "",
     },
   },
 });

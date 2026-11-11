@@ -11,10 +11,13 @@ const SENSITIVE_HEADER_NAMES = new Set([
   "api-key",
   "x-auth-token",
   "x-csrf-token",
+  "x-xsrf-token",
+  "apikey",
+  "x-access-token",
 ]);
 
-const SENSITIVE_HEADER_SUFFIX = /-(signature|token|secret)(-[a-z0-9]+)?$/i;
-const SENSITIVE_HEADER_PREFIX = /^(x-)?(signature|token|secret)$/i;
+const SENSITIVE_HEADER_SUFFIX = /-(signature|token|secret|api-?key|password|session|credentials?)(-[a-z0-9]+)?$/i;
+const SENSITIVE_HEADER_PREFIX = /^(x-)?(signature|token|secret|password)$/i;
 const SENSITIVE_QUERY_KEY = /(token|secret|signature|sig|password|passwd|api[_-]?key|apikey|auth|key|session|code)$/i;
 
 export const MASK = "••••••••";

@@ -1,24 +1,42 @@
 import Link from "next/link";
 import { CreateEndpointButton } from "@/components/CreateEndpointButton";
 import { MyEndpoints } from "@/components/MyEndpoints";
-import { formatBytesShort, PLANS } from "@/lib/plans";
+import { JsonLd } from "@/components/JsonLd";
+import { CATALOG, FREE_LIMITS, formatBytesShort } from "@/lib/plans";
 
-const free = PLANS.free;
+const free = FREE_LIMITS;
 
 const SPEC: [string, string][] = [
   ["methods", "GET POST PUT PATCH DELETE HEAD OPTIONS"],
   ["url", "/h/<slug>/<any/sub/path>?<any query>"],
   ["stored body", `first ${formatBytesShort(free.storedBodyBytes)} per request`],
   ["rejected", `bodies over ${formatBytesShort(free.maxBodyBytes)} → 413`],
-  ["history", `newest ${free.historyPerEndpoint} requests per endpoint`],
-  ["lifetime", `${free.retentionHours} h, extendable up to 7 days`],
+  ["history", `newest ${free.requestsStored} requests per endpoint`],
+  ["quota", `${free.requestsPerMonth.toLocaleString("en-US")} captured requests per month`],
+  ["lifetime", `${free.endpointTtlHours ?? 24} h, extendable up to 7 days`],
   ["reply", "200 {\"ok\":true,\"id\":…} or your own JSON / text"],
-  ["account", "none: endpoints belong to this browser"],
+  ["account", "optional: anonymous endpoints belong to this browser"],
 ];
 
 export default function Home() {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "HookPilot",
+          applicationCategory: "DeveloperApplication",
+          operatingSystem: "Web",
+          description: "Webhook endpoint generation, live request inspection and replay to verified destinations.",
+          offers: CATALOG.plans.map((p) => ({
+            "@type": "Offer",
+            name: p.name,
+            price: (p.priceMonthlyCents / 100).toFixed(2),
+            priceCurrency: "USD",
+          })),
+        }}
+      />
       <section className="pt-14 pb-12 md:pt-20 grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-start">
         <div>
           <p className="label">Webhook capture · live inspection</p>

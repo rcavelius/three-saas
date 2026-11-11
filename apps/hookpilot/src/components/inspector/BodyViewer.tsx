@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { decodeForm, formatBytes, hexDump, isFormType, isJsonType, tryParseJson } from "@/lib/format";
+import { maskBodyText, maskJson } from "@/lib/mask-body";
 import { CopyButton } from "../ui";
 import { JsonTree } from "./JsonTree";
 
@@ -14,6 +15,8 @@ export function BodyViewer({
   bodySize,
   truncated,
   bodyBase64,
+  reveal = false,
+  onReveal,
 }: {
   bytes: Uint8Array;
   text: string | null;
@@ -21,11 +24,22 @@ export function BodyViewer({
   bodySize: number;
   truncated: boolean;
   bodyBase64: string;
+  /** When false, secret-like fields (password, token, api_key, card numbers...) are masked. */
+  reveal?: boolean;
+  onReveal?: () => void;
 }) {
   const binary = text === null;
   const looksJson = !binary && (isJsonType(contentType) || /^\s*[[{]/.test(text));
-  const json = useMemo(() => (looksJson && text !== null ? tryParseJson(text) : null), [looksJson, text]);
-  const form = !binary && isFormType(contentType) ? decodeForm(text) : null;
+  const parsed = useMemo(() => (looksJson && text !== null ? tryParseJson(text) : null), [looksJson, text]);
+  const masked = useMemo(() => (text === null ? null : maskBodyText(text, contentType)), [text, contentType]);
+  const secretCount = masked?.count ?? 0;
+  const hide = !reveal && secretCount > 0;
+  const json = useMemo(
+    () => (parsed && parsed.ok && hide ? { ok: true as const, value: maskJson(parsed.value).value } : parsed),
+    [parsed, hide],
+  );
+  const shownText = hide ? masked!.text : text;
+  const form = shownText !== null && isFormType(contentType) ? decodeForm(shownText) : null;
   const [tab, setTab] = useState<Tab>(binary ? "hex" : "pretty");
 
   if (bodySize === 0) {
@@ -66,11 +80,21 @@ export function BodyViewer({
         <div className="ml-auto">
           <CopyButton
             className="btn h-7"
-            label={binary ? "Copy body (base64)" : "Copy body"}
-            text={() => (binary ? bodyBase64 : (text ?? ""))}
+            label={binary ? "Copy body (base64)" : hide ? "Copy body (masked)" : "Copy body"}
+            text={() => (binary ? bodyBase64 : (shownText ?? ""))}
           />
         </div>
       </div>
+      {hide && (
+        <p className="mx-4 mt-3 text-[12.5px] text-fg-muted">
+          {secretCount} secret-looking field{secretCount === 1 ? " is" : "s are"} masked.{" "}
+          {onReveal && (
+            <button type="button" className="text-signal underline underline-offset-2" onClick={onReveal}>
+              Reveal for this view
+            </button>
+          )}
+        </p>
+      )}
       {truncated && (
         <p className="mx-4 mt-3 px-3 py-2 border border-warn/40 bg-warn/5 rounded-[4px] text-[12.5px] text-warn">
           Body truncated: {formatBytes(bodySize)} received, the first {formatBytes(bytes.byteLength)} were stored.
@@ -104,9 +128,10 @@ export function BodyViewer({
           </table>
         )}
         {((tab === "pretty" && !json?.ok && !form) || tab === "raw") && (
-          <pre className="font-mono text-[12.5px] leading-[1.6] whitespace-pre-wrap break-all">{text}</pre>
+          <pre className="font-mono text-[12.5px] leading-[1.6] whitespace-pre-wrap break-all">{shownText}</pre>
         )}
-        {tab === "hex" && <pre className="font-mono text-[12px] leading-[1.6] text-fg-muted whitespace-pre">{hexDump(bytes)}</pre>}
+        {tab === "hex" && hide && <p className="text-[12.5px] text-fg-muted">The hex view shows raw bytes, so it is hidden while secrets are masked.</p>}
+        {tab === "hex" && !hide && <pre className="font-mono text-[12px] leading-[1.6] text-fg-muted whitespace-pre">{hexDump(bytes)}</pre>}
       </div>
     </div>
   );

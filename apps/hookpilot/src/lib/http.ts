@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { getClientIp, rateLimitKeyForIp, type ClientIpConfig } from "@repo/ops";
 import { readSmallText } from "./body";
 
 export function json(data: unknown, init: { status?: number; headers?: HeadersInit } = {}): Response {
@@ -24,21 +25,14 @@ export function tooManyRequests(resetAt: Date, message = "Rate limit exceeded. T
   return apiError(429, "rate_limited", message, { retryAfterSeconds: secs }, { "Retry-After": String(secs) });
 }
 
-const IP_CHARS = /^[0-9A-Fa-f:.]{2,45}$/;
-
 /**
- * Client IP from proxy headers. Deploy behind a proxy/platform that overwrites X-Forwarded-For
- * (Vercel, Fly, Render, nginx with real_ip); otherwise the value is client-controlled.
+ * Client IP for rate limits and display: only the header the deployment's trusted proxy sets
+ * (TRUSTED_PROXY, see @repo/ops getClientIp). Spoofed X-Forwarded-For / X-Real-IP are ignored.
+ * `key` buckets IPv6 by /64; an unknown IP shares one bucket (never a free pass).
  */
-export function clientIp(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for");
-  const candidates = [xff?.split(",")[0]?.trim(), req.headers.get("x-real-ip")?.trim()];
-  for (const c of candidates) {
-    if (!c) continue;
-    const v = c.replace(/^::ffff:/i, "");
-    if (IP_CHARS.test(v)) return v;
-  }
-  return "unknown";
+export function clientIpOf(req: Request, cfg: ClientIpConfig): { ip: string | null; key: string } {
+  const ip = getClientIp(req.headers, cfg);
+  return { ip, key: rateLimitKeyForIp(ip) };
 }
 
 export function appOrigin(req: Request): string {
@@ -58,13 +52,13 @@ export function appOrigin(req: Request): string {
  * not label the request cross-site. JSON bodies are additionally required (see readJsonBody), which
  * HTML forms cannot produce without a CORS preflight that we never grant.
  */
-export function checkOrigin(req: Request): Response | null {
+export function checkOrigin(req: Request, expectedOrigin: string = appOrigin(req)): Response | null {
   const site = req.headers.get("sec-fetch-site");
   if (site && site !== "same-origin" && site !== "none") {
     return apiError(403, "bad_origin", "Cross-site requests are not allowed.");
   }
   const origin = req.headers.get("origin");
-  if (!origin || origin !== appOrigin(req)) {
+  if (!origin || origin !== expectedOrigin) {
     return apiError(403, "bad_origin", "Missing or foreign Origin header.");
   }
   return null;

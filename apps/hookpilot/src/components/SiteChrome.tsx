@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignOutButton } from "./auth/AuthForms";
 
 export function Wordmark() {
   return (
@@ -9,10 +10,10 @@ export function Wordmark() {
   );
 }
 
-export function SiteHeader() {
+export function SiteHeader({ signedIn, operator }: { signedIn: boolean; operator?: boolean }) {
   return (
     <header className="h-12 shrink-0 border-b border-line bg-bg">
-      <div className="h-full mx-auto max-w-[1600px] px-4 flex items-center gap-6">
+      <div className="h-full mx-auto max-w-[1600px] px-4 flex items-center gap-3 sm:gap-6">
         <Link href="/" aria-label="HookPilot home" className="rounded-sm">
           <Wordmark />
         </Link>
@@ -23,9 +24,36 @@ export function SiteHeader() {
           <Link className="px-2 py-1 rounded-sm hover:text-fg" href="/pricing">
             Pricing
           </Link>
+          <Link className="hidden sm:inline px-2 py-1 rounded-sm hover:text-fg" href="/guides">
+            Guides
+          </Link>
         </nav>
-        <div className="ml-auto hidden sm:flex items-center gap-2 font-mono text-[11px] text-fg-dim">
-          <span>free tier · no account needed</span>
+        <div className="ml-auto flex items-center gap-1 text-[13px]">
+          {signedIn ? (
+            <>
+              {operator && (
+                <Link className="hidden sm:inline px-2 py-1 rounded-sm text-fg-muted hover:text-fg" href="/admin">
+                  Ops
+                </Link>
+              )}
+              <Link className="px-2 py-1 rounded-sm text-fg-muted hover:text-fg" href="/app">
+                Dashboard
+              </Link>
+              <Link className="hidden sm:inline px-2 py-1 rounded-sm text-fg-muted hover:text-fg" href="/account">
+                Account
+              </Link>
+              <SignOutButton />
+            </>
+          ) : (
+            <>
+              <Link className="px-2 py-1 rounded-sm text-fg-muted hover:text-fg" href="/login">
+                Log in
+              </Link>
+              <Link className="btn h-7" href="/signup">
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
@@ -39,6 +67,9 @@ export function SiteFooter() {
         <span className="font-mono">hookpilot</span>
         <Link className="hover:text-fg" href="/docs">
           Docs
+        </Link>
+        <Link className="hover:text-fg" href="/guides">
+          Guides
         </Link>
         <Link className="hover:text-fg" href="/pricing">
           Pricing

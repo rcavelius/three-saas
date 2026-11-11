@@ -1,6 +1,6 @@
 import { ownedEndpointContext } from "@/lib/api";
-import { deleteEndpoint, getOwnedEndpoint, toEndpointDTO, updateEndpoint } from "@/lib/endpoints";
-import { appOrigin, json, notFound, readJsonBody } from "@/lib/http";
+import { deleteEndpoint, getVisibleEndpoint, toEndpointDTO, updateEndpoint } from "@/lib/endpoints";
+import { json, notFound, readJsonBody } from "@/lib/http";
 import { updateEndpointSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -12,10 +12,10 @@ export async function GET(req: Request, { params }: Ctx): Promise<Response> {
   const { id } = await params;
   const ctx = await ownedEndpointContext(req, id, { mutating: false, allowExpired: true });
   if (ctx instanceof Response) return ctx;
-  return json({ endpoint: toEndpointDTO(ctx.endpoint, appOrigin(req)) });
+  return json({ endpoint: toEndpointDTO(ctx.endpoint, ctx.p.appUrl, ctx.limits, ctx.viewer), signedIn: Boolean(ctx.viewer.user) });
 }
 
-/** Rename, change expiry, set or reset the custom response. */
+/** Rename, change expiry (expiring endpoints only), set or reset the custom response. */
 export async function PATCH(req: Request, { params }: Ctx): Promise<Response> {
   const { id } = await params;
   const ctx = await ownedEndpointContext(req, id, { mutating: true });
@@ -23,14 +23,15 @@ export async function PATCH(req: Request, { params }: Ctx): Promise<Response> {
   const input = await readJsonBody(req, updateEndpointSchema);
   if (!input.ok) return input.res;
   await updateEndpoint(ctx.ex, ctx.endpoint, input.data);
-  const fresh = await getOwnedEndpoint(ctx.ex, ctx.owner, id);
+  const fresh = await getVisibleEndpoint(ctx.ex, ctx.viewer, id);
   if (!fresh) return notFound();
-  return json({ endpoint: toEndpointDTO(fresh, appOrigin(req)) });
+  return json({ endpoint: toEndpointDTO(fresh, ctx.p.appUrl, ctx.limits, ctx.viewer) });
 }
 
+/** Only owners/admins may delete workspace endpoints (members get 403). */
 export async function DELETE(req: Request, { params }: Ctx): Promise<Response> {
   const { id } = await params;
-  const ctx = await ownedEndpointContext(req, id, { mutating: true, allowExpired: true });
+  const ctx = await ownedEndpointContext(req, id, { mutating: true, allowExpired: true, manage: true });
   if (ctx instanceof Response) return ctx;
   await deleteEndpoint(ctx.ex, ctx.endpoint.id);
   return json({ deleted: true });

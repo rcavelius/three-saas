@@ -148,10 +148,18 @@ export function EndpointSettings({
         <h2 id="s-exp" className="text-[15px] font-semibold">
           Expiry
         </h2>
+        {endpoint.expiresAt === null ? (
+          <p className="mt-1 text-[13px] text-fg-muted">
+            This endpoint does not expire ({endpoint.planName} plan). Captured requests are kept for {endpoint.limits.historyDays} days and
+            the newest {endpoint.maxRequests.toLocaleString("en-US")} per endpoint.
+          </p>
+        ) : (
+          <>
         <p className="mt-1 text-[13px] text-fg-muted">
           Expires in <span className="font-mono text-fg">{timeUntil(endpoint.expiresAt)}</span>. Free endpoints can be set to at most{" "}
-          {endpoint.limits.retentionHours} hours from now and live no longer than 7 days in total (until{" "}
-          {new Date(endpoint.limits.maxExpiresAt).toLocaleString()}). Expired endpoints and their requests are deleted.
+          {endpoint.limits.ttlHours ?? 24} hours from now and live no longer than 7 days in total
+          {endpoint.limits.maxExpiresAt ? ` (until ${new Date(endpoint.limits.maxExpiresAt).toLocaleString()})` : ""}. Expired endpoints and
+          their requests are deleted. Paid plans keep endpoints without expiry.
         </p>
         <form
           className="mt-3 flex gap-2"
@@ -164,7 +172,7 @@ export function EndpointSettings({
             Expire in
           </label>
           <select id="ep-exp" className="field" value={hours} onChange={(e) => setHours(Number(e.target.value))}>
-            {EXPIRY_CHOICES.filter((h) => h <= endpoint.limits.retentionHours).map((h) => (
+            {EXPIRY_CHOICES.filter((h) => h <= (endpoint.limits.ttlHours ?? 24)).map((h) => (
               <option key={h} value={h}>
                 {h} hour{h === 1 ? "" : "s"} from now
               </option>
@@ -175,8 +183,13 @@ export function EndpointSettings({
           </button>
         </form>
         <Status msg={expMsg} />
+          </>
+        )}
       </section>
 
+      {!endpoint.permissions.canDelete ? (
+        <p className="text-[13px] text-fg-muted">Only workspace owners and admins can delete this endpoint.</p>
+      ) : (
       <section aria-labelledby="s-del" className="border border-err/30 rounded-[6px] p-4">
         <h2 id="s-del" className="text-[15px] font-semibold text-err">
           Delete endpoint
@@ -215,6 +228,7 @@ export function EndpointSettings({
           )}
         </div>
       </section>
+      )}
     </div>
   );
 }

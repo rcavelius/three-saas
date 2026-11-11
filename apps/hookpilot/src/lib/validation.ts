@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CAPTURE_METHODS, RESPONSE_CONTENT_TYPES } from "./types";
-import { limits, PLANS } from "./plans";
+import { FREE_LIMITS, limits } from "./plans";
 
 const NULL_BODY_STATUSES = new Set([204, 205, 304]);
 
@@ -45,7 +45,7 @@ export const updateEndpointSchema = z
   .object({
     name: nameSchema.optional(),
     /** New expiry = now + hours (capped by the plan's lifetime limit). */
-    expiresInHours: z.number().int().min(1).max(PLANS.free.retentionHours).optional(),
+    expiresInHours: z.number().int().min(1).max(FREE_LIMITS.endpointTtlHours ?? 24).optional(),
     /** null resets to the default response. */
     response: customResponseSchema.nullable().optional(),
   })
@@ -68,6 +68,38 @@ export const listRequestsQuerySchema = z
   .refine((v) => !(v.before && v.after), "Use either before or after, not both");
 
 export type ListRequestsQuery = z.infer<typeof listRequestsQuerySchema>;
+
+const destinationName = z
+  .string()
+  .trim()
+  .min(1, "Name cannot be empty")
+  .max(80)
+  .refine((s) => !/[\u0000-\u001f\u007f]/.test(s), "Name cannot contain control characters");
+
+export const createDestinationSchema = z
+  .object({ name: destinationName, url: z.string().trim().min(8).max(2048) })
+  .strict();
+
+export const updateDestinationSchema = z
+  .object({ name: destinationName.optional(), url: z.string().trim().min(8).max(2048).optional() })
+  .strict()
+  .refine((v) => v.name !== undefined || v.url !== undefined, "Nothing to update");
+
+const headerName = z.string().trim().min(1).max(100).regex(/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/, "Invalid header name");
+
+/**
+ * Replay input. Strict: only a destination id is accepted, never a URL, so a replay can only go to a
+ * destination the org has verified.
+ */
+export const replaySchema = z
+  .object({
+    destinationId: z.uuid(),
+    /** Sensitive headers (Authorization, Cookie, *-Token, *-Api-Key...) the user explicitly ticked for THIS replay. */
+    includeSensitiveHeaders: z.array(headerName).max(50).default([]),
+    /** 1 = single replay now; 2..5 = "replay with retries" through the job queue. */
+    attempts: z.number().int().min(1).max(5).default(1),
+  })
+  .strict();
 
 export function searchParamsToObject(sp: URLSearchParams): Record<string, string> {
   const out: Record<string, string> = {};

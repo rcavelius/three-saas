@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/client";
 import { timeUntil } from "@/lib/format";
+import { createLivePoller, PollFatalError, type LivePoller, type LiveState, type PollResult } from "@/lib/live-poller";
 import { CAPTURE_METHODS, type EndpointDTO, type RequestDetailDTO, type RequestListDTO, type RequestSummaryDTO } from "@/lib/types";
 import { CreateEndpointButton } from "../CreateEndpointButton";
 import { CopyButton } from "../ui";
@@ -13,7 +14,15 @@ import { RequestDetail } from "./RequestDetail";
 import { RequestList } from "./RequestList";
 import { TestPayloads } from "./TestPayloads";
 
-const POLL_MS = 2000;
+const LIVE_LABEL: Record<LiveState, string> = {
+  live: "LIVE",
+  paused: "PAUSED",
+  hidden: "LIVE (tab hidden)",
+  "catching-up": "CATCHING UP",
+  reconnecting: "RECONNECTING",
+  stopped: "STOPPED",
+};
+
 const RANGES: Record<string, number> = { "15m": 15 * 60_000, "1h": 3_600_000, "24h": 86_400_000 };
 
 type Load = "loading" | "ready" | "notfound" | "expired" | "error";
@@ -61,17 +70,22 @@ export function Inspector({ endpointId }: { endpointId: string }) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [listError, setListError] = useState<string | null>(null);
+  const [liveState, setLiveState] = useState<LiveState>("live");
+  const [retryIn, setRetryIn] = useState<number | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
+  const [claimMsg, setClaimMsg] = useState<string | null>(null);
 
   const requestsRef = useRef(requests);
   requestsRef.current = requests;
   const effFilters = useMemo(() => ({ ...filters, q: debouncedQ }), [filters, debouncedQ]);
   const filtersRef = useRef(effFilters);
   filtersRef.current = effFilters;
-  const polling = useRef(false);
+  const pollerRef = useRef<LivePoller | null>(null);
 
   const loadEndpoint = useCallback(async () => {
     try {
-      const r = await api<{ endpoint: EndpointDTO }>(`/api/endpoints/${endpointId}`);
+      const r = await api<{ endpoint: EndpointDTO; signedIn?: boolean }>(`/api/endpoints/${endpointId}`);
+      setSignedIn(Boolean(r.signedIn));
       setEndpoint(r.endpoint);
       setLoad(r.endpoint.expired ? "expired" : "ready");
     } catch (e) {
@@ -127,36 +141,82 @@ export function Inspector({ endpointId }: { endpointId: string }) {
     return () => clearInterval(t);
   }, []);
 
-  const poll = useCallback(async () => {
-    if (polling.current) return;
-    polling.current = true;
-    try {
-      const top = requestsRef.current[0]?.cursor;
-      const r = await api<RequestListDTO>(
-        `/api/endpoints/${endpointId}/requests${buildQuery(filtersRef.current, top ? { after: top, limit: "100" } : {})}`,
-      );
-      const known = new Set(requestsRef.current.map((x) => x.id));
-      const added = r.requests.filter((x) => !known.has(x.id));
-      if (added.length > 0) {
-        setRequests((cur) => [...added, ...cur]);
-        if (!top) setNextCursor(r.nextCursor);
+  /** One poll: ?after=<cursor> with If-None-Match (304 = nothing new). */
+  const fetchAfter = useCallback(
+    async (cursor: string | null, etag: string | null): Promise<PollResult> => {
+      const q = buildQuery(filtersRef.current, { after: cursor ?? "0", limit: "100" });
+      const res = await fetch(`/api/endpoints/${endpointId}/requests${q}`, {
+        headers: etag ? { "If-None-Match": etag } : undefined,
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      if (res.status === 304) return { status: 304 };
+      if (res.status === 404 || res.status === 410) throw new PollFatalError(res.status);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = (await res.json()) as RequestListDTO;
+      return { status: 200, requests: body.requests, hasMore: Boolean(body.hasMore), etag: res.headers.get("etag") };
+    },
+    [endpointId],
+  );
+
+  // Live polling (gapless, deduplicated, backoff on errors). Recreated whenever the list reloads.
+  useEffect(() => {
+    if (load !== "ready" || listLoading) return;
+    const current = requestsRef.current;
+    const poller = createLivePoller({
+      fetchAfter,
+      initialCursor: current[0]?.cursor ?? null,
+      knownIds: current.map((r) => r.id),
+      onState: (s, info) => {
+        setLiveState(s);
+        setRetryIn(info.retryInMs);
+      },
+      onFatal: () => void loadEndpoint(),
+      onNew: (added) => {
+        setRequests((cur) => {
+          const known = new Set(cur.map((x) => x.id));
+          return [...added.filter((a) => !known.has(a.id)), ...cur];
+        });
         setSelectedId((cur) => cur ?? added[0]!.id);
         setFreshIds(new Set(added.map((a) => a.id)));
         setAnnounce(`${added.length} new request${added.length === 1 ? "" : "s"} captured`);
         void loadEndpoint();
-      }
-    } catch (e) {
-      if (e instanceof ApiError && (e.status === 410 || e.status === 404)) void loadEndpoint();
-    } finally {
-      polling.current = false;
-    }
-  }, [endpointId, loadEndpoint]);
+      },
+    });
+    pollerRef.current = poller;
+    poller.setHidden(document.visibilityState !== "visible");
+    poller.setPaused(!live);
+    poller.start();
+    return () => {
+      poller.stop();
+      pollerRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- live/visible are pushed in by the effects below
+  }, [load, listLoading, fetchAfter, loadEndpoint]);
 
   useEffect(() => {
-    if (load !== "ready" || !live || !visible || listLoading) return;
-    const t = setInterval(() => void poll(), POLL_MS);
-    return () => clearInterval(t);
-  }, [load, live, visible, listLoading, poll]);
+    pollerRef.current?.setHidden(!visible);
+  }, [visible]);
+  useEffect(() => {
+    pollerRef.current?.setPaused(!live);
+  }, [live]);
+
+  const poll = useCallback(() => pollerRef.current?.refresh(), []);
+
+  async function claim() {
+    setClaimMsg(null);
+    try {
+      const r = await api<{ claimed: number; skipped: number }>("/api/endpoints/claim", { method: "POST", body: {} });
+      setClaimMsg(
+        r.skipped > 0
+          ? `Claimed ${r.claimed}; ${r.skipped} could not be claimed because your plan's endpoint limit is reached.`
+          : `Claimed ${r.claimed} endpoint${r.claimed === 1 ? "" : "s"} into your workspace.`,
+      );
+      void loadEndpoint();
+    } catch (e) {
+      setClaimMsg(e instanceof ApiError ? e.message : "Could not claim endpoints.");
+    }
+  }
 
   // Load the selected request's detail.
   useEffect(() => {
@@ -260,6 +320,43 @@ export function Inspector({ endpointId }: { endpointId: string }) {
       <p aria-live="polite" role="status" className="sr-only">
         {announce}
       </p>
+      {liveState === "reconnecting" && (
+        <p role="status" className="border-b border-warn/40 bg-warn/5 px-4 py-1.5 text-[12.5px] text-warn">
+          Connection problem: reconnecting{retryIn ? ` in ${Math.ceil(retryIn / 1000)} s` : ""}. Requests captured meanwhile will appear once
+          the connection is back.{" "}
+          <button type="button" className="underline underline-offset-2" onClick={() => void poll()}>
+            Retry now
+          </button>
+        </p>
+      )}
+      {ep.locked && (
+        <p role="status" className="border-b border-err/40 bg-err/5 px-4 py-1.5 text-[12.5px] text-err">
+          Paused: your workspace&apos;s plan covers fewer endpoints than it has, so this one answers 423 and stores nothing. Its history is
+          kept. <Link className="underline underline-offset-2" href="/account/billing">Upgrade</Link> or delete another endpoint.
+        </p>
+      )}
+      {ep.owner === "anonymous" && (
+        <div className="border-b border-line bg-surface-2 px-4 py-1.5 text-[12.5px] text-fg-muted flex flex-wrap items-center gap-2">
+          <span>This endpoint belongs to this browser only and expires.</span>
+          {signedIn ? (
+            <button type="button" className="underline underline-offset-2 text-signal" onClick={() => void claim()}>
+              Claim my anonymous endpoints into my workspace
+            </button>
+          ) : (
+            <span>
+              <Link className="underline underline-offset-2 text-signal" href="/signup">
+                Sign up
+              </Link>{" "}
+              or{" "}
+              <Link className="underline underline-offset-2 text-signal" href={`/login?next=${encodeURIComponent(`/e/${ep.id}`)}`}>
+                log in
+              </Link>{" "}
+              to keep it in a workspace and unlock replay.
+            </span>
+          )}
+          {claimMsg && <span role="status">{claimMsg}</span>}
+        </div>
+      )}
 
       {/* Endpoint toolbar */}
       <div className="border-b border-line bg-surface px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -283,9 +380,13 @@ export function Inspector({ endpointId }: { endpointId: string }) {
           <span>
             <span className="text-fg tabular-nums">{ep.storedCount}</span>/{ep.maxRequests} stored
           </span>
-          <span title={new Date(ep.expiresAt).toLocaleString()}>
-            expires <span className="text-fg">{timeUntil(ep.expiresAt, now)}</span>
-          </span>
+          {ep.expiresAt ? (
+            <span title={new Date(ep.expiresAt).toLocaleString()}>
+              expires <span className="text-fg">{timeUntil(ep.expiresAt, now)}</span>
+            </span>
+          ) : (
+            <span>no expiry</span>
+          )}
           <button
             type="button"
             aria-pressed={live}
@@ -293,8 +394,14 @@ export function Inspector({ endpointId }: { endpointId: string }) {
             className="inline-flex items-center gap-1.5 h-7 px-2 rounded-[3px] border border-line-strong hover:bg-surface-3"
             title={live ? "Pause live updates" : "Resume live updates"}
           >
-            <span aria-hidden className={`size-2 rounded-full ${liveOn ? "bg-ok hp-pulse" : "bg-fg-dim"}`} />
-            {live ? (visible ? "LIVE" : "LIVE (tab hidden)") : "PAUSED"}
+            <span
+              aria-hidden
+              className={`size-2 rounded-full ${liveState === "reconnecting" ? "bg-warn" : liveOn ? "bg-ok hp-pulse" : "bg-fg-dim"}`}
+            />
+            {live ? LIVE_LABEL[liveState] : "PAUSED"}
+          </button>
+          <button type="button" className="btn btn-ghost h-7" onClick={() => void poll()} title="Fetch new requests now">
+            Refresh
           </button>
         </div>
         <div className="flex gap-2">
@@ -481,7 +588,14 @@ export function Inspector({ endpointId }: { endpointId: string }) {
               </dl>
             </div>
           ) : selected ? (
-            <RequestDetail key={selected.id} request={selected} captureUrl={ep.captureUrl} onDelete={() => void deleteSelected()} now={now} />
+            <RequestDetail
+              key={selected.id}
+              request={selected}
+              captureUrl={ep.captureUrl}
+              endpoint={ep}
+              onDelete={() => void deleteSelected()}
+              now={now}
+            />
           ) : detailError ? (
             <p className="p-4 text-[13px] text-err">{detailError}</p>
           ) : selectedId ? (
