@@ -82,10 +82,8 @@ export function track<N extends EventName>(name: N, props?: PropsOf<N>): void {
   try {
     if (typeof window === "undefined") return;
     const body = JSON.stringify(buildEvent(name, props));
-    if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
-      const ok = navigator.sendBeacon("/api/events", new Blob([body], { type: "text/plain" }));
-      if (ok) return;
-    }
+    // fetch keepalive (survives navigation like a beacon) rather than sendBeacon, so the exact body is
+    // visible in devtools and in the end-to-end no-upload test.
     void fetch("/api/events", { method: "POST", body, headers: { "content-type": "application/json" }, keepalive: true, credentials: "same-origin" }).catch(() => {});
   } catch {
     /* analytics must never break the app */

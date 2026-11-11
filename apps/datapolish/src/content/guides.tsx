@@ -211,6 +211,97 @@ export const GUIDES: Guide[] = [
       </>
     ),
   },
+  {
+    slug: "csv-encoding-excel",
+    title: "Why Excel shows “Ã©” instead of “é” in your CSV",
+    summary: "What UTF-8, Windows-1252 and the byte order mark are, why Excel guesses wrong, and how to export a CSV that opens correctly everywhere.",
+    body: (
+      <>
+        <p>
+          A CSV file is just text, and text on disk is bytes. The file does not say which <em>encoding</em> turns those bytes back into letters, so every program has to
+          guess. When it guesses wrong, accented letters and symbols turn into pairs of strange characters.
+        </p>
+        <h2>The two encodings you will meet</h2>
+        <ul>
+          <li>
+            <strong>UTF-8</strong> can store every character in every language. <code>é</code> is two bytes. Most web apps, databases and exports use it today.
+          </li>
+          <li>
+            <strong>Windows-1252</strong> (often called &ldquo;ANSI&rdquo;) stores one byte per character and only knows Western European letters. Older Excel versions and
+            many accounting tools still save CSVs this way.
+          </li>
+        </ul>
+        <p>
+          <code>Ã©</code> is what the two UTF-8 bytes of <code>é</code> look like when a program reads them as Windows-1252. The data is not damaged; it is being read with
+          the wrong key.
+        </p>
+        <h2>Why Excel gets it wrong</h2>
+        <p>
+          When you double-click a CSV, Excel on Windows assumes your system&rsquo;s legacy encoding unless the file starts with a <em>byte order mark</em> (BOM), three
+          invisible bytes that say &ldquo;this is UTF-8&rdquo;. Many exporters leave the BOM out, so Excel guesses Windows-1252 and the accents break.
+        </p>
+        <h2>The fix</h2>
+        <ol>
+          <li>Open the file in DataPolish. It tries strict UTF-8 first and falls back to Windows-1252 when the bytes are not valid UTF-8, and tells you which one it used.</li>
+          <li>Clean it as usual.</li>
+          <li>
+            Download as CSV with <em>Excel-friendly (UTF-8 BOM)</em> ticked (the default). Excel then opens accents correctly, and other tools ignore the BOM. If a system
+            you upload to rejects the BOM, untick it, or download XLSX, which has no encoding question at all.
+          </li>
+        </ol>
+        <h2>Separators are a related trap</h2>
+        <p>
+          In countries that write decimals with a comma, Excel expects semicolons between columns. If everything lands in column A, export with the <em>semicolon</em>{" "}
+          separator, or use XLSX.
+        </p>
+        <p>
+          <Link href="/">Open the cleaner</Link>
+        </p>
+      </>
+    ),
+  },
+  {
+    slug: "batch-clean-exports",
+    title: "Cleaning a folder of exports the same way, every month",
+    summary: "Apply one set of cleaning steps to many files at once, download them as a ZIP, and save the steps as a workflow for next time.",
+    body: (
+      <>
+        <p>
+          Monthly exports from the same system usually have the same problems: stray spaces, a blank line at the end, dates in a local format. Fixing each file by hand is
+          slow and easy to get slightly different every time. Batch cleaning applies exactly the same steps to every file.
+        </p>
+        <h2>1. Load the files together</h2>
+        <p>
+          Drop several CSV or Excel files on the cleaner (the free plan takes 3 at once; paid plans take more). Choose <em>Batch: clean each file separately</em>. Merge
+          is the other option, for stacking files into one table.
+        </p>
+        <h2>2. Build the steps on one file</h2>
+        <p>
+          Pick any file to preview. Every change is highlighted, removed rows are listed with the reason, and the batch table above the preview shows rows in and out for every
+          file, so you can spot a file that behaves differently before downloading.
+        </p>
+        <h2>3. Download a ZIP</h2>
+        <p>
+          <em>All files → ZIP of CSVs</em> (or of XLSX) builds one archive in your browser with a cleaned file per input, named after the original with{" "}
+          <code>-clean</code> added. Nothing is uploaded to build it. If you prefer one workbook, <em>All files → one XLSX</em> puts each file on its own sheet.
+        </p>
+        <h2>4. Save the steps as a workflow</h2>
+        <p>
+          Give the steps a name and save them. Next month, load the new exports and apply the workflow in one click. Workflows are lists of steps, not data. You can export
+          one as a JSON file to share it with a colleague, or (on Pro and Business) save it to your account so it follows you between computers and, on Business, your
+          team.
+        </p>
+        <h2>What a workflow contains</h2>
+        <p>
+          The settings you typed into steps are stored as typed: column names, find &amp; replace text, separators. Keep find &amp; replace values short and generic
+          (<code>N/A</code>, <code>-</code>); they are limited to 1 KB so a workflow never becomes a place where data is stored.
+        </p>
+        <p>
+          <Link href="/">Open the cleaner</Link>
+        </p>
+      </>
+    ),
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
