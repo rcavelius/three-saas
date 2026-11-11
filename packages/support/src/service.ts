@@ -558,10 +558,16 @@ export function createSupport(o: SupportOptions) {
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers } });
   const redirect = (location: string) => new Response(null, { status: 303, headers: { location, "cache-control": "no-store" } });
 
+  /**
+   * CSRF check. A real Origin must equal APP_URL. Pages served with `Referrer-Policy: no-referrer` make
+   * browsers send `Origin: null` on form posts, so for "null" we rely on the browser-controlled
+   * Sec-Fetch-Site header, which must then be present and "same-origin".
+   */
   function isSameOrigin(req: Request): boolean {
     const origin = req.headers.get("origin");
-    if (origin) return origin === appOrigin;
     const site = req.headers.get("sec-fetch-site");
+    if (origin === "null") return site === "same-origin";
+    if (origin) return origin === appOrigin;
     return site === null || site === "same-origin" || site === "none";
   }
 

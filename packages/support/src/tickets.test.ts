@@ -74,6 +74,9 @@ describe("creating tickets", () => {
 
   it("works as a plain HTML form (no JS): 303 to the ticket page", async () => {
     ctx = await setup({ ai: {} });
+    // Pages with Referrer-Policy: no-referrer make browsers send Origin: null with Sec-Fetch-Site: same-origin.
+    const nullOrigin = await ctx.call("tickets", { form: { subject: "Null origin", message: "Posted from a no-referrer page.", email: "n@n.example" }, origin: "null", headers: { "sec-fetch-site": "same-origin" } });
+    expect(nullOrigin.status).toBe(303);
     const res = await ctx.call("tickets", { form: { subject: "Form ticket", message: "Submitted without JavaScript.", email: "f@f.example" } });
     expect(res.status).toBe(303);
     expect(res.headers.get("location")).toMatch(/^\/support\/tickets\/[0-9a-f-]{36}\?t=.+&created=1$/);
@@ -222,6 +225,9 @@ describe("CSRF / same-origin on every mutating route", () => {
       ctx = ctx ?? (await setup({ ai: {} }));
       expect((await ctx.call(path, { body: { message: "x" }, origin: "https://evil.example", user: "olga" })).status).toBe(403);
       expect((await ctx.call(path, { body: { message: "x" }, origin: null, headers: { "sec-fetch-site": "cross-site" }, user: "olga" })).status).toBe(403);
+      // Origin "null" (opaque origin, e.g. a sandboxed cross-site frame) is only trusted with Sec-Fetch-Site: same-origin.
+      expect((await ctx.call(path, { body: { message: "x" }, origin: "null", user: "olga" })).status).toBe(403);
+      expect((await ctx.call(path, { body: { message: "x" }, origin: "null", headers: { "sec-fetch-site": "cross-site" }, user: "olga" })).status).toBe(403);
     },
   );
 });

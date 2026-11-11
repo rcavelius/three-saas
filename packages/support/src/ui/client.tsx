@@ -102,7 +102,7 @@ export function SupportChat({ assistantName = "Help assistant" }: { assistantNam
 
   return (
     <div className="sup-chat">
-      <div className="sup-chat-log" role="log" aria-live="polite" aria-relevant="additions" aria-label={`${assistantName} conversation`}>
+      <div className="sup-chat-log" role="log" tabIndex={0} aria-live="polite" aria-relevant="additions" aria-label={`${assistantName} conversation`}>
         {turns.length === 0 && (
           <p className="sup-muted">
             Ask a question about your account, billing or how something works. Answers come from our help articles; the assistant

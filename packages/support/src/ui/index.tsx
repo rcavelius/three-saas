@@ -50,7 +50,8 @@ function renderBlock(b: Block, i: number): ReactNode {
       return <p key={i}>{renderInline(b.children)}</p>;
     case "code":
       return (
-        <pre key={i}>
+        // Focusable so keyboard users can scroll long lines (axe: scrollable-region-focusable).
+        <pre key={i} tabIndex={0}>
           <code>{b.text}</code>
         </pre>
       );
