@@ -8,6 +8,9 @@ import { readFileSync } from "node:fs";
 import { expect, test, type Request } from "@playwright/test";
 import { strFromU8, unzipSync } from "fflate";
 
+/** Netlify injects its own toolbar script into hosted pages; our CSP blocks it (as intended), so its report is ignored. */
+const HOST_INJECTED = /\/\.netlify\/scripts\/hud/;
+
 const MARKER = `DPMARK${randomUUID().replace(/-/g, "")}`;
 
 function csv(n: number): string {
@@ -110,7 +113,7 @@ test("cleaning, merging, batch and ZIP export never send file names or contents 
   const offenders = seen.filter((s) => needles().some((n) => s.url.includes(n) || s.body.includes(n)));
   expect(offenders, JSON.stringify(offenders.slice(0, 3), null, 2)).toEqual([]);
   // edge:// and chrome:// are the browser's own UI (e.g. the downloads bubble), not page traffic.
-  const foreign = seen.filter((s) => /^(https?|wss?):/.test(s.url) && !s.url.startsWith("http://localhost:3102/"));
+  const foreign = seen.filter((s) => /^(https?|wss?):/.test(s.url) && !s.url.startsWith(new URL(process.env.E2E_BASE_URL ?? "http://localhost:3102").origin + "/"));
   expect(foreign.map((f) => f.url).filter((u) => u !== "https://example.com/collect")).toEqual([]);
   // The analytics calls were recorded too (so the check above covered them).
   const events = seen.filter((s) => s.url.endsWith("/api/events"));
@@ -118,5 +121,5 @@ test("cleaning, merging, batch and ZIP export never send file names or contents 
   for (const e of events) expect(JSON.parse(e.body).name).toMatch(/^(pageview|tool_used)$/);
   // No POST/PUT anywhere except analytics.
   expect(seen.filter((s) => s.method !== "GET" && !s.url.endsWith("/api/events") && s.url !== "https://example.com/collect")).toEqual([]);
-  expect(cspViolations.filter((v) => !v.includes("example.com"))).toEqual([]);
+  expect(cspViolations.filter((v) => !v.includes("example.com") && !HOST_INJECTED.test(v))).toEqual([]);
 });

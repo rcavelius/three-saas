@@ -8,6 +8,9 @@ import { fileURLToPath } from "node:url";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+/** Netlify injects its own toolbar script into hosted pages; our CSP blocks it (as intended), so its report is ignored. */
+const HOST_INJECTED = /\/\.netlify\/scripts\/hud/;
+
 const MAIL_DIR = fileURLToPath(new URL("../.data/e2e-mail", import.meta.url));
 const EMAIL = `smoke-${Date.now()}@example.com`;
 const PASSWORD = "smoke test password 123";
@@ -60,7 +63,7 @@ test("public pages: no CSP violations, accessible, fit 390 px", async ({ page })
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${path} overflows at 390px`).toBeLessThanOrEqual(0);
   }
-  expect(problems).toEqual([]);
+  expect(problems.filter((p) => !HOST_INJECTED.test(p))).toEqual([]);
 });
 
 test("sign up → verify → log in → tool → billing → delete account", async ({ page }) => {
@@ -126,5 +129,5 @@ test("sign up → verify → log in → tool → billing → delete account", as
   const relogin = await page.request.post("/api/auth/sign-in/email", { data: { email: EMAIL, password: PASSWORD }, headers: { origin: "http://localhost:3102" } });
   expect(relogin.status()).toBe(401);
 
-  expect(problems.filter((p) => !/status of (401|403|404|503)/.test(p))).toEqual([]);
+  expect(problems.filter((p) => !/status of (401|403|404|503)/.test(p) && !HOST_INJECTED.test(p))).toEqual([]);
 });

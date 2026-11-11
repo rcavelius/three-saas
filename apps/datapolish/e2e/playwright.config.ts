@@ -21,5 +21,9 @@ export default defineConfig({
     headless: true,
     acceptDownloads: true,
     viewport: { width: 1280, height: 900 },
+    // Password-protected staging: E2E_HTTP_PASSWORD (any username). Never committed; read from the environment.
+    ...(process.env.E2E_HTTP_PASSWORD
+      ? { httpCredentials: { username: "e2e", password: process.env.E2E_HTTP_PASSWORD, send: "always" as const } }
+      : {}),
   },
 });
