@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DocPage } from "@/components/DocPage";
 
-export const metadata: Metadata = { title: "Privacy (draft)", robots: { index: false } };
+export const metadata: Metadata = { title: "Privacy (draft)", robots: { index: false }, alternates: { canonical: "/privacy" } };
 
 export default function PrivacyPage() {
   return (

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalDraft } from "@/components/LegalDraft";
 
-export const metadata: Metadata = { title: "Privacy (draft)", alternates: { canonical: "/privacy" } };
+export const metadata: Metadata = { title: "Privacy (draft)", robots: { index: false }, alternates: { canonical: "/privacy" } };
 
 export default function Privacy() {
   return (

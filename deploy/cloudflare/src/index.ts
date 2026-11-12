@@ -160,7 +160,30 @@ export class AppContainer extends DurableObject<Env> {
         headers: { "retry-after": "5", "cache-control": "no-store", "content-type": "text/plain; charset=utf-8" },
       });
     }
-    return this.ctx.container!.getTcpPort(PORT).fetch(request);
+    // A container being replaced (deploy rollout) or one that just exited makes the port fetch throw.
+    // Requests without a body are safe to replay once after a fresh readiness check.
+    const replayable = request.method === "GET" || request.method === "HEAD";
+    try {
+      return await this.ctx.container!.getTcpPort(PORT).fetch(replayable ? request.clone() : request);
+    } catch (err) {
+      console.warn(JSON.stringify({ level: "warn", msg: "container fetch failed", app: this.env.APP_NAME, replayable, error: String(err) }));
+      if (replayable) {
+        try {
+          await this.ctx.storage.delete("env_fingerprint"); // forces ensureReady to restart a dead container
+          this.starting ??= this.ensureReady().finally(() => {
+            this.starting = undefined;
+          });
+          await this.starting;
+          return await this.ctx.container!.getTcpPort(PORT).fetch(request);
+        } catch (retryErr) {
+          console.error(JSON.stringify({ level: "error", msg: "container retry failed", app: this.env.APP_NAME, error: String(retryErr) }));
+        }
+      }
+      return new Response("Service is restarting. Please retry in a few seconds.", {
+        status: 503,
+        headers: { "retry-after": "5", "cache-control": "no-store", "content-type": "text/plain; charset=utf-8" },
+      });
+    }
   }
 
   private async ensureReady(): Promise<void> {

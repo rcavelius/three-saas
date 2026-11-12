@@ -168,18 +168,18 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
     hooks: {
       async onPlanChanged(orgId, from, to) {
         for (const to_ of await ownerEmails(orgId)) {
-          await mailer.send(planChangedEmail(brand, { to: to_, fromPlan: planName(from), toPlan: planName(to), billingUrl }));
+          await sendEmail(planChangedEmail(brand, { to: to_, fromPlan: planName(from), toPlan: planName(to), billingUrl }));
         }
       },
       async onPaymentFailed(orgId, info) {
         for (const to of await ownerEmails(orgId)) {
-          await mailer.send(paymentFailedEmail(brand, { to, amountDueCents: info.amountDueCents, portalUrl: billingUrl, nextAttemptAt: info.nextAttemptAt }));
+          await sendEmail(paymentFailedEmail(brand, { to, amountDueCents: info.amountDueCents, portalUrl: billingUrl, nextAttemptAt: info.nextAttemptAt }));
         }
       },
       async onSubscriptionCanceled(orgId) {
         const ent = await billing.getEntitlements(orgId);
         for (const to of await ownerEmails(orgId)) {
-          await mailer.send(subscriptionCanceledEmail(brand, { to, planName: planName(ent.subscribedPlanId), accessUntil: null, billingUrl }));
+          await sendEmail(subscriptionCanceledEmail(brand, { to, planName: planName(ent.subscribedPlanId), accessUntil: null, billingUrl }));
         }
       },
       async onAnomaly(a) {

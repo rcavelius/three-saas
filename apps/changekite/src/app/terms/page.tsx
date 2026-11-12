@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DocPage } from "@/components/DocPage";
 
-export const metadata: Metadata = { title: "Terms (draft)", robots: { index: false } };
+export const metadata: Metadata = { title: "Terms (draft)", robots: { index: false }, alternates: { canonical: "/terms" } };
 
 export default function TermsPage() {
   return (

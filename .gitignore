@@ -33,3 +33,6 @@ test-results/
 
 # local-only credentials (never commit)
 .secrets/
+
+# local e2e server logs
+.e2e-*.log

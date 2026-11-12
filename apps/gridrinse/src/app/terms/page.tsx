@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LegalDraft } from "@/components/LegalDraft";
 
-export const metadata: Metadata = { title: "Terms (draft)" };
+export const metadata: Metadata = { title: "Terms (draft)", robots: { index: false }, alternates: { canonical: "/terms" } };
 
 export default function Terms() {
   return (

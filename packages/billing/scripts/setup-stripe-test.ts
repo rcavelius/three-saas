@@ -11,6 +11,9 @@ import { ALL_CATALOGS } from "../src/catalogs";
 import { isLiveKey } from "../src/gateway";
 import { STRIPE_WEBHOOK_EVENTS } from "../src/index";
 
+/** Customer-facing product names on Stripe Checkout, invoices and the portal. */
+const BRAND_NAMES: Record<string, string> = { changekite: "ChangeKite", gridrinse: "GridRinse", webhooktrail: "WebhookTrail" };
+
 async function main() {
   const key = process.env.STRIPE_TEST_SECRET_KEY ?? process.env.STRIPE_SECRET_KEY ?? "";
   if (!key) throw new Error("Set STRIPE_SECRET_KEY (or STRIPE_TEST_SECRET_KEY) to a sk_test_ key");
@@ -27,7 +30,7 @@ async function main() {
     for (const plan of catalog.plans) {
       if (!plan.stripeLookupKey) continue;
       const productId = `${catalog.app}_${plan.id}`;
-      const productName = `${catalog.app.charAt(0).toUpperCase()}${catalog.app.slice(1)} ${plan.name}`;
+      const productName = `${BRAND_NAMES[catalog.app] ?? catalog.app} ${plan.name}`;
       let product: Stripe.Product;
       try {
         product = await stripe.products.retrieve(productId);

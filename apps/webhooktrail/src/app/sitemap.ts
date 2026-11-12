@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = (process.env.APP_URL || "http://localhost:3003").replace(/\/$/, "");
-  const pages = ["/", "/pricing", "/docs", "/guides", "/help", "/support", "/signup", "/privacy", "/terms"];
+  // /privacy and /terms are noindex drafts until legal review; add them back once published.
+  const pages = ["/", "/pricing", "/docs", "/guides", "/help", "/support", "/signup"];
   const help = await (await getPlatform()).support.articleSlugs().catch(() => []);
   return [
     ...pages.map((p) => ({ url: `${base}${p}`, changeFrequency: "weekly" as const, priority: p === "/" ? 1 : 0.7 })),
