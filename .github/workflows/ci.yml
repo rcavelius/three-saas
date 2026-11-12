@@ -95,7 +95,8 @@ jobs:
             -e CRON_SECRET=ci-only-cron-secret-0123456789 \
             -e TRUSTED_PROXY=none -e RUN_SCHEDULER=1 \
             ${{ matrix.app }}:ci
-          for i in $(seq 1 60); do curl -fsS http://localhost:8080/api/health && break; sleep 1; done
+          for i in $(seq 1 120); do curl -fsS -o /dev/null http://localhost:8080/api/health && break; sleep 0.5; done
+          echo "READY_EPOCH_MS=$(date +%s%3N)" >> "$GITHUB_ENV"
           echo
           test "$(docker exec app id -u)" != "0"
       - name: Smoke the running container

@@ -12,8 +12,7 @@ SAMPLES=/tmp/stats.txt
 ( while true; do docker stats --no-stream --format '{{.MemUsage}}|{{.CPUPerc}}' app >> "$SAMPLES" 2>/dev/null; sleep 1; done ) &
 SAMPLER=$!
 
-ready_ms=$(date +%s%3N)
-echo "cold_start_ms=$((ready_ms - START_EPOCH_MS))"
+echo "cold_start_ms=$(( ${READY_EPOCH_MS:?} - START_EPOCH_MS ))   # docker run -> first healthy response (DB migrations included on first boot)"
 sleep 5
 idle=$(docker stats --no-stream --format '{{.MemUsage}}' app)
 echo "idle_memory=$idle"
