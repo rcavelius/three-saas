@@ -1,6 +1,6 @@
 name: Nightly database backup
 
-# pg_dump of each app database (Neon), restored into a throwaway PostgreSQL 17 to prove the dump is
+# pg_dump of each app database (Neon), restored into a throwaway PostgreSQL 18 to prove the dump is
 # usable, then encrypted (AES-256, BACKUP_PASSPHRASE secret) and kept as a private workflow artifact
 # for 14 days. Neon's own point-in-time history is the first line of recovery; this is the second.
 # Restore: download the artifact, `openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in X.dump.enc -out X.dump`,
@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 20
     services:
       restore:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: restore-drill-only
         ports: ["5432:5432"]
@@ -36,7 +36,7 @@ jobs:
           set -euo pipefail
           test -n "$BACKUP_PASSPHRASE" || { echo "BACKUP_PASSPHRASE secret missing"; exit 1; }
           mkdir -p out && chmod 700 out
-          pg="docker run --rm --network host -v $PWD/out:/out postgres:17"
+          pg="docker run --rm --network host -v $PWD/out:/out postgres:18"
           stamp=$(date -u +%Y%m%dT%H%MZ)
           for app in changekite gridrinse webhooktrail; do
             var="DB_${app^^}"; url="${!var}"
@@ -44,7 +44,7 @@ jobs:
             $pg pg_dump --format=custom --no-owner --no-privileges --file "/out/$app.dump" "$url"
             size=$(stat -c %s "out/$app.dump")
             # Restore drill: load into the throwaway server and count tables and rows of _migrations.
-            $pg psql -q "postgres://postgres:restore-drill-only@localhost:5432/postgres" -c "DROP DATABASE IF EXISTS drill; CREATE DATABASE drill;"
+            $pg psql -q "postgres://postgres:restore-drill-only@localhost:5432/postgres" -c "DROP DATABASE IF EXISTS drill" -c "CREATE DATABASE drill"
             $pg pg_restore --no-owner --no-privileges -d "postgres://postgres:restore-drill-only@localhost:5432/drill" "/out/$app.dump"
             tables=$($pg psql -At "postgres://postgres:restore-drill-only@localhost:5432/drill" -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public'")
             migrations=$($pg psql -At "postgres://postgres:restore-drill-only@localhost:5432/drill" -c "SELECT count(*) FROM _migrations")
