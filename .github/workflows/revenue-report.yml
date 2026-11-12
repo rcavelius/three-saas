@@ -1,0 +1,37 @@
+name: Revenue funnel report
+
+# Daily funnel per product (visitors → pricing → checkout → paid, MRR, cancellations, refunds, CAC),
+# shown as this run's summary in the Actions tab. Run it manually any time for a fresh view.
+on:
+  schedule:
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: Window in days
+        default: "30"
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-fund --no-audit
+      - name: Build the report
+        env:
+          DATABASE_URL_GRIDRINSE: ${{ secrets.DATABASE_URL_GRIDRINSE }}
+          DATABASE_URL_CHANGEKITE: ${{ secrets.DATABASE_URL_CHANGEKITE }}
+          DATABASE_URL_WEBHOOKTRAIL: ${{ secrets.DATABASE_URL_WEBHOOKTRAIL }}
+          WORKER_SECRETS_GRIDRINSE: ${{ secrets.WORKER_SECRETS_GRIDRINSE }}
+        run: |
+          export STRIPE_SECRET_KEY="$(node -e 'process.stdout.write(JSON.parse(process.env.WORKER_SECRETS_GRIDRINSE).STRIPE_SECRET_KEY||"")')"
+          echo "::add-mask::$STRIPE_SECRET_KEY"
+          npx tsx scripts/revenue-dashboard.mts "${{ github.event.inputs.days || '30' }}"

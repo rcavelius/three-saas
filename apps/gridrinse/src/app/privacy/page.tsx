@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
-import { LegalDraft } from "@/components/LegalDraft";
+import { LegalDraft, OperatorDetails } from "@/components/LegalDraft";
+import { legalInfo } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Privacy (draft)", robots: { index: false }, alternates: { canonical: "/privacy" } };
+export const dynamic = "force-dynamic";
+
+export function generateMetadata(): Metadata {
+  const published = legalInfo().published;
+  return { title: published ? "Privacy policy" : "Privacy (draft)", robots: published ? undefined : { index: false }, alternates: { canonical: "/privacy" } };
+}
 
 export default function Privacy() {
+  const legal = legalInfo();
   return (
-    <LegalDraft title="Privacy" updated="2026-11-11">
+    <LegalDraft title="Privacy" updated="2026-11-12" legal={legal}>
       <h2>The short version</h2>
       <p>
         GridRinse cleans your files inside your web browser. The files you open, their contents, their names and the cleaned results are never sent to us or to anyone
-        else, whether or not you have an account. We do not use third-party analytics or advertising trackers.
+        else, whether or not you have an account. We do not use advertising trackers or third-party analytics scripts; our own first-party usage counting sets no cookies; it keeps a random anonymous ID in your browser's local storage, which you can clear at any time.
       </p>
       <h2>How your files are handled</h2>
       <ul>
@@ -57,6 +64,15 @@ export default function Privacy() {
       </p>
       <h2>Contact</h2>
       <p>Contact details will be added before publication.</p>
+      <h2>Service providers</h2>
+      <ul>
+        <li>Cloudflare (hosting, security filtering, transactional email delivery): processes the technical data of each request, such as IP address and browser type, and may record anonymous page-load timings (no cookies, no file data).</li>
+        <li>Neon (database hosting): stores account, billing-status and support data.</li>
+        <li>Stripe (payments): processes card and billing details for paid plans under its own privacy policy.</li>
+      </ul>
+      <p>None of them receive the files you clean.</p>
+      <h2>Who is responsible</h2>
+      <OperatorDetails legal={legal} />
     </LegalDraft>
   );
 }

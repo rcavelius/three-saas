@@ -82,7 +82,11 @@ export interface StripeGateway {
     ): Promise<{ id: string }>;
   };
   checkout: { sessions: { create(params: CheckoutSessionParams): Promise<{ id: string; url: string }> } };
-  billingPortal: { sessions: { create(params: { customer: string; return_url: string }): Promise<{ url: string }> } };
+  billingPortal: {
+    sessions: { create(params: { customer: string; return_url: string; configuration?: string }): Promise<{ url: string }> };
+    /** Optional: portal configurations tagged metadata.app = <catalog app> (created by scripts/setup-stripe-test.ts). */
+    configurations?: { findForApp(app: string): Promise<string | null> };
+  };
   subscriptions: {
     retrieve(id: string): Promise<GatewaySubscription>;
     /** All subscriptions of the customer, any status (auto-paginated). */
@@ -231,6 +235,14 @@ export function createStripeGateway(secretKey: string, opts: StripeGatewayOption
         create: async (params) => {
           const s = await stripe.billingPortal.sessions.create(params);
           return { url: s.url };
+        },
+      },
+      configurations: {
+        findForApp: async (app) => {
+          for await (const c of stripe.billingPortal.configurations.list({ active: true, limit: 100 })) {
+            if (c.metadata?.app === app) return c.id;
+          }
+          return null;
         },
       },
     },

@@ -791,12 +791,20 @@ export function createBilling(opts: BillingOptions): Billing {
     return { url: session.url, id: session.id };
   }
 
+  let portalConfiguration: Promise<string | null> | undefined;
+
   async function createPortalSession(orgId: string) {
     requireOrgId(orgId);
     if (!configured) throw new BillingNotConfiguredError();
     const customer = await getCustomerId(orgId);
     if (!customer) throw new BillingError("no_customer", "No billing account yet; choose a plan first.", 404);
-    return stripe.billingPortal.sessions.create({ customer, return_url: appUrl + paths.portalReturn });
+    // Product-specific portal (only this app's plans offered); falls back to the account default.
+    portalConfiguration ??= stripe.billingPortal.configurations
+      ? stripe.billingPortal.configurations.findForApp(catalog.app).catch(() => null)
+      : Promise.resolve(null);
+    const configuration = (await portalConfiguration) ?? undefined;
+    if (!configuration) portalConfiguration = undefined; // retry the lookup next time
+    return stripe.billingPortal.sessions.create({ customer, return_url: appUrl + paths.portalReturn, ...(configuration ? { configuration } : {}) });
   }
 
   async function changePlan(orgId: string, planId: string): Promise<Entitlements> {

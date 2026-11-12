@@ -13,6 +13,51 @@ import { STRIPE_WEBHOOK_EVENTS } from "../src/index";
 
 /** Customer-facing product names on Stripe Checkout, invoices and the portal. */
 const BRAND_NAMES: Record<string, string> = { changekite: "ChangeKite", gridrinse: "GridRinse", webhooktrail: "WebhookTrail" };
+const APP_DOMAINS: Record<string, string> = { changekite: "changekite.com", gridrinse: "gridrinse.com", webhooktrail: "webhooktrail.com" };
+
+/**
+ * One customer portal per product: only that product's plans can be switched to; cancellation at period end
+ * with a reason; card, address and invoice management. Billing finds it at runtime by metadata.app.
+ */
+async function setupPortals(stripe: Stripe, catalogs: typeof ALL_CATALOGS) {
+  const existing: Stripe.BillingPortal.Configuration[] = [];
+  for await (const c of stripe.billingPortal.configurations.list({ active: true, limit: 100 })) existing.push(c);
+  for (const catalog of catalogs) {
+    const products: { product: string; prices: string[] }[] = [];
+    for (const plan of catalog.plans) {
+      if (!plan.stripeLookupKey) continue;
+      const price = (await stripe.prices.list({ lookup_keys: [plan.stripeLookupKey], active: true, limit: 1 })).data[0];
+      if (price) products.push({ product: typeof price.product === "string" ? price.product : price.product.id, prices: [price.id] });
+    }
+    const domain = APP_DOMAINS[catalog.app];
+    const brand = BRAND_NAMES[catalog.app] ?? catalog.app;
+    const features: Stripe.BillingPortal.ConfigurationCreateParams.Features = {
+      customer_update: { enabled: true, allowed_updates: ["email", "address", "tax_id"] },
+      invoice_history: { enabled: true },
+      payment_method_update: { enabled: true },
+      subscription_cancel: {
+        enabled: true,
+        mode: "at_period_end",
+        proration_behavior: "none",
+        cancellation_reason: { enabled: true, options: ["too_expensive", "missing_features", "switched_service", "unused", "other"] },
+      },
+      subscription_update: { enabled: products.length > 1, default_allowed_updates: ["price"], products, proration_behavior: "create_prorations" },
+    };
+    const business_profile = {
+      headline: `${brand}: manage your subscription`,
+      ...(domain ? { privacy_policy_url: `https://${domain}/privacy`, terms_of_service_url: `https://${domain}/terms` } : {}),
+    };
+    const default_return_url = domain ? `https://${domain}/account/billing` : undefined;
+    const found = existing.find((c) => c.metadata?.app === catalog.app);
+    if (found) {
+      await stripe.billingPortal.configurations.update(found.id, { business_profile, default_return_url, features });
+      console.log(`portal  ${catalog.app} -> ${found.id} (updated, ${products.length} plans)`);
+    } else {
+      const created = await stripe.billingPortal.configurations.create({ business_profile, default_return_url, features, metadata: { app: catalog.app } });
+      console.log(`portal  ${catalog.app} -> ${created.id} (created, ${products.length} plans)`);
+    }
+  }
+}
 
 async function main() {
   const key = process.env.STRIPE_TEST_SECRET_KEY ?? process.env.STRIPE_SECRET_KEY ?? "";
@@ -72,6 +117,8 @@ async function main() {
       console.log(`created ${plan.stripeLookupKey} -> ${created.id} (${plan.priceMonthlyCents / 100} USD/month)`);
     }
   }
+
+  await setupPortals(stripe, catalogs);
 
   console.log("\nCreate one webhook endpoint PER APP (https://<app-domain>/api/billing/webhook) with these events:");
   for (const e of STRIPE_WEBHOOK_EVENTS) console.log(`  ${e}`);
