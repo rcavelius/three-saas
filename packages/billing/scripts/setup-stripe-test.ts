@@ -62,9 +62,14 @@ async function setupPortals(stripe: Stripe, catalogs: typeof ALL_CATALOGS) {
 async function main() {
   const key = process.env.STRIPE_TEST_SECRET_KEY ?? process.env.STRIPE_SECRET_KEY ?? "";
   if (!key) throw new Error("Set STRIPE_SECRET_KEY (or STRIPE_TEST_SECRET_KEY) to a sk_test_ key");
-  if (isLiveKey(key) || !/^(sk|rk)_test_/.test(key)) {
-    throw new Error("Refusing: this script only runs against a Stripe TEST account (sk_test_/rk_test_ key)");
+  // Live mode only with an explicit owner approval in the environment (STRIPE_LIVE_SETUP_APPROVED=yes):
+  // it creates products, prices and portals but never charges anyone.
+  const liveApproved = process.env.STRIPE_LIVE_SETUP_APPROVED === "yes";
+  if (isLiveKey(key) && !liveApproved) {
+    throw new Error("Refusing a LIVE key: set STRIPE_LIVE_SETUP_APPROVED=yes only after the owner approved the live setup");
   }
+  if (!isLiveKey(key) && !/^(sk|rk)_test_/.test(key)) throw new Error("Unrecognised Stripe key");
+  if (isLiveKey(key)) console.log("LIVE MODE: creating live products, prices and portals (no charges)");
   const stripe = new Stripe(key, { maxNetworkRetries: 2 });
 
   // STRIPE_SETUP_APPS=gridrinse (comma-separated) limits the run to one product's Stripe account.

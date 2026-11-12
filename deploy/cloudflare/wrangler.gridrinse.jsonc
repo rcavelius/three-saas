@@ -18,6 +18,7 @@
     "APP_URL": "https://gridrinse.com",
     "EMAIL_FROM": "GridRinse <hello@gridrinse.com>",
     "SUPPORT_EMAIL": "support@gridrinse.com",
+    "ABUSE_EMAIL": "abuse@gridrinse.com",
     "GATE_EXEMPT": "/api/billing/webhook,/api/health,/api/cron/",
     "IDLE_MINUTES": "10",
     "TRUSTED_PROXY": "cloudflare",
