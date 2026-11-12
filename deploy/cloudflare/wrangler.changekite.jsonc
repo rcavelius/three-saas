@@ -21,7 +21,8 @@
     "TRUSTED_PROXY": "cloudflare",
     "RUN_SCHEDULER": "1",
     "REQUIRE_POSTGRES": "1",
-    "DATABASE_POOL_MAX": "5"
+    "DATABASE_POOL_MAX": "5",
+    "EMAIL_RELAY_URL": "https://changekite.com/__edge/email"
   },
   "triggers": { "crons": ["*/30 * * * *"] },
   "containers": [
@@ -36,5 +37,6 @@
   ],
   "durable_objects": { "bindings": [{ "name": "APP", "class_name": "AppContainer" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AppContainer"] }],
+  "send_email": [{ "name": "EMAIL" }],
   "observability": { "enabled": true }
 }

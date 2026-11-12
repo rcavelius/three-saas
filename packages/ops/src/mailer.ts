@@ -46,6 +46,13 @@ export interface MailerOptions {
   /** e.g. "ChangeKite <hello@mail.changekite.com>" */
   from: string;
   resendApiKey?: string;
+  /**
+   * Cloudflare deployment: POST each message to the app's own Worker (`/__edge/email`), which sends it
+   * through Cloudflare Email Sending. Takes precedence over Resend. Defaults to EMAIL_RELAY_URL /
+   * EMAIL_RELAY_SECRET from the environment so every app gets it without extra wiring.
+   */
+  relayUrl?: string;
+  relaySecret?: string;
   brand: Brand;
   fetch?: FetchLike;
   now?: Clock;
@@ -74,6 +81,9 @@ export function createMailer(opts: MailerOptions): Mailer {
   const maxAttempts = opts.maxAttempts ?? 6;
   const timeoutMs = opts.timeoutMs ?? 15_000;
   const apiKey = opts.resendApiKey?.trim() || undefined;
+  const relayUrl = (opts.relayUrl ?? process.env.EMAIL_RELAY_URL)?.trim() || undefined;
+  const relaySecret = (opts.relaySecret ?? process.env.EMAIL_RELAY_SECRET)?.trim() || undefined;
+  const relay = relayUrl && relaySecret ? { url: relayUrl, secret: relaySecret } : undefined;
 
   async function setStatus(id: string, status: string, fields: { error?: string | null; providerId?: string } = {}) {
     await ex.query(
@@ -97,7 +107,7 @@ export function createMailer(opts: MailerOptions): Mailer {
     if (row.status === "sent" || row.status === "logged") return; // already delivered (idempotent)
     const logFields = { outboxId: id, to: maskEmail(row.to_address), tag: row.tag };
 
-    if (!apiKey) {
+    if (!apiKey && !relay) {
       await setStatus(id, "logged");
       logger.info("email logged (no RESEND_API_KEY configured)", logFields);
       return;
@@ -105,6 +115,27 @@ export function createMailer(opts: MailerOptions): Mailer {
 
     try {
       let res: Response;
+      if (relay) {
+        try {
+          res = await doFetch(relay.url, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${relay.secret}`, "Content-Type": "application/json", "Idempotency-Key": id },
+            body: JSON.stringify({ from: opts.from, to: row.to_address, subject: row.subject, html: row.html_body, text: row.text_body }),
+            signal: AbortSignal.timeout(timeoutMs),
+          });
+        } catch (err) {
+          throw new RetryableEmailError(`network error: ${(err as Error).name}`);
+        }
+        const body = (await res.json().catch(() => ({}))) as { id?: unknown; code?: unknown };
+        if (res.ok) {
+          await setStatus(id, "sent", { providerId: typeof body.id === "string" ? body.id : undefined });
+          logger.info("email sent", logFields);
+          return;
+        }
+        const reason = `edge ${res.status}${typeof body.code === "string" ? ` ${body.code.slice(0, 60)}` : ""}`;
+        if (res.status === 429 || res.status >= 500) throw new RetryableEmailError(reason);
+        throw new PermanentJobError(reason);
+      }
       try {
         res = await doFetch(RESEND_URL, {
           method: "POST",

@@ -29,6 +29,8 @@ const CONTAINER_ENV_KEYS = [
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
   "RESEND_API_KEY",
+  "EMAIL_RELAY_URL",
+  "EMAIL_RELAY_SECRET",
   "EMAIL_FROM",
   "SUPPORT_EMAIL",
   "OWNER_ALERT_EMAIL",
@@ -50,7 +52,65 @@ export interface Env {
   /** Minutes the container keeps running after the last request. */
   IDLE_MINUTES: string;
   STAGING_PASSWORD?: string;
+  /** Cloudflare Email Sending binding (domain onboarded in Email Service). */
+  EMAIL?: { send(message: unknown): Promise<{ messageId?: string }> };
+  EMAIL_FROM?: string;
+  EMAIL_RELAY_SECRET?: string;
   [key: string]: unknown;
+}
+
+const RELAY_PATH = "/__edge/email";
+
+function constantTimeEqual(a: string, b: string): boolean {
+  const x = new TextEncoder().encode(a);
+  const y = new TextEncoder().encode(b);
+  let diff = x.length ^ y.length;
+  for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x[i] ?? 0) ^ (y[i] ?? 0);
+  return diff === 0;
+}
+
+/** "Brand <hello@domain>" -> { email, name } */
+function parseAddress(s: string): { email: string; name?: string } | null {
+  const m = /^\s*(?:"?([^"<]*?)"?\s*)?<([^<>\s]+@[^<>\s]+)>\s*$/.exec(s) ?? /^\s*()([^<>\s]+@[^<>\s]+)\s*$/.exec(s);
+  if (!m) return null;
+  const name = m[1]?.trim();
+  return name ? { email: m[2]!, name } : { email: m[2]! };
+}
+
+function json(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "cache-control": "no-store" } });
+}
+
+/**
+ * The app's mailer (packages/ops/src/mailer.ts, relay mode) posts each outbox message here with a shared
+ * secret; the Worker sends it through Cloudflare Email Sending. Only the configured EMAIL_FROM sender is allowed.
+ */
+async function emailRelay(request: Request, env: Env): Promise<Response> {
+  if (request.method !== "POST") return json(405, { code: "method_not_allowed" });
+  const secret = env.EMAIL_RELAY_SECRET;
+  const auth = request.headers.get("authorization") ?? "";
+  if (!secret || secret.length < 24 || !constantTimeEqual(auth, `Bearer ${secret}`)) return json(401, { code: "unauthorized" });
+  if (!env.EMAIL) return json(503, { code: "email_binding_missing" });
+  let msg: { from?: string; to?: string; subject?: string; html?: string; text?: string };
+  try {
+    msg = await request.json();
+  } catch {
+    return json(400, { code: "bad_json" });
+  }
+  const allowedFrom = parseAddress(env.EMAIL_FROM ?? "");
+  const from = parseAddress(msg.from ?? "");
+  const to = parseAddress(msg.to ?? "");
+  if (!allowedFrom || !from || from.email.toLowerCase() !== allowedFrom.email.toLowerCase()) return json(400, { code: "sender_not_allowed" });
+  if (!to || typeof msg.subject !== "string" || (!msg.html && !msg.text)) return json(400, { code: "invalid_message" });
+  try {
+    const res = await env.EMAIL.send({ from, to: to.email, subject: msg.subject, html: msg.html, text: msg.text });
+    return json(200, { id: res?.messageId ?? null });
+  } catch (err) {
+    const code = String((err as { code?: unknown }).code ?? "E_UNKNOWN");
+    const retryable = ["E_RATE_LIMIT_EXCEEDED", "E_DAILY_LIMIT_EXCEEDED", "E_INTERNAL_SERVER_ERROR", "E_DELIVERY_FAILED"].includes(code);
+    console.error(JSON.stringify({ level: "error", msg: "email send failed", app: env.APP_NAME, code }));
+    return json(retryable ? 503 : 400, { code });
+  }
 }
 
 function containerEnv(env: Env): Record<string, string> {
@@ -154,6 +214,7 @@ export default {
       url.hostname = url.hostname.slice(4);
       return Response.redirect(url.toString(), 301);
     }
+    if (url.pathname === RELAY_PATH) return emailRelay(request, env);
     const gate = stagingGate({
       password: env.STAGING_PASSWORD,
       realm: `${env.APP_NAME} (not public yet)`,

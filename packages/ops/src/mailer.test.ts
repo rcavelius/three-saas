@@ -264,3 +264,54 @@ describe("routine email builders", () => {
     expect(al.html).toContain("DB &lt;down&gt;");
   });
 });
+
+describe("mailer via the Cloudflare edge relay", () => {
+  function relaySetup(responses: (() => Response)[]) {
+    const clock = makeClock("2026-04-01T12:00:00Z");
+    const { logger } = logSink();
+    const calls: { url: string; init: RequestInit }[] = [];
+    let i = 0;
+    const fetchMock: FetchLike = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push({ url, init: init! });
+      return responses[Math.min(i++, responses.length - 1)]!();
+    });
+    const mailer = createMailer({
+      handle,
+      from: "TestBrand <hello@testbrand.example>",
+      relayUrl: "https://testbrand.example/__edge/email",
+      relaySecret: "relay-secret-0123456789",
+      brand,
+      fetch: fetchMock,
+      now: clock,
+      logger,
+      maxAttempts: 3,
+    });
+    const scheduler = createScheduler({ handle, jobs: { [mailer.queue]: mailer.jobHandler }, schedules: [], now: clock, logger });
+    return { calls, mailer, scheduler };
+  }
+
+  it("posts the message to the relay with the bearer secret and marks it sent", async () => {
+    const t = relaySetup([() => new Response(JSON.stringify({ id: "cf_msg_1" }), { status: 200 })]);
+    const { id } = await t.mailer.send(msg);
+    await t.scheduler.tick();
+    expect(t.calls).toHaveLength(1);
+    expect(t.calls[0]!.url).toBe("https://testbrand.example/__edge/email");
+    const headers = t.calls[0]!.init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe("Bearer relay-secret-0123456789");
+    const body = JSON.parse(String(t.calls[0]!.init.body));
+    expect(body).toMatchObject({ from: "TestBrand <hello@testbrand.example>", to: msg.to, subject: "Hello" });
+    const row = await outbox(id);
+    expect(row.status).toBe("sent");
+    expect(row.provider_id).toBe("cf_msg_1");
+  });
+
+  it("keeps a message for retry when the edge answers 503", async () => {
+    const t = relaySetup([
+      () => new Response(JSON.stringify({ code: "E_RATE_LIMIT_EXCEEDED" }), { status: 503 }),
+      () => new Response(JSON.stringify({ code: "E_VALIDATION_ERROR" }), { status: 400 }),
+    ]);
+    const { id } = await t.mailer.send(msg);
+    await t.scheduler.tick();
+    expect((await outbox(id)).status).toBe("retrying");
+  });
+});
