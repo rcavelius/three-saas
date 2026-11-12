@@ -87,6 +87,7 @@ jobs:
         run: docker image ls ${{ matrix.app }}:ci --format '{{.Repository}}:{{.Tag}} {{.Size}}'
       - name: Run container (non-root, production env) against PostgreSQL
         run: |
+          echo "START_EPOCH_MS=$(date +%s%3N)" >> "$GITHUB_ENV"
           docker run -d --name app --network host \
             -e APP_URL=http://localhost:8080 \
             -e DATABASE_URL=postgres://postgres:ci-only-password@localhost:5432/postgres \
@@ -110,6 +111,8 @@ jobs:
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "authorization: Bearer ci-only-cron-secret-0123456789" http://localhost:8080/api/cron/tick)
           echo "cron with secret: $code"; test "$code" = "200"
           docker exec -i ${{ job.services.postgres.id }} psql -U postgres -At -c "SELECT count(*) FROM _migrations" | tee /dev/stderr | awk '$1 >= 8 {ok=1} END {exit !ok}'
+      - name: Measure resources (cold start, memory, CPU, latency under load)
+        run: APP=${{ matrix.app }} bash scripts/measure-container.sh | tee /tmp/measure.txt
       - name: Container logs
         if: always()
         run: docker logs app 2>&1 | tail -80
