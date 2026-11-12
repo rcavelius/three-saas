@@ -9,10 +9,12 @@ All three products run on their own domains on Cloudflare, **behind a site passw
 | ChangeKite | https://changekite.com | health ok, main pages 200, real scan of example.com in 2.5 s |
 | WebhookTrail | https://webhooktrail.com | health ok, main pages 200, capture URL accepts webhooks without the password |
 
-Not yet verified on the new domains: sign-up email delivery (waits on step 2.1), and a full Stripe test checkout on gridrinse.com (needs a verified account, so also waits on 2.1).
+Email sending is on for all three domains (Cloudflare Email Sending, onboarded 2026-11-12; SPF/DKIM on `cf-bounce.<domain>`, DMARC). A test email from each domain was accepted by Cloudflare. Included in the Workers Paid plan (3,000 emails/month, then $0.35 per 1,000).
+
+Not yet verified on the new domains: a full sign-up and Stripe test checkout on gridrinse.com. It needs an account created on the live site, which you do yourself (sign up, confirm the email, then pay with test card 4242 4242 4242 4242).
 
 ## 2. What needs you
-1. **Turn on email sending for the three domains** (one click each): Cloudflare → Email Service → Email Sending → Onboard Domain → pick the domain → Continue → **Activate**. It adds sending records (SPF/DKIM on `cf-bounce.<domain>`, DMARC). Included in the Workers Paid plan (3,000 emails/month, then $0.35 per 1,000). Until then, sign-up and alert emails wait in each app's outbox and retry.
+1. Run the sign-up + test checkout above once on gridrinse.com.
 2. **Approve going public**, per product, when you are happy with it. Then I remove the site password.
 3. **Live payments**: Stripe identity/business verification and bank account, then your go-ahead to switch GridRinse (and later the others) from test mode.
 4. Legal review of the privacy policy and terms.
