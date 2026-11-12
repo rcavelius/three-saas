@@ -77,6 +77,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <p>Files are processed in your browser and never uploaded.</p>
             <ul className="flex flex-wrap gap-x-5 gap-y-1">
               {[
+                ["/for/bookkeeping-exports", "For bookkeepers"],
+                ["/for/ecommerce-exports", "For e-commerce"],
+                ["/for/crm-imports", "For CRM imports"],
                 ["/guides", "Guides"],
                 ["/pricing", "Pricing"],
                 ["/help", "Help center"],

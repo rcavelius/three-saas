@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { AUDIENCES } from "@/content/audiences";
 import { GUIDES } from "@/content/guides";
 import { appUrl } from "@/lib/site";
 import { getPlatform } from "@/server/platform";
@@ -12,6 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const help = await (await getPlatform()).support.articleSlugs().catch(() => []);
   return [
     ...pages.map((p) => ({ url: `${base}${p === "/" ? "" : p}`, changeFrequency: "monthly" as const, priority: p === "/" ? 1 : 0.6 })),
+    ...AUDIENCES.map((a) => ({ url: `${base}/for/${a.slug}`, changeFrequency: "monthly" as const, priority: 0.8 })),
     ...GUIDES.map((g) => ({ url: `${base}/guides/${g.slug}`, changeFrequency: "yearly" as const, priority: 0.7 })),
     ...help.map((h) => ({ url: `${base}/help/${h.slug}`, lastModified: h.updated_on, changeFrequency: "monthly" as const, priority: 0.5 })),
   ];

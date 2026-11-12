@@ -62,7 +62,7 @@ export const GRIDRINSE_CATALOG: Catalog = defineCatalog({
     {
       id: "pro",
       name: "Pro",
-      priceMonthlyCents: 1200,
+      priceMonthlyCents: 900,
       stripeLookupKey: "gridrinse_pro_monthly",
       limits: { maxFileMb: 50, maxRows: 500_000, filesPerBatch: 20, savedWorkflows: 50, teamSeats: 1 },
       features: { cloudWorkflows: true, sharedTeamWorkflows: false, prioritySupport: false },

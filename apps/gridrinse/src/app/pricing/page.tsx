@@ -26,7 +26,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Can I get a refund?",
-    a: "Contact support. Refund requests are handled by a person, case by case.",
+    a: "Yes. If you were charged in error, or GridRinse did not work for you in your first 14 days on a paid plan, email support@gridrinse.com within 14 days of the charge and we refund it in full. Other requests are reviewed by a person.",
   },
   {
     q: "What data do you keep, and for how long?",

@@ -39,7 +39,7 @@ describe("catalogs", () => {
     const prices = Object.fromEntries(ALL_CATALOGS.flatMap((c) => c.plans.map((p) => [`${c.app}_${p.id}`, p.priceMonthlyCents])));
     expect(prices).toEqual({
       changekite_free: 0, changekite_solo: 1900, changekite_agency: 7900,
-      gridrinse_free: 0, gridrinse_pro: 1200, gridrinse_business: 2900,
+      gridrinse_free: 0, gridrinse_pro: 900, gridrinse_business: 2900,
       webhooktrail_free: 0, webhooktrail_developer: 900, webhooktrail_pro: 2900,
     });
     expect(CHANGEKITE_CATALOG.plans.find((p) => p.id === "solo")!.limits.sites).toBe(3);
