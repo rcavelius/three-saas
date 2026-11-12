@@ -1,42 +1,34 @@
-# Launch checklist (2026-11-11)
+# Launch checklist (updated 2026-11-12)
 
-## 1. Ready to launch
-- **GridRinse**: running on staging (moving to https://gridrinse-staging.netlify.app when the Netlify project is renamed; password in `.secrets/gridrinse-staging.json` once the local secrets file is renamed to match) with real Postgres, real Stripe test mode, real email, hosted scheduled jobs and the AI help center. Ready for public launch once it has a domain, live Stripe and reviewed legal pages.
-- **ChangeKite** and **WebhookTrail**: code complete and tested (CI, Docker, real Postgres); not yet deployed to staging.
+## 1. Where things stand
+All three products run on their own domains on Cloudflare, **behind a site password** (not public yet; password in `.secrets/SITE-PASSWORD.txt` on your PC, any username):
 
-## 2. Accounts and services
-| Service | Status |
-|---|---|
-| GitHub (private repo rcavelius/three-saas, CI) | connected |
-| Netlify (free team; GridRinse staging + Postgres + scheduled jobs + AI Gateway) | connected |
-| Stripe — new "GridRinse" account, test mode | connected (test only) |
-| Resend (existing account, new sending-only key) | connected; sending from the shared test sender until a domain is verified |
-| Domain registrar | needed (purchase is the owner's) |
-| Container host for ChangeKite (long crawls need more than Netlify's 10 s function limit) | needed: Fly.io or Render account (free/low tier) |
-
-## 3. What I can do myself
-Deploy ChangeKite/WebhookTrail staging, connect domains once bought (DNS records via the registrar's dashboard while signed in), verify the Resend sending domain, Search Console DNS verification, recreate Stripe products/webhooks in live mode after verification, run all tests and drills, monitor and fix.
-
-## 4. What needs you
-- Buy the domains (payment).
-- Stripe identity/business verification and bank account before live payments; set `STRIPE_LIVE_MODE_AUTHORIZED=true` only when you decide to go live.
-- Sign-ups / sign-ins and one-time codes for any new provider (e.g. Fly.io for ChangeKite).
-- Legal review of privacy policy and terms.
-- Approve each public (un-password-protected) launch.
-
-## 5. Expected initial monthly cost
-- GridRinse alone: about **$0–2/month** (Netlify free plan incl. Postgres credits, Resend free tier, ~$1/month domain) + Stripe fees per sale (~3.9% + 30¢). Netlify's free plan pauses (does not bill) if its credits run out.
-- All three products: about **$15–30/month** (ChangeKite on a small always-on container ~$6–12, WebhookTrail on Netlify or a container ~$0–6, three domains ~$3/month, optional AI support capped at $5/month each).
-
-## 6. Product names and planned domains
-ChangeKite, GridRinse and WebhookTrail were formerly named SiteProof, DataPolish and HookPilot; the owner renamed them on 2026-11-11 because of trademark and domain conflicts with existing products and domains using those names.
-
-| Product | Planned domain | What it is |
+| Product | URL | Verified on the live domain |
 |---|---|---|
-| ChangeKite | https://changekite.com | website monitoring and health audits; crawler identifies as `ChangeKiteBot` |
-| GridRinse | https://gridrinse.com | browser-only spreadsheet cleanup |
-| WebhookTrail | https://webhooktrail.com | webhook capture and inspection |
+| GridRinse | https://gridrinse.com | health ok (database, scheduler, queue), all main pages 200, Stripe test webhook endpoint reachable and signature-checked |
+| ChangeKite | https://changekite.com | health ok, main pages 200, real scan of example.com in 2.5 s |
+| WebhookTrail | https://webhooktrail.com | health ok, main pages 200, capture URL accepts webhooks without the password |
 
-Confirm each domain is still available at purchase time, and run a USPTO/EUIPO trademark search (or ask a lawyer) before buying.
+Not yet verified on the new domains: sign-up email delivery (waits on step 2.1), and a full Stripe test checkout on gridrinse.com (needs a verified account, so also waits on 2.1).
 
-After the rename, staging needs the Netlify project renamed to `gridrinse-staging`, the local secrets file renamed to `.secrets/gridrinse-staging.json`, and the Stripe test prices re-created under the `gridrinse_*` lookup keys (see [DEPLOYMENT.md](DEPLOYMENT.md)).
+## 2. What needs you
+1. **Turn on email sending for the three domains** (one click each): Cloudflare → Email Service → Email Sending → Onboard Domain → pick the domain → Continue → **Activate**. It adds sending records (SPF/DKIM on `cf-bounce.<domain>`, DMARC). Included in the Workers Paid plan (3,000 emails/month, then $0.35 per 1,000). Until then, sign-up and alert emails wait in each app's outbox and retry.
+2. **Approve going public**, per product, when you are happy with it. Then I remove the site password.
+3. **Live payments**: Stripe identity/business verification and bank account, then your go-ahead to switch GridRinse (and later the others) from test mode.
+4. Legal review of the privacy policy and terms.
+5. Optional: AI chat in the help center needs an Anthropic API key (budget-capped in code at $5/month per app). Without it, the help center answers with article search.
+
+## 3. Running costs
+| Item | Cost |
+|---|---|
+| Cloudflare Workers Paid (hosting, email, cron) | $5/month + container usage (expected ≈ $5–10/month at launch with sleep-when-idle) |
+| Neon Postgres | free plan |
+| Domains | $33.51/year (paid) |
+| Stripe | fees per sale only (test mode now) |
+
+Budget alerts email you at $10, $15, $30 and $60 of Cloudflare spend. Each app is capped at one `basic` container.
+
+## 4. Product names and domains
+ChangeKite, GridRinse and WebhookTrail were formerly named SiteProof, DataPolish and HookPilot; renamed on 2026-11-11 because of trademark and domain conflicts. Domains are registered at Cloudflare until November 2027.
+
+The old Netlify staging site (gridrinse-staging) is no longer needed and can be deleted once you have looked at the new domain.

@@ -1,11 +1,41 @@
 # Deployment guide
 
-Nothing is deployed. Every step below that creates an account, spends money, registers a domain or makes a site public needs the owner's explicit authorization (see OWNER-ACTIONS.md).
+## Production (live since 2026-11-12): Cloudflare Workers + Containers
 
-## Topology (per app)
+All three apps run on Cloudflare (Workers Paid plan), each on its own domain, **behind a site password until the owner approves a public launch**:
+https://gridrinse.com, https://changekite.com, https://webhooktrail.com (`www.` redirects to the apex).
 
 ```
-            ┌──────────── Fly.io app (always-on, 1+ machines) ───────────┐
+browser / Stripe ──► Cloudflare edge ──► Worker  (deploy/cloudflare/src/index.ts, one per app)
+                                           │  www → apex redirect; Basic-auth gate while STAGING_PASSWORD is set
+                                           │  /__edge/email: mail relay → Cloudflare Email Sending (send_email binding)
+                                           │  Cron Trigger */30 → POST /api/cron/tick inside the container
+                                           ▼
+                                  Container (Durable Object "main", instance basic: 1 GiB, ¼ vCPU)
+                                           │  our Docker image (Dockerfile, APP=<name>), port 8080, RUN_SCHEDULER=1
+                                           │  sleeps after 10 min without requests (max_instances 1)
+                                           ▼
+                                  Neon Postgres (project quiet-forest-89133369, one database per app, pooled endpoint)
+```
+
+- **Gate exemptions** (they authenticate themselves): `/api/billing/webhook` (Stripe signature), `/api/health`, `/api/cron/` (bearer), and WebhookTrail's capture URLs `/h/…`.
+- **Secrets**: one GitHub Actions secret per app, `WORKER_SECRETS_<APP>` (JSON: DATABASE_URL, SESSION_SECRET, CRON_SECRET, HEALTH_DETAILS_SECRET, EMAIL_RELAY_SECRET, STAGING_PASSWORD, OWNER_ALERT_EMAIL, and for GridRinse the Stripe test key + webhook secret), uploaded with `wrangler secret bulk` on every deploy. Copies live only in the git-ignored `.secrets/cloudflare-<app>.json` on the owner's PC. The site password is in `.secrets/SITE-PASSWORD.txt` (any username). When a secret changes, the Worker restarts the container on the next request so it picks up the new values.
+- **Non-secret settings** are `vars` in `deploy/cloudflare/wrangler.<app>.jsonc` (APP_URL, EMAIL_FROM, TRUSTED_PROXY=cloudflare, IDLE_MINUTES, …).
+- **Deploys**: `.github/workflows/deploy-cloudflare.yml` runs automatically after CI passes on `main` (all three, one at a time) or manually from the Actions tab (one app). It builds the image, deploys Worker + Container, uploads secrets, then smoke-tests the live domain. The deploy token (`CLOUDFLARE_API_TOKEN`) is limited to Workers, Containers, R2/KV and to DNS/Workers routes on the three zones.
+- **Email**: apps send through their own Worker (`EMAIL_RELAY_URL`/`EMAIL_RELAY_SECRET`) → Cloudflare Email Sending, 3,000 emails/month included in Workers Paid, then $0.35 per 1,000. Each domain must be onboarded once in the dashboard (Email Service → Email Sending → Onboard Domain), which adds SPF/DKIM/DMARC records on `cf-bounce.<domain>`.
+- **Scheduled work**: the in-process scheduler ticks every 60 s while the container is awake; the Cron Trigger wakes it every 30 min.
+- **Spending**: budget alerts at $10, $15, $30 and $60 (Billing → Billable usage), emailed to the owner. Compute is capped by `max_instances: 1` and the `basic` instance type per app.
+- **Backups**: `.github/workflows/backup.yml` nightly (03:17 UTC): `pg_dump` of each database, restored into a throwaway PostgreSQL 17 as a check, encrypted with `BACKUP_PASSPHRASE` (copy in `.secrets/BACKUP-PASSPHRASE.txt`) and kept 14 days as a private workflow artifact. Plus Neon's own point-in-time history.
+- **Uptime**: `.github/workflows/uptime.yml` checks `/api/health` on all three domains hourly; GitHub emails the owner when a run fails. The apps' own health checks raise incidents and email `OWNER_ALERT_EMAIL`.
+- **Rollback**: re-run the deploy workflow for an older commit (Actions → Deploy to Cloudflare → pick the run → Re-run), or `npx wrangler rollback -c wrangler.<app>.jsonc` from `deploy/cloudflare`.
+- **Go public** (owner decision): remove `STAGING_PASSWORD` from that app's `WORKER_SECRETS_<APP>` and run `npx wrangler secret delete STAGING_PASSWORD -c wrangler.<app>.jsonc`.
+
+The sections below describe the earlier generic container setup and the Netlify staging site, kept for reference.
+
+## Topology (generic container host)
+
+```
+            ┌──────────── container host (always-on, 1+ machines) ───────┐
 browser ──► │ Next.js standalone server (Dockerfile, APP=<name>)          │
 Stripe  ──► │   /api/billing/webhook   /api/health   /api/cron/tick       │
             │   in-process scheduler (RUN_SCHEDULER=1) → Postgres jobs    │
@@ -21,9 +51,10 @@ Scheduled work (scans, cleanup, reconciliation, budgets, digests) runs from the 
 | File | Purpose |
 |---|---|
 | `Dockerfile` | Multi-stage build of any app as a Next.js standalone server (`--build-arg APP=changekite|gridrinse|webhooktrail`). |
-| `.dockerignore` | Keeps node_modules, local databases, env files and git history out of images. |
-| `deploy/fly/<app>.toml` | Fly.io app config: health check on `/api/health`, always-on machine, `TRUSTED_PROXY=fly`. |
-| `.github/workflows/ci.yml` | Typecheck, tests and builds on every push/PR. |
+| `.dockerignore` | Keeps node_modules, local databases, env files, secrets, deploy tooling and git history out of images. |
+| `deploy/cloudflare/` | Worker source, one wrangler config per app, pinned wrangler version. |
+| `.github/workflows/ci.yml` | Typecheck, tests, builds, real-Postgres tests and Docker boot checks on every push/PR. |
+| `.github/workflows/deploy-cloudflare.yml`, `backup.yml`, `uptime.yml` | Production deploy, nightly backups, hourly uptime check. |
 
 ## Environment variables (per app)
 

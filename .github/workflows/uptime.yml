@@ -1,0 +1,31 @@
+name: Uptime check
+
+# Hourly external check of each live domain. Runs 5 minutes after the Cloudflare cron tick (:00), while
+# the container is still awake, so it adds no extra container time. A failed run makes GitHub email the
+# repository owner; the apps' own health checks also raise incidents and email OWNER_ALERT_EMAIL.
+on:
+  schedule:
+    - cron: "5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        domain: [gridrinse.com, changekite.com, webhooktrail.com]
+    steps:
+      - name: GET https://${{ matrix.domain }}/api/health
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /tmp/h.json -w '%{http_code}' --max-time 30 "https://${{ matrix.domain }}/api/health" || true)
+            echo "attempt $i: $code $(head -c 200 /tmp/h.json 2>/dev/null)"
+            [ "$code" = "200" ] && exit 0
+            sleep 20
+          done
+          exit 1
