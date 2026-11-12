@@ -1,36 +1,20 @@
 # Launch checklist (updated 2026-11-12)
 
 ## 1. Where things stand
-All three products run on their own domains on Cloudflare, **behind a site password** (not public yet; password in `.secrets/SITE-PASSWORD.txt` on your PC, any username):
 
-| Product | URL | Verified on the live domain |
-|---|---|---|
-| GridRinse | https://gridrinse.com | health ok (database, scheduler, queue), all main pages 200, Stripe test webhook endpoint reachable and signature-checked |
-| ChangeKite | https://changekite.com | health ok, main pages 200, real scan of example.com in 2.5 s |
-| WebhookTrail | https://webhooktrail.com | health ok, main pages 200, capture URL accepts webhooks without the password |
+| Product | URL | Public? | Payments |
+|---|---|---|---|
+| GridRinse | https://gridrinse.com | **Public since 2026-11-12** (crawlable; private routes protected) | Test mode verified end to end (16/16 local lifecycle + live webhooks). Live checkout **off** until the owner items in [STRIPE-LIVE.md](STRIPE-LIVE.md) are done. |
+| ChangeKite | https://changekite.com | Behind the site password | Test mode verified: local checkout lifecycle 10/10, live webhooks |
+| WebhookTrail | https://webhooktrail.com | Behind the site password | Test mode verified: local checkout lifecycle 10/10, live webhooks |
 
-Email sending is on for all three domains (Cloudflare Email Sending, onboarded 2026-11-12; SPF/DKIM on `cf-bounce.<domain>`, DMARC). A test email from each domain was accepted by Cloudflare. Included in the Workers Paid plan (3,000 emails/month, then $0.35 per 1,000).
+- Email: sending works from all three domains (Cloudflare Email Sending). Inbound: `support@gridrinse.com` and `abuse@gridrinse.com` forward to the owner's Gmail (Cloudflare Email Routing, tested 2026-11-12). ChangeKite/WebhookTrail inboxes: same setup still to do before their launch.
+- Pricing: GridRinse Pro $9/month (pricing test), Business $29/month. Annual billing not yet supported by the billing package (monthly only).
+- Billing portal: one per product, only that product's plans, cancellation at period end.
+- Legal pages: drafts (noindex) until the owner supplies `LEGAL_ENTITY`, `LEGAL_ADDRESS`, `LEGAL_JURISDICTION`, approves the text, and `LEGAL_APPROVED=1` is set.
 
-Not yet verified on the new domains: a full sign-up and Stripe test checkout on gridrinse.com. It needs an account created on the live site, which you do yourself (sign up, confirm the email, then pay with test card 4242 4242 4242 4242).
-
-## 2. What needs you
-1. Run the sign-up + test checkout above once on gridrinse.com.
-2. **Approve going public**, per product, when you are happy with it. Then I remove the site password.
-3. **Live payments**: Stripe identity/business verification and bank account, then your go-ahead to switch GridRinse (and later the others) from test mode.
-4. Legal review of the privacy policy and terms.
-5. Optional: AI chat in the help center needs an Anthropic API key (budget-capped in code at $5/month per app). Without it, the help center answers with article search.
+## 2. What needs the owner
+See [STRIPE-LIVE.md](STRIPE-LIVE.md) (Stripe activation, public business name and statement descriptor, legal details and approval, tax decision, one refunded real purchase) and [GO-TO-MARKET.md](GO-TO-MARKET.md).
 
 ## 3. Running costs
-| Item | Cost |
-|---|---|
-| Cloudflare Workers Paid (hosting, email, cron) | $5/month + container usage (expected ≈ $5–10/month at launch with sleep-when-idle) |
-| Neon Postgres | free plan |
-| Domains | $33.51/year (paid) |
-| Stripe | fees per sale only (test mode now) |
-
-Budget alerts email you at $10, $15, $30 and $60 of Cloudflare spend. Each app is capped at one `basic` container.
-
-## 4. Product names and domains
-ChangeKite, GridRinse and WebhookTrail were formerly named SiteProof, DataPolish and HookPilot; renamed on 2026-11-11 because of trademark and domain conflicts. Domains are registered at Cloudflare until November 2027.
-
-The old Netlify staging site (gridrinse-staging) is no longer needed and can be deleted once you have looked at the new domain.
+Cloudflare Workers Paid $5/month + container usage (expected ≈ $5–10/month), Neon free, domains $33.51/year (paid), Stripe fees per sale only. Budget alerts at $10/$15/$30/$60. No other paid services.
