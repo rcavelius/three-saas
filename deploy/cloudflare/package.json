@@ -1,0 +1,17 @@
+{
+  "name": "three-saas-cloudflare-edge",
+  "private": true,
+  "description": "Cloudflare Worker + Container deployment for ChangeKite, GridRinse and WebhookTrail (not an npm workspace: kept out of the app images)",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "deploy:changekite": "wrangler deploy -c wrangler.changekite.jsonc",
+    "deploy:gridrinse": "wrangler deploy -c wrangler.gridrinse.jsonc",
+    "deploy:webhooktrail": "wrangler deploy -c wrangler.webhooktrail.jsonc"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261022.1",
+    "typescript": "5.9.3",
+    "wrangler": "4.152.0"
+  }
+}

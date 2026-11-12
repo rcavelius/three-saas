@@ -1,0 +1,95 @@
+name: Deploy to Cloudflare
+
+# Deploys each app as a Worker + Container on its own domain.
+#  - automatically after CI passes on main (all three apps)
+#  - manually from the Actions tab (one app or all)
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      app:
+        description: Which app to deploy
+        type: choice
+        options: [all, gridrinse, changekite, webhooktrail]
+        default: all
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-cloudflare
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.pick.outputs.apps }}
+    steps:
+      - id: pick
+        run: |
+          app="${{ github.event.inputs.app || 'all' }}"
+          if [ "$app" = "all" ]; then echo 'apps=["gridrinse","changekite","webhooktrail"]' >> "$GITHUB_OUTPUT";
+          else echo "apps=[\"$app\"]" >> "$GITHUB_OUTPUT"; fi
+
+  deploy:
+    needs: plan
+    name: Deploy ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        app: ${{ fromJSON(needs.plan.outputs.apps) }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: deploy/cloudflare/package-lock.json
+      - name: Install deploy tooling
+        working-directory: deploy/cloudflare
+        run: npm ci --no-fund --no-audit
+      - name: Type-check the Worker
+        working-directory: deploy/cloudflare
+        run: npx tsc --noEmit
+      - name: Build image, deploy Worker + Container
+        working-directory: deploy/cloudflare
+        run: npx wrangler deploy -c wrangler.${{ matrix.app }}.jsonc --var GIT_SHA:${GITHUB_SHA::12}
+      - name: Upload Worker secrets
+        working-directory: deploy/cloudflare
+        env:
+          SECRETS_JSON: ${{ matrix.app == 'gridrinse' && secrets.WORKER_SECRETS_GRIDRINSE || matrix.app == 'changekite' && secrets.WORKER_SECRETS_CHANGEKITE || secrets.WORKER_SECRETS_WEBHOOKTRAIL }}
+        run: |
+          umask 077
+          f="$RUNNER_TEMP/secrets.json"
+          printf '%s' "$SECRETS_JSON" > "$f"
+          npx wrangler secret bulk "$f" -c wrangler.${{ matrix.app }}.jsonc
+          rm -f "$f"
+      - name: Smoke test the live domain
+        run: |
+          url="https://${{ matrix.app }}.com"
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /tmp/health.json -w '%{http_code}' "$url/api/health" || true)
+            echo "attempt $i: /api/health -> $code"
+            if [ "$code" = "200" ]; then cat /tmp/health.json; echo; break; fi
+            sleep 5
+          done
+          test "$code" = "200"
+          code=$(curl -s -o /dev/null -w '%{http_code}' "$url/")
+          echo "/ -> $code (401 while the site password is on, 200 when public)"
+          case "$code" in 200|401) ;; *) exit 1 ;; esac
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$url/api/cron/tick")
+          echo "cron without secret -> $code"; test "$code" = "401"

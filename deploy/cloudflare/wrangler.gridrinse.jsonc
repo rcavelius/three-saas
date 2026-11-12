@@ -1,0 +1,42 @@
+// GridRinse on Cloudflare: Worker (edge, gate, cron) + one Container running the app image.
+// Secrets (wrangler secret bulk, from the WORKER_SECRETS_GRIDRINSE GitHub secret): DATABASE_URL, SESSION_SECRET,
+// CRON_SECRET, HEALTH_DETAILS_SECRET, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY,
+// OWNER_ALERT_EMAIL, STAGING_PASSWORD (remove it to make the site public).
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "gridrinse",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-20",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "gridrinse.com", "custom_domain": true },
+    { "pattern": "www.gridrinse.com", "custom_domain": true }
+  ],
+  "vars": {
+    "APP_NAME": "GridRinse",
+    "APP_URL": "https://gridrinse.com",
+    "EMAIL_FROM": "GridRinse <hello@gridrinse.com>",
+    "SUPPORT_EMAIL": "support@gridrinse.com",
+    "GATE_EXEMPT": "/api/billing/webhook,/api/health,/api/cron/",
+    "IDLE_MINUTES": "10",
+    "TRUSTED_PROXY": "cloudflare",
+    "RUN_SCHEDULER": "1",
+    "REQUIRE_POSTGRES": "1",
+    "DATABASE_POOL_MAX": "5"
+  },
+  "triggers": { "crons": ["*/30 * * * *"] },
+  "containers": [
+    {
+      "class_name": "AppContainer",
+      "image": "../../Dockerfile",
+      "image_build_context": "../..",
+      "image_vars": { "APP": "gridrinse" },
+      "instance_type": "basic",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": { "bindings": [{ "name": "APP", "class_name": "AppContainer" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AppContainer"] }],
+  "observability": { "enabled": true }
+}
