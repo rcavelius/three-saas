@@ -71,6 +71,13 @@ export function createDb<TSchema extends Record<string, unknown>>(
     max: Number(process.env.DATABASE_POOL_MAX ?? 5),
     idleTimeoutMillis: 30_000,
   });
+  // An idle client can be terminated by the server (failover, restart, admin command). pg emits 'error' on
+  // the pool for it; without a listener Node treats it as unhandled and the process crashes. The pool drops
+  // the broken client and opens a new one on the next query, so logging is enough.
+  pool.on("error", (err) => {
+    const e = err as Error & { code?: string };
+    console.warn(JSON.stringify({ level: "warn", msg: "postgres idle client error", code: e.code, error: e.message }));
+  });
   const db = drizzlePg(pool, { schema });
   const executor: SqlExecutor = {
     // Migrations run BEGIN/COMMIT as separate statements, so they must share one connection.
