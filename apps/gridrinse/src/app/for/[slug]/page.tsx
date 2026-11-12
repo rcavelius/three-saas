@@ -65,10 +65,10 @@ export default async function AudiencePage({ params }: { params: Promise<{ slug:
         </Link>
       </div>
 
-      <figure className="mt-8 grid gap-4 md:grid-cols-2">
+      <figure className="mt-8 grid gap-4">
         <Table rows={a.example.before} label="Before" />
         <Table rows={a.example.after} label="After" />
-        <figcaption className="text-xs text-ink-3 md:col-span-2">{a.example.caption}</figcaption>
+        <figcaption className="text-xs text-ink-3">{a.example.caption}</figcaption>
       </figure>
 
       <div className="prose-doc mt-8 border-t border-rule pt-2">{a.body}</div>
