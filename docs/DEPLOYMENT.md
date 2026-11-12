@@ -20,7 +20,7 @@ Scheduled work (scans, cleanup, reconciliation, budgets, digests) runs from the 
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Multi-stage build of any app as a Next.js standalone server (`--build-arg APP=siteproof|datapolish|hookpilot`). |
+| `Dockerfile` | Multi-stage build of any app as a Next.js standalone server (`--build-arg APP=changekite|gridrinse|webhooktrail`). |
 | `.dockerignore` | Keeps node_modules, local databases, env files and git history out of images. |
 | `deploy/fly/<app>.toml` | Fly.io app config: health check on `/api/health`, always-on machine, `TRUSTED_PROXY=fly`. |
 | `.github/workflows/ci.yml` | Typecheck, tests and builds on every push/PR. |
@@ -54,15 +54,16 @@ Scheduled work (scans, cleanup, reconciliation, budgets, digests) runs from the 
 9. External uptime monitor (free tier): monitor `https://<domain>/api/health` every 5 min, alert to the owner email.
 10. Go live with billing only after owner authorization: switch to `sk_live_` keys, set `STRIPE_LIVE_MODE_AUTHORIZED=true`, recreate prices in live mode, new webhook secret.
 
-## Staging (live): DataPolish on Netlify
+## Staging (live): GridRinse on Netlify
 
-- Project `datapolish-staging` on the owner's free Netlify team: https://datapolish-staging.netlify.app
+- Project `gridrinse-staging` on the owner's free Netlify team: https://gridrinse-staging.netlify.app. The staging site moves to this name when the Netlify project is renamed; until then it still answers on its pre-rename project URL.
 - Protected by HTTP Basic auth on every page and API (`STAGING_PASSWORD`; any username), `X-Robots-Tag: noindex`, robots.txt disallow-all. Exempt: `/api/cron/`, `/api/health`, `/api/billing/webhook` (each authenticates itself).
 - Database: Netlify Database (Postgres), provisioned because `@netlify/database` is a dependency; the app reads `NETLIFY_DB_URL` and runs its own migrations on first request (advisory-locked).
-- Scheduler: `apps/datapolish/netlify/functions/cron-tick.mts` runs every 5 minutes and POSTs `/api/cron/tick` with `CRON_SECRET` (`CRON_TICK_BUDGET_MS=7000` to stay inside Netlify's function time limit).
+- Scheduler: `apps/gridrinse/netlify/functions/cron-tick.mts` runs every 5 minutes and POSTs `/api/cron/tick` with `CRON_SECRET` (`CRON_TICK_BUDGET_MS=7000` to stay inside Netlify's function time limit).
 - Client IP: `TRUSTED_PROXY=netlify` (`X-Nf-Client-Connection-Ip`).
-- Deploys: from a clean `git archive` of `main` via the Netlify connector (uploads committed files only). Root `netlify.toml` selects `apps/datapolish`.
-- Secrets live only in Netlify env vars and in the git-ignored `.secrets/datapolish-staging.json` on the owner's PC.
+- Deploys: from a clean `git archive` of `main` via the Netlify connector (uploads committed files only). Root `netlify.toml` selects `apps/gridrinse`.
+- Secrets live only in Netlify env vars and in the git-ignored `.secrets/gridrinse-staging.json` on the owner's PC (rename the existing pre-rename secrets file to this name; `scripts/stripe-lifecycle-drill.mts` reads it by default).
+- After the rename, staging needs: the Stripe test prices re-created under the `gridrinse_*` lookup keys (`packages/billing/scripts/setup-stripe-test.ts`), because existing test customers and subscriptions carry the old app id; and a fresh sign-in, because the session cookie prefix changed to `gr`. The applied workflow migration keeps its original id, so the database needs no change.
 
 ## Rollback
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ALL_CATALOGS, DATAPOLISH_CATALOG, HOOKPILOT_CATALOG, SITEPROOF_CATALOG } from "./catalogs";
+import { ALL_CATALOGS, GRIDRINSE_CATALOG, WEBHOOKTRAIL_CATALOG, CHANGEKITE_CATALOG } from "./catalogs";
 import { defineCatalog, getFreePlan } from "./catalog";
 import { LiveModeRefusedError, createStripeGateway, stripeGatewayFromEnv } from "./gateway";
 import { checkoutRoute, portalRoute, webhookRoute } from "./routes";
@@ -32,23 +32,23 @@ describe("createStripeGateway live-key guard", () => {
 
 describe("catalogs", () => {
   it("are valid and free tiers match the pre-account free tools", () => {
-    expect(ALL_CATALOGS.map((c) => c.app)).toEqual(["siteproof", "datapolish", "hookpilot"]);
-    expect(getFreePlan(SITEPROOF_CATALOG).limits.pagesPerScan).toBe(25);
-    expect(getFreePlan(DATAPOLISH_CATALOG).limits).toMatchObject({ maxFileMb: 5, maxRows: 50_000, filesPerBatch: 3 });
-    expect(getFreePlan(HOOKPILOT_CATALOG).limits).toMatchObject({ endpointRetentionHours: 24, requestsStored: 100, storedBodyKb: 256 });
+    expect(ALL_CATALOGS.map((c) => c.app)).toEqual(["changekite", "gridrinse", "webhooktrail"]);
+    expect(getFreePlan(CHANGEKITE_CATALOG).limits.pagesPerScan).toBe(25);
+    expect(getFreePlan(GRIDRINSE_CATALOG).limits).toMatchObject({ maxFileMb: 5, maxRows: 50_000, filesPerBatch: 3 });
+    expect(getFreePlan(WEBHOOKTRAIL_CATALOG).limits).toMatchObject({ endpointRetentionHours: 24, requestsStored: 100, storedBodyKb: 256 });
     const prices = Object.fromEntries(ALL_CATALOGS.flatMap((c) => c.plans.map((p) => [`${c.app}_${p.id}`, p.priceMonthlyCents])));
     expect(prices).toEqual({
-      siteproof_free: 0, siteproof_solo: 1900, siteproof_agency: 7900,
-      datapolish_free: 0, datapolish_pro: 1200, datapolish_business: 2900,
-      hookpilot_free: 0, hookpilot_developer: 900, hookpilot_pro: 2900,
+      changekite_free: 0, changekite_solo: 1900, changekite_agency: 7900,
+      gridrinse_free: 0, gridrinse_pro: 1200, gridrinse_business: 2900,
+      webhooktrail_free: 0, webhooktrail_developer: 900, webhooktrail_pro: 2900,
     });
-    expect(SITEPROOF_CATALOG.plans.find((p) => p.id === "solo")!.limits.sites).toBe(3);
-    expect(SITEPROOF_CATALOG.plans.find((p) => p.id === "agency")!.limits.sites).toBe(20);
-    expect(HOOKPILOT_CATALOG.plans.map((p) => p.features.replay)).toEqual([false, true, true]);
+    expect(CHANGEKITE_CATALOG.plans.find((p) => p.id === "solo")!.limits.sites).toBe(3);
+    expect(CHANGEKITE_CATALOG.plans.find((p) => p.id === "agency")!.limits.sites).toBe(20);
+    expect(WEBHOOKTRAIL_CATALOG.plans.map((p) => p.features.replay)).toEqual([false, true, true]);
   });
 
   it("rejects inconsistent catalogs", () => {
-    const base = structuredClone(DATAPOLISH_CATALOG);
+    const base = structuredClone(GRIDRINSE_CATALOG);
     expect(() => defineCatalog({ ...base, freePlanId: "gold" })).toThrow(/freePlanId/);
     const missingKey = structuredClone(base);
     delete missingKey.plans[1]!.limits.maxRows;

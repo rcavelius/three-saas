@@ -1,0 +1,270 @@
+@import "tailwindcss";
+
+/* Help center + support UI (@repo/support) on the dark console. */
+.sup-root {
+  --sup-accent: var(--color-signal);
+  --sup-accent-fg: var(--color-signal-ink);
+  --sup-fg: var(--color-fg);
+  --sup-muted: var(--color-fg-muted);
+  --sup-border: var(--color-line-strong);
+  --sup-surface: var(--color-surface);
+  --sup-soft: var(--color-surface-3);
+  --sup-danger-soft: #2a1413;
+  --sup-radius: 6px;
+}
+
+/*
+ * WebhookTrail: dark "flight deck" console. Graphite surfaces, one amber signal colour,
+ * method colours only on badges. Contrast checked against --color-bg / --color-surface.
+ */
+@theme {
+  --color-bg: #0a0b0c;
+  --color-surface: #101214;
+  --color-surface-2: #16191c;
+  --color-surface-3: #1d2125;
+  --color-line: #262b31;
+  --color-line-strong: #39404a;
+  --color-fg: #eceef0;
+  --color-fg-muted: #b0b7be;
+  --color-fg-dim: #8a939c;
+  --color-signal: #ffb020;
+  --color-signal-ink: #1b1300;
+  --color-ok: #5fd88f;
+  --color-warn: #ffcf5c;
+  --color-err: #ff7a70;
+
+  --color-m-get: #62c6ff;
+  --color-m-post: #6fe3a1;
+  --color-m-put: #c6a6ff;
+  --color-m-patch: #f3d36b;
+  --color-m-delete: #ff8c82;
+  --color-m-head: #a3adb7;
+  --color-m-options: #7fd8d0;
+
+  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background: var(--color-bg);
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-signal);
+    color: var(--color-signal-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 2px;
+  }
+  a {
+    color: inherit;
+  }
+}
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: 4px;
+    background: var(--color-surface-2);
+    color: var(--color-fg);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .btn:hover {
+    background: var(--color-surface-3);
+    border-color: #4a525c;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-signal {
+    background: var(--color-signal);
+    border-color: var(--color-signal);
+    color: var(--color-signal-ink);
+    font-weight: 600;
+  }
+  .btn-signal:hover {
+    background: #ffc04d;
+    border-color: #ffc04d;
+  }
+  .btn-danger {
+    color: var(--color-err);
+    border-color: color-mix(in oklab, var(--color-err) 45%, transparent);
+    background: transparent;
+  }
+  .btn-danger:hover {
+    background: color-mix(in oklab, var(--color-err) 12%, transparent);
+    border-color: var(--color-err);
+  }
+  .btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-fg-muted);
+  }
+  .btn-ghost:hover {
+    color: var(--color-fg);
+    background: var(--color-surface-3);
+    border-color: transparent;
+  }
+  .field {
+    height: 2rem;
+    padding: 0 0.625rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: 4px;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-size: 0.8125rem;
+  }
+  .field::placeholder {
+    color: var(--color-fg-dim);
+  }
+  textarea.field {
+    height: auto;
+    padding: 0.5rem 0.625rem;
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-fg-dim);
+  }
+  .kbd {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    padding: 0 0.3rem;
+    border: 1px solid var(--color-line-strong);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    color: var(--color-fg-muted);
+  }
+  .prose-doc h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.01em;
+  }
+  .prose-doc h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .prose-doc p,
+  .prose-doc li {
+    color: var(--color-fg-muted);
+    line-height: 1.65;
+    font-size: 0.9375rem;
+  }
+  .prose-doc p {
+    margin: 0.75rem 0;
+  }
+  .prose-doc ul {
+    list-style: square;
+    padding-left: 1.25rem;
+    margin: 0.75rem 0;
+  }
+  .prose-doc code {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-fg);
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-line);
+    border-radius: 3px;
+    padding: 0 0.25rem;
+  }
+  .prose-doc pre {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    padding: 0.875rem 1rem;
+    /* Wrap instead of a horizontal scroll region (keyboard-accessible, no overflow on phones). */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    margin: 1rem 0;
+    color: var(--color-fg);
+    line-height: 1.6;
+  }
+  .prose-doc pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+  .prose-doc table {
+    width: 100%;
+    font-size: 0.875rem;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+  .prose-doc th,
+  .prose-doc td {
+    text-align: left;
+    border-bottom: 1px solid var(--color-line);
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    vertical-align: top;
+    color: var(--color-fg-muted);
+  }
+  .prose-doc th {
+    color: var(--color-fg);
+    font-weight: 600;
+  }
+  .prose-doc a {
+    color: var(--color-signal);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+@keyframes wt-arrive {
+  from {
+    background-color: color-mix(in oklab, var(--color-signal) 18%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+.wt-arrive {
+  animation: wt-arrive 1.2s ease-out;
+}
+@keyframes wt-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.wt-pulse {
+  animation: wt-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

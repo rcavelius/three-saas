@@ -5,15 +5,15 @@
  * Conventions:
  * - -1 = unlimited, 0 = not available on this plan.
  * - Free limits match the free tiers that were live before accounts existed.
- * - Paid limits for DataPolish and HookPilot match the values already shown on their pricing
- *   pages; SiteProof paid crawl sizes/frequencies are new (pricing page only listed site counts).
+ * - Paid limits for GridRinse and WebhookTrail match the values already shown on their pricing
+ *   pages; ChangeKite paid crawl sizes/frequencies are new (pricing page only listed site counts).
  * - Lookup keys are "<app>_<plan>_monthly" and must never be reused for a different price
  *   (to change a price, create a new Stripe Price and transfer the lookup key to it).
  */
 import { defineCatalog, type Catalog } from "./catalog";
 
-export const SITEPROOF_CATALOG: Catalog = defineCatalog({
-  app: "siteproof",
+export const CHANGEKITE_CATALOG: Catalog = defineCatalog({
+  app: "changekite",
   freePlanId: "free",
   plans: [
     {
@@ -33,7 +33,7 @@ export const SITEPROOF_CATALOG: Catalog = defineCatalog({
       id: "solo",
       name: "Solo",
       priceMonthlyCents: 1900,
-      stripeLookupKey: "siteproof_solo_monthly",
+      stripeLookupKey: "changekite_solo_monthly",
       limits: { sites: 3, pagesPerScan: 250, scanFrequencyHours: 24, historyDays: 90, teamSeats: 1 },
       features: { scheduledScans: true, emailAlerts: true, reportHistory: true, pdfReports: false, priorityQueue: false },
     },
@@ -41,15 +41,15 @@ export const SITEPROOF_CATALOG: Catalog = defineCatalog({
       id: "agency",
       name: "Agency",
       priceMonthlyCents: 7900,
-      stripeLookupKey: "siteproof_agency_monthly",
+      stripeLookupKey: "changekite_agency_monthly",
       limits: { sites: 20, pagesPerScan: 1000, scanFrequencyHours: 6, historyDays: 365, teamSeats: 5 },
       features: { scheduledScans: true, emailAlerts: true, reportHistory: true, pdfReports: true, priorityQueue: true },
     },
   ],
 });
 
-export const DATAPOLISH_CATALOG: Catalog = defineCatalog({
-  app: "datapolish",
+export const GRIDRINSE_CATALOG: Catalog = defineCatalog({
+  app: "gridrinse",
   freePlanId: "free",
   plans: [
     {
@@ -63,7 +63,7 @@ export const DATAPOLISH_CATALOG: Catalog = defineCatalog({
       id: "pro",
       name: "Pro",
       priceMonthlyCents: 1200,
-      stripeLookupKey: "datapolish_pro_monthly",
+      stripeLookupKey: "gridrinse_pro_monthly",
       limits: { maxFileMb: 50, maxRows: 500_000, filesPerBatch: 20, savedWorkflows: 50, teamSeats: 1 },
       features: { cloudWorkflows: true, sharedTeamWorkflows: false, prioritySupport: false },
     },
@@ -71,15 +71,15 @@ export const DATAPOLISH_CATALOG: Catalog = defineCatalog({
       id: "business",
       name: "Business",
       priceMonthlyCents: 2900,
-      stripeLookupKey: "datapolish_business_monthly",
+      stripeLookupKey: "gridrinse_business_monthly",
       limits: { maxFileMb: 200, maxRows: 2_000_000, filesPerBatch: 100, savedWorkflows: -1, teamSeats: 5 },
       features: { cloudWorkflows: true, sharedTeamWorkflows: true, prioritySupport: true },
     },
   ],
 });
 
-export const HOOKPILOT_CATALOG: Catalog = defineCatalog({
-  app: "hookpilot",
+export const WEBHOOKTRAIL_CATALOG: Catalog = defineCatalog({
+  app: "webhooktrail",
   freePlanId: "free",
   plans: [
     {
@@ -102,7 +102,7 @@ export const HOOKPILOT_CATALOG: Catalog = defineCatalog({
       id: "developer",
       name: "Developer",
       priceMonthlyCents: 900,
-      stripeLookupKey: "hookpilot_developer_monthly",
+      stripeLookupKey: "webhooktrail_developer_monthly",
       limits: {
         endpoints: 25,
         endpointRetentionHours: 24 * 7,
@@ -119,7 +119,7 @@ export const HOOKPILOT_CATALOG: Catalog = defineCatalog({
       id: "pro",
       name: "Pro",
       priceMonthlyCents: 2900,
-      stripeLookupKey: "hookpilot_pro_monthly",
+      stripeLookupKey: "webhooktrail_pro_monthly",
       limits: {
         endpoints: 100,
         endpointRetentionHours: 24 * 30,
@@ -135,4 +135,4 @@ export const HOOKPILOT_CATALOG: Catalog = defineCatalog({
   ],
 });
 
-export const ALL_CATALOGS: readonly Catalog[] = [SITEPROOF_CATALOG, DATAPOLISH_CATALOG, HOOKPILOT_CATALOG];
+export const ALL_CATALOGS: readonly Catalog[] = [CHANGEKITE_CATALOG, GRIDRINSE_CATALOG, WEBHOOKTRAIL_CATALOG];

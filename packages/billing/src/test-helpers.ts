@@ -1,15 +1,15 @@
 /** Shared setup for this package's own tests (not exported). */
 import { createBilling, type BillingAnomaly, type BillingHooks, type PaymentFailedInfo } from "./billing";
 import type { Catalog } from "./catalog";
-import { SITEPROOF_CATALOG } from "./catalogs";
+import { CHANGEKITE_CATALOG } from "./catalogs";
 import { FakeStripe, createBillingTestDb } from "./testing";
 
 export const WEBHOOK_SECRET = "whsec_test_billingpackage_0123456789abcdef";
-export const APP_URL = "https://siteproof.test";
+export const APP_URL = "https://changekite.test";
 export const DAY = 86_400_000;
 
 export async function setup(opts: { catalog?: Catalog; latencyMs?: number; hooks?: Partial<BillingHooks> } = {}) {
-  const catalog = opts.catalog ?? SITEPROOF_CATALOG;
+  const catalog = opts.catalog ?? CHANGEKITE_CATALOG;
   const clock = { t: new Date("2026-03-10T12:00:00.000Z") };
   const now = () => clock.t;
   const handle = await createBillingTestDb();

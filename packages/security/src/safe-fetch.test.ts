@@ -102,15 +102,15 @@ describe("safeFetch with the loopback test policy", () => {
     expect(res.address).toBe("127.0.0.1");
   });
 
-  it("identifies as SiteProofBot and never forwards cookies or auth headers", async () => {
+  it("identifies as ChangeKiteBot and never forwards cookies or auth headers", async () => {
     const res = await safeFetch(`${base()}/echo`, {
       resolver,
       policy,
-      userAgent: "SiteProofBot/1.0 (+https://siteproof.example/bot)",
+      userAgent: "ChangeKiteBot/1.0 (+https://changekite.example/bot)",
       headers: { cookie: "a=b", authorization: "Bearer x", "proxy-authorization": "y", host: "evil", "accept-language": "en" },
     });
     const h = JSON.parse(res.text()) as Record<string, string>;
-    expect(h["user-agent"]).toBe("SiteProofBot/1.0 (+https://siteproof.example/bot)");
+    expect(h["user-agent"]).toBe("ChangeKiteBot/1.0 (+https://changekite.example/bot)");
     expect(h.cookie).toBeUndefined();
     expect(h.authorization).toBeUndefined();
     expect(h["proxy-authorization"]).toBeUndefined();

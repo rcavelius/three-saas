@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { defineCatalog } from "./catalog";
-import { HOOKPILOT_CATALOG } from "./catalogs";
+import { WEBHOOKTRAIL_CATALOG } from "./catalogs";
 import { withOrgLock } from "./locks";
 import { setup } from "./test-helpers";
 
@@ -22,8 +22,8 @@ const TEST_CATALOG = defineCatalog({
 
 describe("usage counters", () => {
   it("never exceeds the limit under 50 concurrent consumers, and resets per period", async () => {
-    const t = await setup({ catalog: HOOKPILOT_CATALOG });
-    const limit = HOOKPILOT_CATALOG.plans[0]!.limits.requestsPerMonth!; // 3000 on free
+    const t = await setup({ catalog: WEBHOOKTRAIL_CATALOG });
+    const limit = WEBHOOKTRAIL_CATALOG.plans[0]!.limits.requestsPerMonth!; // 3000 on free
     expect(t.billing.currentPeriod()).toBe("2026-03");
     const results = await Promise.all(
       Array.from({ length: 50 }, () => t.billing.consumeUsage("org_a", "requestsPerMonth", 100)),

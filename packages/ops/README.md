@@ -1,6 +1,6 @@
 # @repo/ops
 
-Shared operations layer for SiteProof, DataPolish and HookPilot: scheduler + job runner, transactional
+Shared operations layer for ChangeKite, GridRinse and WebhookTrail: scheduler + job runner, transactional
 email outbox, incidents and owner alerts, health checks, budgets, billing health, owner metrics,
 first-party analytics, client IP handling and Next.js security headers.
 
@@ -19,7 +19,7 @@ import { OPS_MIGRATIONS, createMailer, createOpsJobs, defaultOpsSchedules, creat
 export const handle = createDb(process.env.DATABASE_URL!, schema);
 // migrations: [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS, ...APP_MIGRATIONS]
 
-export const brand = { name: "SiteProof", url: process.env.APP_URL!, primaryColor: "#0f766e", supportEmail: "help@..." };
+export const brand = { name: "ChangeKite", url: process.env.APP_URL!, primaryColor: "#0f766e", supportEmail: "help@..." };
 export const mailer = createMailer({ handle, from: process.env.EMAIL_FROM!, resendApiKey: process.env.RESEND_API_KEY, brand });
 const opsJobs = createOpsJobs({
   handle, mailer,
@@ -29,7 +29,7 @@ const opsJobs = createOpsJobs({
 });
 const jobs = { ...opsJobs, "app.cleanup": cleanupJob };
 export const scheduler = createScheduler({
-  handle, jobs, logger: createLogger({ app: "siteproof" }),
+  handle, jobs, logger: createLogger({ app: "changekite" }),
   schedules: [...defaultOpsSchedules(opsJobs), { name: "app.cleanup", intervalSeconds: 3600 }],
 });
 export const clientIp = clientIpConfigFromEnv(process.env);

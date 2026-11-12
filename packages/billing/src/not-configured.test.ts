@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { createBilling } from "./billing";
-import { SITEPROOF_CATALOG } from "./catalogs";
+import { CHANGEKITE_CATALOG } from "./catalogs";
 import { notConfiguredGateway, stripeGatewayFromEnvOrNotConfigured } from "./gateway";
 import { checkoutRoute, portalRoute, webhookRoute } from "./routes";
 import { createBillingTestDb } from "./testing";
 
-const APP = "https://siteproof.test";
+const APP = "https://changekite.test";
 
 async function setup() {
   const handle = await createBillingTestDb();
-  const billing = createBilling({ handle, catalog: SITEPROOF_CATALOG, stripe: notConfiguredGateway(), appUrl: APP });
+  const billing = createBilling({ handle, catalog: CHANGEKITE_CATALOG, stripe: notConfiguredGateway(), appUrl: APP });
   return { handle, billing };
 }
 

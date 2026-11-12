@@ -19,7 +19,7 @@ import { assertKnownPolicy, type AddressPolicy } from "./policy";
 import { resolvePinnedAddress, systemResolver, type Resolver } from "./resolve";
 import { validateTargetUrl } from "./url";
 
-export const DEFAULT_USER_AGENT = "SiteProofBot/1.0";
+export const DEFAULT_USER_AGENT = "ChangeKiteBot/1.0";
 export const MAX_REDIRECTS_CAP = 5;
 
 /** Request headers callers may set. Everything else (cookie, authorization, host, proxy-*) is dropped. */
@@ -28,7 +28,7 @@ const ALLOWED_REQUEST_HEADERS = new Set(["accept", "accept-language", "cache-con
 export interface SafeFetchOptions {
   method?: "GET" | "HEAD";
   headers?: Record<string, string>;
-  /** Full User-Agent string, e.g. "SiteProofBot/1.0 (+https://siteproof.example/bot)". */
+  /** Full User-Agent string, e.g. "ChangeKiteBot/1.0 (+https://changekite.example/bot)". */
   userAgent?: string;
   /** Follow redirects (default true). When false the 3xx response itself is returned. */
   followRedirects?: boolean;

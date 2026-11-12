@@ -79,7 +79,7 @@ export interface SupportAuth {
 }
 
 export interface SupportOptions {
-  /** App id stored on tickets, e.g. "siteproof". */
+  /** App id stored on tickets, e.g. "changekite". */
   app: string;
   handle: DbHandle<any>;
   auth: SupportAuth;

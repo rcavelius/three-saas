@@ -2,15 +2,17 @@
 
 Scope: Phase 3 (accounts, billing), security hardening, product features, operations automation, SEO, deployment preparation. All results below were produced on this machine from the `main` branch. **PASS** = executed and passed; **FAIL** = executed and failed; **NOT TESTED** = not executed, with the reason.
 
+Naming: ChangeKite, GridRinse and WebhookTrail were formerly named SiteProof, DataPolish and HookPilot; they were renamed on 2026-11-11 because of trademark and domain conflicts with existing products of those names. Unit tests, typechecks and production builds were re-run after the rename; the staging and real-infrastructure results below were recorded before it.
+
 ## Summary verdict
 
 **Not ready for real customers yet.** The software passes every gate that can run without external accounts. Taking real money and sending real email requires owner actions (Stripe verification, domains, email DNS, hosting, legal review) and the gates marked NOT TESTED below, which need those accounts, must pass first. See [OWNER-ACTIONS.md](OWNER-ACTIONS.md).
 
 | App | Ready for real customers? | Blocking items |
 |---|---|---|
-| SiteProof | No — ready for a private beta once deployed | Stripe test-mode lifecycle against real Stripe, real email delivery, real-Postgres run, legal review |
-| DataPolish | No — the free tool could launch as soon as it is deployed and legal pages are reviewed; paid plans need the same as above | Same as SiteProof |
-| HookPilot | No — same as SiteProof, plus an abuse-handling process (public capture URLs) | Same as SiteProof + operator abuse runbook |
+| ChangeKite | No — ready for a private beta once deployed | Stripe test-mode lifecycle against real Stripe, real email delivery, real-Postgres run, legal review |
+| GridRinse | No — the free tool could launch as soon as it is deployed and legal pages are reviewed; paid plans need the same as above | Same as ChangeKite |
+| WebhookTrail | No — same as ChangeKite, plus an abuse-handling process (public capture URLs) | Same as ChangeKite + operator abuse runbook |
 
 ## Gate results
 
@@ -25,24 +27,24 @@ Scope: Phase 3 (accounts, billing), security hardening, product features, operat
 | packages/auth | 5 | 55 | PASS |
 | packages/billing | 4 (+1 skipped) | 34 (+2 skipped: need a Stripe test key) | PASS |
 | packages/ops | 9 | 84 | PASS |
-| apps/siteproof | 10 | 102 | PASS |
-| apps/datapolish | 16 | 143 | PASS |
-| apps/hookpilot | 13 | 105 | PASS |
+| apps/changekite | 10 | 102 | PASS |
+| apps/gridrinse | 16 | 143 | PASS |
+| apps/webhooktrail | 13 | 105 | PASS |
 | **Total** | | **714 passed, 0 failed, 2 skipped** | **PASS** |
 
 Typecheck (`tsc --noEmit`) on all 10 workspaces: **PASS**.
 
 ### Production builds
 
-`next build` for SiteProof, DataPolish, HookPilot (sequential, BelowNormal priority): **PASS** (all three). Standalone server output smoke-tested for DataPolish: **PASS**. Docker image build: **NOT TESTED** (Docker is not installed on this machine; CI or the hosting platform will build it).
+`next build` for ChangeKite, GridRinse, WebhookTrail (sequential, BelowNormal priority): **PASS** (all three). Standalone server output smoke-tested for GridRinse: **PASS**. Docker image build: **NOT TESTED** (Docker is not installed on this machine; CI or the hosting platform will build it).
 
 ### End-to-end (headless Microsoft Edge against `next start` production servers)
 
 | App | Suite | Result |
 |---|---|---|
-| SiteProof | `e2e/run-smoke.sh`: 39 checks — public pages, nonce CSP, axe, 390 px, real anonymous scan of example.com, sign-up → email verification → dashboard → plan enforcement → billing without Stripe → /admin 404 → delete account → login refused | PASS |
-| DataPolish | Playwright `e2e/*.spec.ts`: 3 tests — no-upload privacy proof (marker file through clean/merge/batch/ZIP, every request inspected), public pages a11y/CSP/390 px, account lifecycle | PASS |
-| HookPilot | `e2e/smoke.mjs` two phases: 32 checks — anonymous capture with masking, sign-up/verify, claim endpoints, billing without Stripe, /admin 404, delete account, CSP, 390 px, axe | PASS (after fixing a bug it found: the claim confirmation message never showed) |
+| ChangeKite | `e2e/run-smoke.sh`: 39 checks — public pages, nonce CSP, axe, 390 px, real anonymous scan of example.com, sign-up → email verification → dashboard → plan enforcement → billing without Stripe → /admin 404 → delete account → login refused | PASS |
+| GridRinse | Playwright `e2e/*.spec.ts`: 3 tests — no-upload privacy proof (marker file through clean/merge/batch/ZIP, every request inspected), public pages a11y/CSP/390 px, account lifecycle | PASS |
+| WebhookTrail | `e2e/smoke.mjs` two phases: 32 checks — anonymous capture with masking, sign-up/verify, claim endpoints, billing without Stripe, /admin 404, delete account, CSP, 390 px, axe | PASS (after fixing a bug it found: the claim confirmation message never showed) |
 
 ### Requirement-by-requirement
 
@@ -53,14 +55,14 @@ Typecheck (`tsc --noEmit`) on all 10 workspaces: **PASS**.
 | Stripe subscription lifecycle — FakeStripe with real signature verification | PASS | checkout → active, upgrade/downgrade, payment failure + 7-day grace, recovery, cancel at period end, deletion, duplicates, out-of-order events, reconcile of dropped events, bad signatures (billing 34 tests + app webhook-route tests) |
 | Stripe subscription lifecycle — real Stripe test mode | NOT TESTED | No Stripe account/test key. Needs owner action 2; then run `packages/billing` real-mode tests and the checklist in DEPLOYMENT.md step 6–7 |
 | Server-enforced entitlements / no client-side plan trust | PASS | Entitlements only from `billing.getEntitlements`; routes ignore plan/org fields in bodies (tested) |
-| Atomic usage accounting | PASS (PGlite) / NOT TESTED (real Postgres) | 50-way concurrent consume never exceeds limit; HookPilot 40 concurrent captures at limit store exactly 5. PGlite serialises connections, so true multi-connection concurrency is untested |
+| Atomic usage accounting | PASS (PGlite) / NOT TESTED (real Postgres) | 50-way concurrent consume never exceeds limit; WebhookTrail 40 concurrent captures at limit store exactly 5. PGlite serialises connections, so true multi-connection concurrency is untested |
 | Rate-limit and abuse tests | PASS | Auth limits per trusted IP (spoofed X-Forwarded-For cannot dodge), scan limits per IP and per target host, capture per IP/endpoint, replay per org/destination, events endpoint |
 | SSRF / replay safety | PASS | 177 security tests incl. 20 adversarial URL spellings, DNS rebinding, redirect-to-private, metadata, IPv6-mapped/NAT64; replay only to challenge-verified destinations, no redirects followed |
 | CSRF / origin checks | PASS | Better Auth origin checks on; all mutating app routes reject cross-origin (tested); billing routes require Origin or `Sec-Fetch-Site: same-origin` |
 | CSP without `unsafe-inline` scripts | PASS | Nonce CSP via `proxy.ts` in all three apps; zero CSP violations in e2e |
 | Trusted proxy / real client IP | PASS | `TRUSTED_PROXY` modes with adversarial tests; Better Auth fed the resolved IP through an overwritten internal header |
 | Distributed rate limiting | PASS (design) / NOT TESTED (multi-instance) | Counters live in the shared Postgres database; multi-instance behaviour not exercised locally |
-| Payload / upload limits | PASS | HookPilot 413 by plan (streamed cap); SiteProof page/body caps; DataPolish in-browser size, row and memory caps (value fences, documented as such) |
+| Payload / upload limits | PASS | WebhookTrail 413 by plan (streamed cap); ChangeKite page/body caps; GridRinse in-browser size, row and memory caps (value fences, documented as such) |
 | Scheduled job tests (retry, dead letter, schedules) | PASS | ops scheduler tests; app jobs driven through `scheduler.tick` (scans, alerts, cleanup, retention, reconcile, replay retries) |
 | Data deletion | PASS | Account deletion cancels the subscription and purges org data (tested in each app and e2e); retention jobs delete expired data in batches |
 | Mobile usability (390 px, no horizontal scroll) | PASS | e2e in all three apps |
@@ -79,13 +81,13 @@ Typecheck (`tsc --noEmit`) on all 10 workspaces: **PASS**.
 - Better Auth seat limit was only enforced on acceptance — invitations now refused when seats are full.
 - Better Auth rate limiting could read a client-forgeable IP — now fed the trusted-proxy IP.
 - New schedules could miss their first tick; billing POSTs without Origin were accepted.
-- HookPilot: session cookie captured in webhook headers (fixed by the integrator); claim confirmation never displayed (found by release smoke).
-- SiteProof `/account/team` overflowed at 390 px; DataPolish contrast tokens failed axe; `Math.max(...rows)` stack overflow on large files.
+- WebhookTrail: session cookie captured in webhook headers (fixed by the integrator); claim confirmation never displayed (found by release smoke).
+- ChangeKite `/account/team` overflowed at 390 px; GridRinse contrast tokens failed axe; `Math.max(...rows)` stack overflow on large files.
 
 ## Security posture notes (not defects, require attention)
 
-- HookPilot hosts public capture URLs: abuse (phishing landing pages are prevented by text/plain + `CSP: sandbox`, but spam/volume abuse is possible) needs an operator runbook and a kill switch per endpoint (exists: delete/pause).
-- SiteProof crawls third-party sites on user request: polite crawling, robots.txt, per-host limits and a `/bot` page are in place; an opt-out contact address must be published before launch.
+- WebhookTrail hosts public capture URLs: abuse (phishing landing pages are prevented by text/plain + `CSP: sandbox`, but spam/volume abuse is possible) needs an operator runbook and a kill switch per endpoint (exists: delete/pause).
+- ChangeKite crawls third-party sites on user request: polite crawling, robots.txt, per-host limits and a `/bot` page are in place; an opt-out contact address must be published before launch.
 - Privacy policy and terms are drafts and must be reviewed by a lawyer.
 
 ## Update — real infrastructure (2026-11-11, later)
@@ -98,7 +100,7 @@ Executed against real services; nothing below was simulated.
 | Real PostgreSQL 17: multi-connection concurrency (job claims, rate limits, quotas, scheduler), Better Auth on node-postgres, all migration chains | PASS | GitHub Actions `postgres` job |
 | Backup and restore (pg_dump/pg_restore, every table's row count + checksum identical) | PASS | GitHub Actions `postgres` job (backup drill) |
 | Unit/integration suites, typecheck, production builds, npm audit (CI) | PASS | GitHub Actions `test` job |
-| DataPolish staging online with real infrastructure | PASS | https://datapolish-staging.netlify.app (password-protected, noindex) on Netlify + Netlify Postgres |
+| GridRinse staging online with real infrastructure | PASS | Netlify staging site (password-protected, noindex; moving to https://gridrinse-staging.netlify.app when the project is renamed) on Netlify + Netlify Postgres |
 | Staging protection (no password → 401 on pages and APIs, prefetch-header bypass refused) | PASS | curl against staging |
 | Hosted scheduled jobs | PASS | Netlify scheduled function: 200 every 5 min in Netlify request logs; help-article sync and email jobs ran hosted |
 | Real transactional email (Resend) | PASS | verification, plan-changed x3, canceled emails show "delivered" in Resend (sent to Resend's test inbox) |
@@ -112,4 +114,4 @@ Executed against real services; nothing below was simulated.
 | Failed renewal → past_due → grace → free on real Stripe | NOT TESTED | needs Stripe test clocks; covered by FakeStripe tests |
 | Owner incident emails on staging | NOT TESTED | OWNER_ALERT_EMAIL not set (owner's address not shared with external services without approval) |
 | Restore of the hosted Netlify database snapshot | NOT TESTED | restores are destructive and need owner confirmation; Netlify takes a snapshot on every publish |
-| SiteProof and HookPilot hosted staging | NOT TESTED | not deployed yet (next step) |
+| ChangeKite and WebhookTrail hosted staging | NOT TESTED | not deployed yet (next step) |
