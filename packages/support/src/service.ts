@@ -32,7 +32,8 @@ import {
 } from "./ai";
 import { loadArticlesFromDir, syncArticles, type SyncReport } from "./articles";
 import { checkBudgetIncidents, reserveBudget, settleBudget, budgetStatus, type BudgetConfig } from "./budget";
-import { categorize, ESCALATION_REASONS, isEscalated, priorityFor } from "./categorize";
+import { categorize, categorizeByRules, ESCALATION_REASONS, isEscalated, priorityFor } from "./categorize";
+import { isSalesPitch } from "./spam";
 import {
   operatorAlertEmail,
   ticketAutoClosedEmail,
@@ -354,14 +355,18 @@ export function createSupport(o: SupportOptions) {
     const email = viewer.kind === "anonymous" ? (input.email ?? "").trim() : viewer.user.email;
     if (!EMAIL_RE.test(email) || email.length > 254) throw new SupportError(400, "email_required", "Please enter a valid email address so we can reply.");
 
-    const category = categorize(`${subject}\n${message}`, isCategory(input.category) ? input.category : undefined);
-    const escalated = isEscalated(category);
+    const text = `${subject}\n${message}`;
+    const category = categorize(text, isCategory(input.category) ? input.category : undefined);
+    const ruleCategory = categorizeByRules(text);
+    // Anonymous sales pitches: stored closed, no escalation, no emails (see spam.ts).
+    const pitch = viewer.kind === "anonymous" && !(ruleCategory && isEscalated(ruleCategory)) && isSalesPitch(text);
+    const escalated = !pitch && isEscalated(category);
     const reason = escalated ? (ESCALATION_REASONS[category] ?? "Needs a person") : null;
     const id = randomUUID();
     const salt = newSalt();
     const token = accessToken(o.tokenSecret, id, salt);
     const t = now();
-    const status: TicketStatus = escalated ? "waiting_on_operator" : "open";
+    const status: TicketStatus = pitch ? "closed" : escalated ? "waiting_on_operator" : "open";
     await o.handle.transaction(async (tx) => {
       await insertTicket(tx, {
         id,
@@ -371,7 +376,7 @@ export function createSupport(o: SupportOptions) {
         email,
         subject,
         category,
-        priority: priorityFor(category),
+        priority: pitch ? "low" : priorityFor(category),
         status,
         escalated,
         escalationReason: reason,
@@ -381,7 +386,9 @@ export function createSupport(o: SupportOptions) {
         body: message,
         now: t,
       });
-      if (escalated) {
+      if (pitch) {
+        await addMessage(tx, id, "system", "Closed automatically: looks like an unsolicited sales pitch. No email was sent.", { now: t, automated: true });
+      } else if (escalated) {
         await addMessage(tx, id, "system", `Escalated to a person: ${reason}.`, { now: t, automated: true });
       } else if (ROUTINE.has(category)) {
         await enqueueJob(tx, SUPPORT_QUEUES.firstAnswer, { ticketId: id }, { runAt: t, maxAttempts: 3 });
@@ -389,9 +396,11 @@ export function createSupport(o: SupportOptions) {
     });
     const row = (await getTicketRaw(ex, id))!;
     const url = customerUrl(row);
-    logger.info("support ticket created", { ticketId: id, category, escalated, to: maskEmail(email) });
+    logger.info("support ticket created", { ticketId: id, category, escalated, pitch, to: maskEmail(email) });
 
-    if (escalated) {
+    if (pitch) {
+      // Nothing to send: no operator alert, and no reply to the pitch address.
+    } else if (escalated) {
       await raiseIncident(
         ex,
         {

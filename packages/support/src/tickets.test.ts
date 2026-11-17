@@ -128,6 +128,52 @@ describe("escalation", () => {
   });
 });
 
+describe("sales-pitch filter", () => {
+  const PITCHES: [string, string, string][] = [
+    ["legal", "Re:first page fast", "Hello http://gridrinse.com,\n\nI'd like to discuss SEO support that can improve your online visibility.\n\nIf interested, I'll share our detailed SEO packages with pricing."],
+    ["legal", "Converting more visitors on gridrinse.com", "Hi,\n\nI just visited gridrinse.com and wondered if you'd ever thought about having an engaging video to explain what you do?\n\nOur prices start from just $195 (USD).\n\nLet me know if you're interested in seeing samples of our previous work."],
+    ["abuse", "Results for gridrinse.com", "Hi\n\nInclude gridrinse.com in Google's Search Index so it can appear in web search results!\n\nRegister gridrinse.com today: domainindex.pro"],
+  ];
+
+  it.each(PITCHES)("an anonymous pitch filed as %s is closed without any email or incident", async (category, subject, message) => {
+    ctx = await setup({ ai: {} });
+    const r = await create(ctx, { subject, message, category, email: "seller@s.example" });
+    expect(r.status).toBe(201);
+    expect(r.body).toMatchObject({ escalated: false, status: "closed" });
+    expect(await ctx.outbox()).toHaveLength(0);
+    expect((await ctx.incidents()).filter((i) => i.fingerprint.startsWith("support:"))).toHaveLength(0);
+    const { rows: jobs } = await ctx.handle.executor.query(`SELECT 1 FROM jobs WHERE queue = 'support.first_answer'`);
+    expect(jobs).toHaveLength(0);
+  });
+
+  it.each([
+    ["legal", "Trademark question", "Our agency received a cease and desist from a lawyer about your SEO packages. If interested, call us."],
+    ["abuse", "Report this site", "This site is sending spam that promises to register example.com in Google's search index for SEO."],
+  ])("a real %s report still escalates even when it mentions pitch words", async (category, subject, message) => {
+    ctx = await setup({ ai: {} });
+    const r = await create(ctx, { subject, message, category, email: "c@c.example" });
+    expect(r.body).toMatchObject({ category, escalated: true, status: "waiting_on_operator" });
+    expect((await ctx.outbox()).find((m) => m.tag === "support.operator_alert")).toBeTruthy();
+  });
+
+  it.each([
+    "Are you interested in adding XLSX output? Our prices column loses its currency symbol after cleaning.",
+    "I'm interested in Pro. Does it keep my saved workflows if I downgrade later?",
+    "Our CRM import keeps failing on phone numbers, the first page of results looks fine though.",
+  ])("ordinary customer questions are not treated as pitches: %s", async (message) => {
+    ctx = await setup({ ai: {} });
+    const r = await create(ctx, { subject: "Question", message, email: "c@c.example" });
+    expect(r.body.status).not.toBe("closed");
+    expect((await ctx.outbox()).find((m) => m.to_address === "c@c.example")).toBeTruthy();
+  });
+
+  it("signed-in customers are never filtered", async () => {
+    ctx = await setup({ ai: {} });
+    const r = await create(ctx, { subject: "SEO", message: "If interested, our SEO packages could help your users rank on the first page." }, "alice");
+    expect(r.body.status).not.toBe("closed");
+  });
+});
+
 describe("customer access is scoped", () => {
   async function seed(c: Ctx) {
     const a = await create(c, { subject: "Amy's ticket", message: "Question from Amy about billing pages." }, "amy");

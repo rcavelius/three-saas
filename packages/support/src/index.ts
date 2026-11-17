@@ -5,6 +5,7 @@ export * from "./articles";
 export * from "./search";
 export * from "./budget";
 export * from "./categorize";
+export * from "./spam";
 export * from "./ai";
 export * from "./emails";
 export * from "./tickets";
