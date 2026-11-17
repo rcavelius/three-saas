@@ -34,7 +34,7 @@ export const TOOLS: ToolPage[] = [
       "Exports from shops, CRMs and sign-up forms often list the same person or order twice. GridRinse finds rows that repeat and removes them, keeping the first one, and shows you exactly which rows go before you download.",
     stepName: "Remove duplicate rows",
     howTo: [
-      "Choose your CSV or Excel file below (or try the sample).",
+      "Choose your CSV or Excel file above (or try the sample).",
       "Leave \"Remove duplicate rows\" on. To match on one column only, such as Email, open the step and pick it as the key.",
       "Check the highlighted rows in the review table, then download the cleaned file.",
     ],
@@ -67,7 +67,7 @@ export const TOOLS: ToolPage[] = [
       "Blank rows break imports, sorting and pivot tables. GridRinse removes every row where all cells are empty or only spaces, and leaves rows with any real value alone.",
     stepName: "Remove blank rows",
     howTo: [
-      "Choose your CSV or Excel file below.",
+      "Choose your CSV or Excel file above.",
       "\"Remove blank rows\" is on by default.",
       "Review the removed rows, then download.",
     ],
@@ -99,7 +99,7 @@ export const TOOLS: ToolPage[] = [
     intro:
       "Stray spaces are why \"Ann Lee\" and \"Ann Lee \" don't match in a lookup. GridRinse trims every cell, squeezes repeated spaces and turns invisible characters copied from web pages into normal ones.",
     stepName: "Trim whitespace",
-    howTo: ["Choose your file below.", "\"Trim whitespace\" is on by default.", "Changed cells are highlighted in the review; download when it looks right."],
+    howTo: ["Choose your file above.", "\"Trim whitespace\" is on by default.", "Changed cells are highlighted in the review; download when it looks right."],
     example: {
       input: { columns: ["Name", "City"], rows: [["  Maria  Lopez ", "New York"], ["Ethan Clark​", " Austin"]] },
       steps: [makeStep({ type: "trim" })],
@@ -121,7 +121,7 @@ export const TOOLS: ToolPage[] = [
       "Exports mix date styles, and Excel quietly misreads 03/04 as March or April depending on your settings. GridRinse finds date columns, rewrites them in one format, and when a column could be either day-first or month-first it asks you instead of guessing.",
     stepName: "Standardize dates",
     howTo: [
-      "Choose your file below.",
+      "Choose your file above.",
       "\"Standardize dates\" is on by default. If a yellow banner asks \"Day first or month first?\", pick the order your source uses.",
       "Check the review, then download.",
     ],
@@ -146,7 +146,7 @@ export const TOOLS: ToolPage[] = [
       "Money columns from banks and accounting tools come out as text: \"$1,234.50\", \"(45.00)\". Spreadsheets and import tools can't add those up. GridRinse cleans the columns you choose into plain numbers.",
     stepName: "Clean numbers",
     howTo: [
-      "Choose your file below.",
+      "Choose your file above.",
       "Open \"Clean numbers\" and pick the money or number columns (likely ones are suggested).",
       "Check the review, then download.",
     ],
@@ -171,7 +171,7 @@ export const TOOLS: ToolPage[] = [
       "Twelve monthly exports, one report. Choose several files at once and GridRinse stacks them into one table, matching columns by name, then runs the same cleanup on the result.",
     stepName: "Merge (choose more than one file)",
     howTo: [
-      "Choose two or more files below (up to 3 on the free plan, 20 on Pro).",
+      "Choose two or more files above (up to 3 on the free plan, 20 on Pro).",
       "Keep \"Merge into one table\" selected and check how the columns were matched.",
       "Review and download one combined file.",
     ],
