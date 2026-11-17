@@ -74,9 +74,21 @@ export interface BillingOptions {
    * Checkout then asks for the billing address and offers a business tax ID field. Default false.
    */
   automaticTax?: boolean;
+  /**
+   * Checkout page branding for this product (Checkout Session branding_settings). Several products share one Stripe
+   * account whose public name belongs to another business, so each app names itself on its own checkout page.
+   */
+  checkoutBranding?: CheckoutBranding;
   /** Proration for changePlan. Default "create_prorations" (difference billed on the next invoice). */
   prorationBehavior?: "create_prorations" | "always_invoice";
   paths?: { checkoutSuccess?: string; checkoutCancel?: string; portalReturn?: string };
+}
+
+export interface CheckoutBranding {
+  display_name: string;
+  button_color?: string;
+  background_color?: string;
+  border_style?: "rounded" | "rectangular" | "pill";
 }
 
 export interface Entitlements {
@@ -793,6 +805,7 @@ export function createBilling(opts: BillingOptions): Billing {
       allow_promotion_codes: opts.allowPromotionCodes ?? false,
       metadata,
       subscription_data: { metadata },
+      ...(opts.checkoutBranding ? { branding_settings: opts.checkoutBranding } : {}),
       ...(opts.automaticTax
         ? {
             automatic_tax: { enabled: true },

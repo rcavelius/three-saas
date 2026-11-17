@@ -1,5 +1,5 @@
 /** Shared setup for this package's own tests (not exported). */
-import { createBilling, type BillingAnomaly, type BillingHooks, type PaymentFailedInfo } from "./billing";
+import { createBilling, type BillingAnomaly, type BillingHooks, type CheckoutBranding, type PaymentFailedInfo } from "./billing";
 import type { Catalog } from "./catalog";
 import { CHANGEKITE_CATALOG } from "./catalogs";
 import { FakeStripe, createBillingTestDb } from "./testing";
@@ -9,7 +9,7 @@ export const APP_URL = "https://changekite.test";
 export const DAY = 86_400_000;
 
 export async function setup(
-  opts: { catalog?: Catalog; latencyMs?: number; hooks?: Partial<BillingHooks>; automaticTax?: boolean } = {},
+  opts: { catalog?: Catalog; latencyMs?: number; hooks?: Partial<BillingHooks>; automaticTax?: boolean; checkoutBranding?: CheckoutBranding } = {},
 ) {
   const catalog = opts.catalog ?? CHANGEKITE_CATALOG;
   const clock = { t: new Date("2026-03-10T12:00:00.000Z") };
@@ -31,6 +31,7 @@ export async function setup(
     appUrl: APP_URL,
     now,
     automaticTax: opts.automaticTax,
+    checkoutBranding: opts.checkoutBranding,
     hooks: {
       onPlanChanged: async (o, f, t) => void seen.planChanged.push([o, f, t]),
       onPaymentFailed: async (o, i) => void seen.paymentFailed.push([o, i]),

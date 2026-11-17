@@ -67,6 +67,7 @@ export interface CheckoutSessionParams {
   billing_address_collection?: "auto" | "required";
   customer_update?: { address?: "auto" | "never"; name?: "auto" | "never" };
   tax_id_collection?: { enabled: boolean };
+  branding_settings?: { display_name: string; button_color?: string; background_color?: string; border_style?: "rounded" | "rectangular" | "pill" };
 }
 
 export interface SubscriptionUpdateParams {

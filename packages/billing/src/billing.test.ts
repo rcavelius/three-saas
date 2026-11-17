@@ -457,3 +457,11 @@ describe("automatic tax", () => {
     });
   });
 });
+
+describe("checkout branding", () => {
+  it("names the product on its own checkout page when configured", async () => {
+    const t = await setup({ checkoutBranding: { display_name: "GridRinse", button_color: "#138a4a" } });
+    const s = await t.billing.createCheckoutSession("org_a", "solo", "x@example.test");
+    expect(t.fake.sessionsById.get(s.id)!.branding_settings).toEqual({ display_name: "GridRinse", button_color: "#138a4a" });
+  });
+});

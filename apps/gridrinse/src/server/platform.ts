@@ -161,6 +161,7 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
     appUrl: env.appUrl,
     now,
     automaticTax: env.stripeAutomaticTax,
+    checkoutBranding: { display_name: "GridRinse", button_color: "#138a4a", background_color: "#ffffff", border_style: "rounded" },
     paths: {
       checkoutSuccess: "/account/billing?checkout=success",
       checkoutCancel: "/account/billing?checkout=canceled",
