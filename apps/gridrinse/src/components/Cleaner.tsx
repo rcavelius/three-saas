@@ -6,6 +6,7 @@ import { DataGrid } from "@/components/DataGrid";
 import { StepCard } from "@/components/StepEditor";
 import { WorkflowPanel } from "@/components/WorkflowPanel";
 import { track } from "@/lib/analytics";
+import { CLEANER_EVENTS } from "@/lib/cleaner-events";
 import { baseName, downloadBlob, MIME } from "@/lib/download";
 import { normalizeHeaders } from "@/lib/engine/ops/basic";
 import type { CsvExportOptions } from "@/lib/engine/export";
@@ -265,6 +266,21 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
 
   const loadSample = () => void addFiles([{ name: SAMPLE_FILE_NAME, bytes: new TextEncoder().encode(SAMPLE_CSV) }]);
 
+  // The homepage hero's buttons ("Clean my spreadsheet", "Try a sample file") drive this component by event.
+  const choose = () => (fileInput.current ? fileInput.current.click() : document.getElementById("start")?.scrollIntoView({ behavior: "smooth" }));
+  const heroActions = useRef({ sample: loadSample, choose });
+  heroActions.current = { sample: loadSample, choose };
+  useEffect(() => {
+    const sample = () => heroActions.current.sample();
+    const choose = () => heroActions.current.choose();
+    window.addEventListener(CLEANER_EVENTS.sample, sample);
+    window.addEventListener(CLEANER_EVENTS.choose, choose);
+    return () => {
+      window.removeEventListener(CLEANER_EVENTS.sample, sample);
+      window.removeEventListener(CLEANER_EVENTS.choose, choose);
+    };
+  }, []);
+
   const reparse = async (id: string, patch: Partial<Pick<LoadedFile, "sheet" | "dateMode" | "hasHeader">>) => {
     const f = files.find((x) => x.id === id);
     if (!f) return;
@@ -431,58 +447,74 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
     if (list.length) void addFiles(list);
   };
 
-  const dropZone = (
-    <div
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDragOver(true);
+  const fileInputEl = (
+    <input
+      ref={fileInput}
+      id="file-input"
+      type="file"
+      multiple
+      accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xls,.ods,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+      className="sr-only"
+      tabIndex={-1}
+      aria-label="Choose CSV or Excel files"
+      onChange={(e) => {
+        const list = Array.from(e.target.files ?? []);
+        e.target.value = "";
+        if (list.length) void addFiles(list);
       }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={onDrop}
-      className={`ruled relative border ${dragOver ? "border-accent" : "border-rule-strong"} ${files.length ? "px-4 py-4" : "px-5 py-10 sm:py-14"}`}
-    >
-      <div className={`relative mx-auto flex max-w-xl flex-col items-center gap-3 bg-surface/95 text-center ${files.length ? "" : "px-4 py-6 border border-rule"}`}>
-        {files.length === 0 && (
-          <>
-            <p className="eyebrow">Step 1 · Load a file</p>
-            <p className="text-lg font-semibold">Drop a CSV or Excel file here</p>
-            <p className="text-sm text-ink-2">
-              {limits.planName} plan: up to {limits.maxFiles} files, {formatBytes(limits.maxFileBytes)} and {limits.maxRows.toLocaleString("en-US")} rows each. Read in your browser, never
-              uploaded.
-            </p>
-          </>
-        )}
-        <div className="flex flex-wrap justify-center gap-2">
-          <button type="button" className="btn btn-primary" onClick={() => fileInput.current?.click()} disabled={loading || files.length >= limits.maxFiles}>
-            {files.length ? "Add another file…" : "Choose file…"}
-          </button>
-          {files.length === 0 && (
-            <button type="button" className="btn" onClick={loadSample} disabled={loading}>
-              Try a sample file
-            </button>
-          )}
-        </div>
-        <input
-          ref={fileInput}
-          id="file-input"
-          type="file"
-          multiple
-          accept=".csv,.tsv,.txt,.xlsx,.xlsm,.xls,.ods,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-          className="sr-only"
-          tabIndex={-1}
-          aria-label="Choose CSV or Excel files"
-          onChange={(e) => {
-            const list = Array.from(e.target.files ?? []);
-            e.target.value = "";
-            if (list.length) void addFiles(list);
-          }}
-        />
-      </div>
-    </div>
+    />
   );
+  const dragProps = {
+    onDragOver: (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(true);
+    },
+    onDragLeave: () => setDragOver(false),
+    onDrop,
+  };
+
+  const dropZone =
+    files.length === 0 ? (
+      <div {...dragProps} className={`card-pop flex flex-col gap-5 p-5 sm:p-7 md:flex-row md:items-center md:gap-8 ${dragOver ? "!bg-mint-soft" : ""}`}>
+        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-mint-soft sm:h-28 sm:w-28" aria-hidden="true">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z" />
+            <path d="M14 2.5V8h5.5M12 17.5v-6M9.2 14.2 12 11.4l2.8 2.8" />
+          </svg>
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="display text-[1.75rem] sm:text-[2.2rem]">Start with your spreadsheet</h2>
+          <p className="mt-2 text-[17px] font-medium">Drop a CSV or Excel file here, or choose one to get started.</p>
+          <p className="mt-3 text-[15px] text-ink-3">
+            {limits.planName} plan: up to {limits.maxFiles} files at once · Up to {formatBytes(limits.maxFileBytes).replace(/\.0 /, " ")} and {limits.maxRows.toLocaleString("en-US")} rows per file
+          </p>
+        </div>
+        <div className="flex flex-col items-start gap-2 md:items-center">
+          <button type="button" className="btn-pop min-w-[14rem]" onClick={() => fileInput.current?.click()} disabled={loading}>
+            Choose a file
+          </button>
+          <p className="text-[15px] font-medium text-ink-3">.CSV · .XLSX</p>
+          <button type="button" className="text-[15px] font-bold underline decoration-2 underline-offset-4" onClick={loadSample} disabled={loading}>
+            Try a sample file
+          </button>
+        </div>
+        {fileInputEl}
+      </div>
+    ) : (
+      <div {...dragProps} className={`ruled relative border px-4 py-4 ${dragOver ? "border-accent" : "border-rule-strong"}`}>
+        <div className="relative mx-auto flex max-w-xl flex-col items-center gap-3 bg-surface/95 text-center">
+          <div className="flex flex-wrap justify-center gap-2">
+            <button type="button" className="btn btn-primary" onClick={() => fileInput.current?.click()} disabled={loading || files.length >= limits.maxFiles}>
+              Add another file…
+            </button>
+          </div>
+          {fileInputEl}
+        </div>
+      </div>
+    );
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6">
+    <div id="start" className="mx-auto max-w-[1400px] scroll-mt-4 px-4 pb-16 sm:px-8">
       <p className="sr-only" aria-live="polite" role="status">
         {status}
       </p>

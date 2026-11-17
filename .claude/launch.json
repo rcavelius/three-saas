@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gridrinse-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "@apps/gridrinse"],
+      "port": 3002
+    }
+  ]
+}

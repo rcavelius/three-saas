@@ -8,33 +8,40 @@
   --sup-border: var(--color-rule-strong);
   --sup-surface: var(--color-surface);
   --sup-soft: var(--color-sunken);
-  --sup-radius: 3px;
+  --sup-radius: 8px;
 }
 
 /*
- * GridRinse: a precision-instrument look. Cool white paper, graphite ink, hairline rules taken from
- * real spreadsheets, one ink-blue accent. Highlighter yellow marks changed cells; a rose wash marks removals.
+ * GridRinse: mint and cream with bold black outlines and hard offset shadows; deep teal for actions.
+ * Highlighter yellow marks changed cells; a rose wash marks removals.
  */
 @theme {
-  --color-paper: #f5f7f9;
+  --color-paper: #f8f4ec;
   --color-surface: #ffffff;
-  --color-sunken: #eef1f4;
-  --color-ink: #1a1e23;
-  --color-ink-2: #48515b;
-  /* ink-3 and mark-edge were darkened to keep 4.5:1 contrast on sunken and highlighter backgrounds (axe). */
-  --color-ink-3: #5d6570;
-  --color-rule: #dbe0e6;
-  --color-rule-strong: #b3bcc6;
-  --color-accent: #1a43b8;
-  --color-accent-ink: #12328c;
-  --color-accent-wash: #e9eefb;
+  --color-sunken: #f1ede4;
+  --color-ink: #111111;
+  --color-ink-2: #3a3d40;
+  /* ink-3 and mark-edge keep 4.5:1 contrast on sunken and highlighter backgrounds (axe). */
+  --color-ink-3: #55595e;
+  --color-rule: #e2ddd2;
+  --color-rule-strong: #b9b3a6;
+  --color-accent: #115e59;
+  --color-accent-ink: #0b4440;
+  --color-accent-wash: #dcf5e8;
+  --color-mint: #6cd99a;
+  --color-mint-soft: #dcf7e7;
+  --color-lemon: #fbf38c;
+  --color-lemon-soft: #fdf8c8;
+  --color-sky-soft: #dff0fd;
+  --color-lime-soft: #dcf9cf;
+  --color-rose: #f9d3dc;
   --color-mark: #fff2b3;
   --color-mark-edge: #7a5d00;
   --color-del: #fbe9e9;
   --color-del-ink: #a32020;
-  --color-ok: #146c43;
+  --color-ok: #138a4a;
 
-  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
@@ -67,6 +74,53 @@
     background-size: 96px 28px;
     background-position: -1px -1px;
   }
+  /* Mint worksheet backdrop of the hero and header. */
+  .mint-grid {
+    background-color: var(--color-mint);
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.22) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.22) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  /* Outlined card with a hard offset shadow. */
+  .card-pop {
+    border: 2px solid var(--color-ink);
+    border-radius: 10px;
+    background: var(--color-surface);
+    box-shadow: 6px 6px 0 var(--color-ink);
+  }
+  .btn-pop {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 3.25rem;
+    padding: 0 1.6rem;
+    border: 2px solid var(--color-ink);
+    border-radius: 10px;
+    background: var(--color-accent);
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    box-shadow: 4px 4px 0 var(--color-ink);
+    transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+  }
+  .btn-pop:hover:not(:disabled) {
+    background: var(--color-accent-ink);
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 var(--color-ink);
+  }
+  .btn-pop:active:not(:disabled) {
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 var(--color-ink);
+  }
+  .display {
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 0.98;
+  }
   .btn {
     display: inline-flex;
     align-items: center;
@@ -74,12 +128,12 @@
     gap: 0.4rem;
     min-height: 2.25rem;
     padding: 0 0.85rem;
-    border: 1px solid var(--color-rule-strong);
-    border-radius: 3px;
+    border: 1.5px solid var(--color-ink);
+    border-radius: 8px;
     background: var(--color-surface);
     color: var(--color-ink);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     transition: background-color 120ms ease, border-color 120ms ease;
   }
@@ -92,7 +146,7 @@
   }
   .btn-primary {
     background: var(--color-accent);
-    border-color: var(--color-accent);
+    border-color: var(--color-ink);
     color: #fff;
   }
   .btn-primary:hover:not(:disabled) {
@@ -107,7 +161,7 @@
     width: 100%;
     min-height: 2rem;
     border: 1px solid var(--color-rule-strong);
-    border-radius: 3px;
+    border-radius: 6px;
     background: var(--color-surface);
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;

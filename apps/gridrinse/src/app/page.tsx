@@ -1,122 +1,193 @@
-import Link from "next/link";
 import { Cleaner } from "@/components/Cleaner";
-import { CellText } from "@/components/DataGrid";
+import { HeroActions } from "@/components/HeroActions";
 import { JsonLd } from "@/components/JsonLd";
-import { runPipeline } from "@/lib/engine/pipeline";
-import { makeStep } from "@/lib/engine/schema";
+import { heroSpecimen } from "@/lib/hero-specimen";
 import { appUrl } from "@/lib/site";
 import { freeProcessingLimits, softwareApplicationLd } from "@/server/plans";
 
-/**
- * The specimen table is produced by the real engine at render time, so what it shows is exactly what
- * the cleaner does: nothing in it is hand-written output.
- */
-function specimen() {
-  const input = {
-    columns: ["Customer", "Order date", "Signup", "Amount"],
-    rows: [
-      ["  Maria   Lopez", "Jan 17, 2024", "03/04/2023", "$1,234.50"],
-      ["Ethan Clark", "1/15/2024", "05/06/2023", "(45.00)"],
-      ["", "", "", ""],
-      ["  Maria   Lopez", "Jan 17, 2024", "03/04/2023", "$1,234.50"],
-    ],
-  };
-  const res = runPipeline(input, [
-    makeStep({ type: "trim" }),
-    makeStep({ type: "removeBlankRows" }),
-    makeStep({ type: "dedupe" }),
-    makeStep({ type: "formatDates" }),
-    makeStep({ type: "formatNumbers", columns: ["Amount"], decimals: 2 }),
-  ]);
-  return { input, res };
+const FEATURES = [
+  {
+    title: "Clean up the clutter",
+    body: "Remove blank rows, duplicates, and extra spaces.",
+    tint: "bg-mint-soft",
+    icon: (
+      <path d="M12 3 2.5 8 12 13l9.5-5zM2.5 12 12 17l9.5-5M2.5 16 12 21l9.5-5" />
+    ),
+  },
+  {
+    title: "Make formats consistent",
+    body: "Standardize dates and turn currency into usable numbers.",
+    tint: "bg-lemon-soft",
+    icon: (
+      <>
+        <rect x="3" y="4.5" width="18" height="16.5" rx="2.5" />
+        <path d="M8 2.5v4M16 2.5v4M3 9.5h18" />
+        <path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01M16.5 17h.01" strokeWidth="2.6" />
+      </>
+    ),
+  },
+  {
+    title: "Review before you export",
+    body: "See every change. Unclear dates are flagged for you.",
+    tint: "bg-sky-soft",
+    icon: (
+      <>
+        <path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z" />
+        <circle cx="12" cy="12" r="3.5" />
+      </>
+    ),
+  },
+];
+
+function Shield({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2.5 4 5.5v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10v-6z" />
+    </svg>
+  );
+}
+
+function Check() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-ok)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-label="cleaned">
+      <path d="m4.5 12.5 5 5 10-11" />
+    </svg>
+  );
 }
 
 export default function Home() {
-  const { input, res } = specimen();
-  const flagged = new Set(
-    res.steps.flatMap((s) => ((s.report.details?.needsChoice as { column: string }[] | undefined) ?? []).map((n) => n.column)),
-  );
+  const { input, output, removedRows, notes } = heroSpecimen();
   return (
     <>
-      <section className="border-b border-rule bg-surface">
-        <div className="mx-auto grid max-w-[1400px] gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:py-10">
-          <div className="flex flex-col justify-center">
-            <p className="eyebrow">CSV · XLSX · in your browser</p>
-            <h1 className="mt-2 max-w-[18ch] text-3xl font-semibold leading-[1.1] tracking-tight sm:text-[2.6rem]">Clean a messy spreadsheet in one pass.</h1>
-            <p className="mt-4 max-w-[52ch] text-[15px] leading-relaxed text-ink-2">
-              Trim stray spaces, drop blank and duplicate rows, put every date in one format and turn <span className="font-mono text-[13px]">$1,234.50</span> into a number. You see every
-              change before you download. Your file is read by this page and never uploaded.
+      <section className="mint-grid border-b-2 border-ink">
+        <div className="mx-auto grid max-w-[1400px] gap-10 px-4 pb-12 pt-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-6 lg:pb-14">
+          <div>
+            <p className="text-[15px] font-extrabold uppercase tracking-[0.04em] sm:text-[17px]">Less cleanup. More clarity.</p>
+            <h1 className="display mt-4 text-[3.1rem] sm:text-[4.6rem] lg:text-[5.1rem]">
+              Your shortcut <br />
+              to a cleaner <br />
+              spreadsheet.
+            </h1>
+            <p className="mt-6 max-w-[34rem] text-[18px] font-medium leading-snug sm:text-[21px]">
+              Fix messy dates, duplicate rows, and formatting in one simple pass. Your files stay in your browser.
             </p>
-            <p className="mt-3 text-[13px] text-ink-3">
-              Free, no account. <Link href="/guides/fix-excel-dates" className="text-accent underline underline-offset-2">Why dates go wrong</Link> ·{" "}
-              <Link href="/privacy" className="text-accent underline underline-offset-2">How privacy works</Link>
+            <HeroActions />
+            <p className="mt-6 flex items-center gap-2.5 text-[15px] font-medium sm:text-[17px]">
+              <Shield /> Private by design · No account required
             </p>
           </div>
-          <figure className="min-w-0">
-            <div className="overflow-x-auto border border-rule-strong">
-              <table className="w-full border-collapse font-mono text-[12px]">
-                <caption className="sr-only">Example: four input rows and what the default steps do to them</caption>
-                <thead>
-                  <tr className="bg-sunken text-left font-sans text-[11px] text-ink-2">
-                    <th scope="col" className="border-b border-r border-rule px-2 py-1 font-semibold">
-                      #
-                    </th>
-                    {input.columns.map((c) => (
-                      <th key={c} scope="col" className="border-b border-r border-rule px-2 py-1 font-semibold">
-                        {c}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {input.rows.map((row, r) => {
-                    const outIndex = res.rowOrigins.indexOf(r);
-                    const removed = outIndex === -1;
-                    return (
-                      <tr key={r} className={removed ? "bg-del/70 text-del-ink" : ""}>
-                        <th scope="row" className="border-b border-r border-rule px-2 py-1 text-left font-normal text-ink-3">
-                          {r + 1}
+
+          <figure className="relative min-w-0 lg:pt-4" aria-label="Example: a messy export and the cleaned result">
+            <p className="card-pop absolute -top-2 right-0 z-20 hidden items-center gap-2 rounded-xl px-4 py-2 text-[17px] font-bold sm:flex lg:top-12">
+              <Shield /> Never uploaded
+            </p>
+
+            <div className="card-pop relative z-0 w-[92%] max-w-[27rem] -rotate-2 overflow-hidden sm:w-[70%]">
+              <div className="flex items-baseline justify-between gap-3 border-b-2 border-ink bg-lemon px-4 py-2">
+                <span className="text-[19px] font-extrabold">BEFORE</span>
+                <span className="truncate text-[15px] font-bold">customer_export.csv</span>
+              </div>
+              <div className="p-2.5">
+                <table className="w-full border-collapse whitespace-nowrap text-[13px] sm:text-[15px]">
+                  <thead>
+                    <tr className="bg-sunken">
+                      {input.columns.map((c) => (
+                        <th key={c} scope="col" className="border border-rule-strong px-2 py-1 text-left font-bold">
+                          {c}
                         </th>
-                        {row.map((cell, c) => {
-                          const after = removed ? null : res.table.rows[outIndex]![c]!;
-                          const changed = after !== null && after !== cell;
-                          const col = input.columns[c]!;
-                          return (
-                            <td key={c} className={`border-b border-r border-rule px-2 py-1 align-top whitespace-pre ${changed ? "bg-mark" : ""}`}>
-                              {removed ? (
-                                <span className="line-through decoration-del-ink/50">{cell ? <CellText value={cell} reveal /> : "(blank)"}</span>
-                              ) : changed ? (
-                                <>
-                                  <span className="block text-ink-3 line-through">
-                                    <CellText value={cell} reveal />
-                                  </span>
-                                  <span className="block">{after}</span>
-                                </>
-                              ) : (
-                                <span>
-                                  {cell}
-                                  {flagged.has(col) && <span className="ml-1 font-sans text-[10px] text-mark-edge">DMY or MDY?</span>}
-                                </span>
-                              )}
-                            </td>
-                          );
-                        })}
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {input.rows.map((row, r) => (
+                      <tr key={r} className={removedRows.includes(r) ? "bg-rose" : ""}>
+                        {row.map((cell, c) => (
+                          <td key={c} className={`border border-rule-strong px-2 py-1 font-medium ${c === 2 ? "text-right" : ""}`}>
+                            {cell}
+                          </td>
+                        ))}
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <figcaption className="mt-2 text-[12px] leading-snug text-ink-3">
-              Live output of the default steps. Row 3 is blank and row 4 repeats row 1, so both go. &ldquo;Signup&rdquo; could be 3 April or March 4, so it is flagged for you
-              instead of guessed.
-            </figcaption>
+
+            <svg className="absolute left-[2%] top-[215px] z-20 hidden h-24 w-28 lg:block" viewBox="0 0 110 100" fill="none" stroke="#111" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M14 4c-8 34 6 62 82 70" />
+              <path d="m82 60 15 14-16 12" />
+            </svg>
+            <svg className="absolute left-0 top-[335px] z-20 hidden h-16 w-16 lg:block" viewBox="0 0 64 64" aria-hidden="true">
+              <path d="M32 3c2 15 7 22 29 29-22 7-27 14-29 29-2-15-7-22-29-29C25 25 30 18 32 3z" fill="#fbf38c" stroke="#111" strokeWidth="3" strokeLinejoin="round" />
+            </svg>
+
+            <div className="card-pop relative z-10 mt-5 ml-auto w-full max-w-[36rem] overflow-hidden sm:-mt-10 sm:w-[82%]">
+              <p className="flex items-center gap-3 border-b-2 border-ink bg-accent px-4 py-3 text-[20px] font-extrabold whitespace-nowrap text-white sm:px-5 sm:text-[30px]">
+                Cleaned. Checked. Ready.
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="m4.5 12.5 5 5 10-11" />
+                </svg>
+              </p>
+              <div className="p-3 sm:p-4">
+                <table className="w-full border-collapse whitespace-nowrap text-[14px] sm:text-[19px]">
+                  <thead>
+                    <tr className="bg-sunken">
+                      {output.columns.map((c) => (
+                        <th key={c} scope="col" className="border border-rule-strong px-2 py-1.5 text-left font-bold sm:px-3">
+                          {c}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {output.rows.map((row, r) => (
+                      <tr key={r}>
+                        {row.map((cell, c) => (
+                          <td key={c} className="border border-rule-strong px-2 py-1.5 font-medium sm:px-3">
+                            {c === row.length - 1 ? (
+                              <span className="flex items-center justify-between gap-2">
+                                {cell}
+                                <Check />
+                              </span>
+                            ) : (
+                              cell
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {notes.length > 0 && <p className="mt-3 rounded-md bg-lime-soft px-3 py-2 text-center text-[15px] font-bold sm:text-[17px]">{notes.join(" · ")}</p>}
+              </div>
+            </div>
+            <figcaption className="sr-only">Live output of GridRinse&apos;s default cleaning steps on the example rows above.</figcaption>
           </figure>
         </div>
       </section>
-      <div className="pt-6">
+
+      <div className="pt-8 sm:pt-10">
         <Cleaner freeLimits={freeProcessingLimits()} />
       </div>
+
+      <section id="how-it-works" aria-labelledby="features-heading" className="mx-auto max-w-[1400px] scroll-mt-4 px-4 pb-16 sm:px-8">
+        <h2 id="features-heading" className="display text-[2.2rem] sm:text-[3rem]">
+          Clean data. Without the busywork.
+        </h2>
+        <ul className="mt-8 grid gap-6 md:grid-cols-3">
+          {FEATURES.map((f) => (
+            <li key={f.title} className={`card-pop flex items-start gap-4 p-5 sm:p-6 ${f.tint}`}>
+              <svg className="mt-1 shrink-0" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                {f.icon}
+              </svg>
+              <div>
+                <h3 className="text-[21px] font-extrabold tracking-[-0.02em] sm:text-[23px]">{f.title}</h3>
+                <p className="mt-1.5 text-[16px] font-medium leading-snug sm:text-[17px]">{f.body}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
       <JsonLd data={softwareApplicationLd(appUrl())} />
     </>
   );

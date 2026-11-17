@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { AccountNav, PageviewTracker } from "@/components/SiteChrome";
@@ -7,7 +7,7 @@ import { appUrl } from "@/lib/site";
 import "@repo/support/styles.css";
 import "./globals.css";
 
-const plexSans = IBM_Plex_Sans({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-plex-sans", display: "swap" });
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700", "800"], variable: "--font-jakarta", display: "swap" });
 const plexMono = IBM_Plex_Mono({ subsets: ["latin", "latin-ext"], weight: ["400", "500"], variable: "--font-plex-mono", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,14 +27,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const viewport: Viewport = { themeColor: "#f5f7f9", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#6cd99a", width: "device-width", initialScale: 1 };
 
 const nav = [
-  { href: "/", label: "Cleaner" },
-  { href: "/guides", label: "Guides" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/help", label: "Features" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/privacy", label: "Privacy" },
-  { href: "/help", label: "Help" },
+  { href: "/guides", label: "Resources" },
 ];
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -42,59 +41,61 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // (Next adds the proxy's nonce to its own scripts only on dynamic renders).
   await headers();
   return (
-    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${jakarta.variable} ${plexMono.variable}`}>
       <body className="min-h-dvh flex flex-col antialiased">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 btn">
           Skip to content
         </a>
-        <header className="border-b border-rule bg-surface">
-          <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
+        <header className="mint-grid">
+          <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3 sm:px-8 sm:py-4">
             <Link href="/" className="flex items-center gap-2.5" aria-label="GridRinse home">
               <Logo />
-              <span className="text-[15px] font-semibold tracking-tight">GridRinse</span>
+              <span className="text-[1.35rem] font-extrabold tracking-[-0.03em] sm:text-[1.9rem]">GridRinse</span>
             </Link>
-            <nav aria-label="Main">
-              <ul className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-ink-2">
+            <nav aria-label="Main" className="order-3 w-full overflow-x-auto [scrollbar-width:none] lg:order-none lg:w-auto">
+              <ul className="flex items-center gap-x-5 whitespace-nowrap text-[14px] font-bold sm:gap-x-6 sm:text-[15px] lg:gap-x-9 lg:text-[17px]">
                 {nav.map((n) => (
                   <li key={n.href}>
-                    <Link href={n.href} className="hover:text-ink">
+                    <Link href={n.href} className="decoration-2 underline-offset-4 hover:underline">
                       {n.label}
                     </Link>
                   </li>
                 ))}
-                <li>
-                  <AccountNav />
-                </li>
               </ul>
             </nav>
+            <AccountNav />
           </div>
         </header>
         <main id="main" className="flex-1">
           {children}
         </main>
-        <footer className="border-t border-rule bg-surface">
-          <div className="mx-auto flex max-w-[1400px] flex-col gap-3 px-4 py-6 text-sm text-ink-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <p>Files are processed in your browser and never uploaded.</p>
-            <ul className="flex flex-wrap gap-x-5 gap-y-1">
+        <footer className="border-t-2 border-ink bg-paper">
+          <div className="mx-auto flex max-w-[1400px] flex-col gap-4 px-4 py-6 text-[15px] sm:flex-row sm:items-center sm:justify-between sm:px-8">
+            <Link href="/" className="flex items-center gap-2" aria-label="GridRinse home">
+              <Logo size={26} />
+              <span className="text-xl font-extrabold tracking-[-0.03em]">GridRinse</span>
+            </Link>
+            <ul className="flex flex-wrap gap-x-6 gap-y-1 font-medium">
               {[
                 ["/for/bookkeeping-exports", "For bookkeepers"],
                 ["/for/ecommerce-exports", "For e-commerce"],
                 ["/for/crm-imports", "For CRM imports"],
                 ["/guides", "Guides"],
                 ["/pricing", "Pricing"],
-                ["/help", "Help center"],
-                ["/support", "Contact support"],
+                ["/support", "Contact"],
                 ["/privacy", "Privacy"],
+                ["/help", "Help"],
                 ["/terms", "Terms"],
               ].map(([href, label]) => (
                 <li key={href}>
-                  <Link href={href!} className="hover:text-ink">
+                  <Link href={href!} className="underline-offset-4 hover:underline">
                     {label}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
+          <p className="mx-auto max-w-[1400px] px-4 pb-6 text-sm text-ink-3 sm:px-8">Files are processed in your browser and never uploaded.</p>
         </footer>
         <PageviewTracker />
       </body>
@@ -102,13 +103,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   );
 }
 
-/** A 3x3 cell grid with one highlighted cell: the product in one glyph. */
-function Logo() {
+/** A 3x3 grid of cells: the product in one glyph. */
+function Logo({ size = 30 }: { size?: number }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
-      <rect x="0.5" y="0.5" width="21" height="21" fill="#fff" stroke="#1a1e23" />
-      <path d="M7.5 0.5v21M14.5 0.5v21M0.5 7.5h21M0.5 14.5h21" stroke="#1a1e23" strokeWidth="1" />
-      <rect x="8" y="8" width="6" height="6" fill="#1a43b8" />
+    <svg width={size} height={size} viewBox="0 0 30 30" aria-hidden="true">
+      {[0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => <rect key={`${r}${c}`} x={c * 10.5} y={r * 10.5} width="9" height="9" rx="1.6" fill="#111" />))}
     </svg>
   );
 }
