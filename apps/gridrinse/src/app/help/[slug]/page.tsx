@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageHero } from "@/components/PageHero";
 import { notFound } from "next/navigation";
 import { HelpMarkdown } from "@repo/support/ui";
 import { JsonLd } from "@/components/JsonLd";
@@ -20,7 +21,7 @@ export default async function HelpArticlePage({ params }: Props) {
   const a = await p.support.getArticle((await params).slug);
   if (!a) notFound();
   return (
-    <div className="sup-root mx-auto max-w-[900px] px-4 py-10 sm:px-6">
+    <div className="sup-root">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -32,25 +33,33 @@ export default async function HelpArticlePage({ params }: Props) {
           publisher: { "@type": "Organization", name: "GridRinse" },
         }}
       />
-      <nav aria-label="Breadcrumb" className="text-sm text-ink-3">
-        <Link href="/help" className="underline">
-          Help center
-        </Link>{" "}
-        / {a.category}
-      </nav>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">{a.title}</h1>
-      <p className="mt-3 max-w-[65ch] text-ink-2">{a.summary}</p>
-      <p className="mt-1 text-sm text-ink-3">Updated {a.updated_on}</p>
-      <article className="mt-8 max-w-[70ch]">
+      <PageHero
+        narrow
+        eyebrow={
+          <nav aria-label="Breadcrumb">
+            <Link href="/help" className="!text-ink">
+              Help center
+            </Link>{" "}
+            / {a.category}
+          </nav>
+        }
+        title={a.title}
+      >
+        <p>{a.summary}</p>
+        <p className="mt-2 text-[15px]">Updated {a.updated_on}</p>
+      </PageHero>
+      <div className="mx-auto max-w-[900px] px-4 py-10 sm:px-8 sm:py-14">
+      <article className="card-pop max-w-[70ch] px-5 py-6 text-[17px] leading-relaxed sm:px-8 sm:py-8">
         <HelpMarkdown markdown={a.body} />
       </article>
-      <p className="mt-10 border-t border-rule pt-5 text-ink-2">
+      <p className="mt-10 text-[17px] font-medium">
         Still stuck?{" "}
         <Link href="/support" className="text-accent underline">
           Ask the assistant or contact a person
         </Link>
         .
       </p>
+      </div>
     </div>
   );
 }

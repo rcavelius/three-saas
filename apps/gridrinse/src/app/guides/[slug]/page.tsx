@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
+import { PageHero } from "@/components/PageHero";
 import { GUIDES, getGuide } from "@/content/guides";
 import { appUrl } from "@/lib/site";
 
@@ -22,15 +23,27 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   const guide = getGuide(slug);
   if (!guide) notFound();
   return (
-    <article className="mx-auto max-w-[760px] px-4 py-10 sm:px-6">
-      <p className="eyebrow">
-        <Link href="/guides" className="hover:text-ink">
-          Guides
-        </Link>
-      </p>
-      <h1 className="mt-1 text-3xl font-semibold leading-tight tracking-tight">{guide.title}</h1>
-      <p className="mt-3 text-[15px] text-ink-2">{guide.summary}</p>
-      <div className="prose-doc mt-6 border-t border-rule pt-2">{guide.body}</div>
+    <article>
+      <PageHero
+        narrow
+        eyebrow={
+          <Link href="/guides" className="hover:underline">
+            Guides
+          </Link>
+        }
+        title={guide.title}
+      >
+        {guide.summary}
+      </PageHero>
+      <div className="mx-auto max-w-[900px] px-4 py-10 sm:px-8 sm:py-14">
+        <div className="prose-doc card-pop px-5 py-4 text-[17px] sm:px-8 sm:py-6">{guide.body}</div>
+        <div className="card-pop mt-10 flex flex-col items-start gap-4 bg-mint-soft p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <p className="text-[19px] font-extrabold">Fix it in your own file, free, in your browser.</p>
+          <Link href="/#start" className="btn-pop">
+            Clean my spreadsheet
+          </Link>
+        </div>
+      </div>
       <JsonLd
         data={{
           "@context": "https://schema.org",

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = appUrl();
   // /privacy and /terms are noindex drafts until legal review; add them back once published.
-  const pages = ["/", "/pricing", "/guides", "/help", "/support", "/signup"];
+  const pages = ["/", "/how-it-works", "/features", "/pricing", "/guides", "/help", "/support", "/signup"];
   const help = await (await getPlatform()).support.articleSlugs().catch(() => []);
   return [
     ...pages.map((p) => ({ url: `${base}${p === "/" ? "" : p}`, changeFrequency: "monthly" as const, priority: p === "/" ? 1 : 0.6 })),

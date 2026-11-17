@@ -1,8 +1,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+export type GuideCategory = "cleaning" | "dates-numbers" | "privacy";
+
+export const GUIDE_CATEGORIES: { id: GuideCategory; label: string }[] = [
+  { id: "cleaning", label: "Cleaning guides" },
+  { id: "dates-numbers", label: "Dates & numbers" },
+  { id: "privacy", label: "Privacy & help" },
+];
+
 export interface Guide {
   slug: string;
+  category: GuideCategory;
   title: string;
   summary: string;
   body: ReactNode;
@@ -11,6 +20,7 @@ export interface Guide {
 export const GUIDES: Guide[] = [
   {
     slug: "fix-excel-dates",
+    category: "dates-numbers",
     title: "Fixing dates that Excel mangled",
     summary: "Why 03/04/2024 is two different days, how Excel turns dates into numbers like 45296, and how to get one clean format back.",
     body: (
@@ -75,6 +85,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "dedupe-strategies",
+    category: "cleaning",
     title: "Removing duplicates without losing the rows you need",
     summary: "Exact duplicates, duplicates by key, keeping the newest record, and the near-duplicates that whitespace and capital letters hide.",
     body: (
@@ -126,6 +137,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "currency-and-number-formats",
+    category: "dates-numbers",
     title: "Turning “$1,234.50” and “(45.00)” into numbers",
     summary: "Currency symbols, thousands separators, accounting negatives, percentages and the decimal comma.",
     body: (
@@ -177,6 +189,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "merge-csv-files",
+    category: "cleaning",
     title: "Merging monthly exports into one table",
     summary: "Stacking files whose columns do not quite match, and keeping track of which row came from where.",
     body: (
@@ -213,6 +226,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "csv-encoding-excel",
+    category: "cleaning",
     title: "Why Excel shows “Ã©” instead of “é” in your CSV",
     summary: "What UTF-8, Windows-1252 and the byte order mark are, why Excel guesses wrong, and how to export a CSV that opens correctly everywhere.",
     body: (
@@ -262,6 +276,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "batch-clean-exports",
+    category: "cleaning",
     title: "Cleaning a folder of exports the same way, every month",
     summary: "Apply one set of cleaning steps to many files at once, download them as a ZIP, and save the steps as a workflow for next time.",
     body: (
@@ -298,6 +313,99 @@ export const GUIDES: Guide[] = [
         </p>
         <p>
           <Link href="/">Open the cleaner</Link>
+        </p>
+      </>
+    ),
+  },
+  {
+    slug: "csv-cleanup-checklist",
+    category: "cleaning",
+    title: "A practical CSV cleanup checklist",
+    summary: "Eight checks to run on any export before you import, share or analyse it: spaces, blanks, duplicates, dates, numbers, headers, encoding and a final review.",
+    body: (
+      <>
+        <p>
+          Most broken imports and wrong totals come from the same short list of problems. Run through these checks in order on any CSV or Excel export before it goes
+          anywhere else. Each one takes seconds once you know what to look for.
+        </p>
+        <h2>1. Extra spaces</h2>
+        <p>
+          A trailing space makes <code>Maria Lopez </code> a different value from <code>Maria Lopez</code>, so lookups miss and duplicates hide. Trim leading and trailing
+          spaces and collapse double spaces inside text.
+        </p>
+        <h2>2. Blank rows</h2>
+        <p>Exports often end with an empty line, or have blank rows between sections. Remove rows where every cell is empty; they count as records in many tools.</p>
+        <h2>3. Duplicate rows</h2>
+        <p>
+          Decide what &ldquo;the same&rdquo; means: every cell identical, or one key column such as an email or order ID. Then decide which copy to keep. Our{" "}
+          <Link href="/guides/dedupe-strategies">duplicates guide</Link> covers the choices.
+        </p>
+        <h2>4. Dates</h2>
+        <p>
+          Look for mixed formats in one column (<code>Jan 17, 2024</code> next to <code>1/15/2024</code>) and for columns that could be day-first or month-first. Convert to
+          one format, usually <code>YYYY-MM-DD</code>, and settle ambiguous columns by hand. See <Link href="/guides/fix-excel-dates">fixing dates</Link>.
+        </p>
+        <h2>5. Numbers stored as text</h2>
+        <p>
+          Currency symbols, thousands separators and accounting negatives like <code>(45.00)</code> stop formulas from adding things up. Turn them into plain numbers such
+          as <code>-45.00</code>. See <Link href="/guides/currency-and-number-formats">number formats</Link>.
+        </p>
+        <h2>6. Headers</h2>
+        <p>Check that there is exactly one header row, that no two columns share a name, and that the names match what the importing system expects.</p>
+        <h2>7. Encoding</h2>
+        <p>
+          If accented letters show up as <code>Ã©</code>, the file was read with the wrong character encoding. Save it as UTF-8. See{" "}
+          <Link href="/guides/csv-encoding-excel">the encoding guide</Link>.
+        </p>
+        <h2>8. Review before you export</h2>
+        <p>
+          Compare row counts before and after, and look at what changed. Every removed row should have a reason you agree with. GridRinse highlights each changed cell and lists
+          removed rows, so this step is a quick read rather than a hunt.
+        </p>
+        <p>
+          <Link href="/how-it-works">Run the checklist on your own file</Link>: the default steps cover checks 1 to 5, in your browser.
+        </p>
+      </>
+    ),
+  },
+  {
+    slug: "browser-privacy",
+    category: "privacy",
+    title: "How browser-based privacy works",
+    summary: "What it means that GridRinse cleans files in your browser, what is and is not sent to our server, and how to check it yourself.",
+    body: (
+      <>
+        <p>
+          Most online file tools upload your file to their server, process it there, and send a result back. GridRinse works differently: the cleaning code is downloaded to
+          your browser once, and your file is read and cleaned on your own computer.
+        </p>
+        <h2>What happens when you choose a file</h2>
+        <ul>
+          <li>Your browser reads the file from your disk into memory. It is not sent anywhere.</li>
+          <li>The cleaning steps run in a background thread of the page (a Web Worker), on your device.</li>
+          <li>The cleaned file is built in your browser and saved straight to your downloads.</li>
+        </ul>
+        <h2>What is sent to our server</h2>
+        <p>
+          Anonymous usage counts, for example that a file was cleaned, how many files and steps were used, and which download format was chosen. These never contain file
+          names, column names or cell values. If you have an account, we also store your email, your plan and any workflows you save to it. A workflow is the list of
+          steps, not your data.
+        </p>
+        <h2>What the browser itself enforces</h2>
+        <p>
+          The site sends a Content-Security-Policy that only allows the page to talk to gridrinse.com. Even a bug in our code could not quietly send your data to another
+          server: the browser would block the request.
+        </p>
+        <h2>How to check it yourself</h2>
+        <ol>
+          <li>Open your browser&apos;s developer tools (F12) and go to the Network tab.</li>
+          <li>Load a file in the cleaner, change some steps, and download the result.</li>
+          <li>Look at the requests: you will see the page&apos;s own scripts and small usage events, and no request that carries your file.</li>
+        </ol>
+        <h2>What this means for you</h2>
+        <p>
+          You can clean customer lists, bank exports and other sensitive files without handing them to a third party. Closing the tab clears the file from memory; nothing is
+          kept. See the <Link href="/privacy">privacy policy</Link> for the full details.
         </p>
       </>
     ),

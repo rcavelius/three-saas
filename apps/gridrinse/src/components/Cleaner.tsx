@@ -6,7 +6,7 @@ import { DataGrid } from "@/components/DataGrid";
 import { StepCard } from "@/components/StepEditor";
 import { WorkflowPanel } from "@/components/WorkflowPanel";
 import { track } from "@/lib/analytics";
-import { CLEANER_EVENTS } from "@/lib/cleaner-events";
+import { CLEANER_EVENTS, type CleanerStage } from "@/lib/cleaner-events";
 import { baseName, downloadBlob, MIME } from "@/lib/download";
 import { normalizeHeaders } from "@/lib/engine/ops/basic";
 import type { CsvExportOptions } from "@/lib/engine/export";
@@ -281,6 +281,25 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
     };
   }, []);
 
+  // Links elsewhere ("Try a sample" on the Features page) arrive with ?sample=1.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("sample") !== "1") return;
+    url.searchParams.delete("sample");
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    heroActions.current.sample();
+  }, []);
+
+  // Progress for the "Choose file → Review changes → Download" steps on the How it works page.
+  const [downloaded, setDownloaded] = useState(false);
+  const stage: CleanerStage = files.length === 0 ? 1 : downloaded ? 3 : 2;
+  useEffect(() => {
+    if (files.length === 0) setDownloaded(false);
+  }, [files.length]);
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent<CleanerStage>(CLEANER_EVENTS.stage, { detail: stage }));
+  }, [stage]);
+
   const reparse = async (id: string, patch: Partial<Pick<LoadedFile, "sheet" | "dateMode" | "hasHeader">>) => {
     const f = files.find((x) => x.id === id);
     if (!f) return;
@@ -392,8 +411,10 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
   const ready = !!result && !pending && !runError;
   const outName = isMerge ? "merged" : baseName(activeFile?.name ?? "data");
 
-  const usage = (action: "download_csv" | "download_xlsx" | "download_zip" | "download_batch_xlsx", format: "csv" | "tsv" | "xlsx" | "zip_csv" | "zip_xlsx") =>
+  const usage = (action: "download_csv" | "download_xlsx" | "download_zip" | "download_batch_xlsx", format: "csv" | "tsv" | "xlsx" | "zip_csv" | "zip_xlsx") => {
+    setDownloaded(true);
     track("tool_used", { action, mode: MODE_OF(files.length, mode), files: files.length, steps: steps.length, format });
+  };
 
   const [exporting, setExporting] = useState(false);
   const exportGuard = async (fn: () => Promise<void>) => {
@@ -475,30 +496,88 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
 
   const dropZone =
     files.length === 0 ? (
-      <div {...dragProps} className={`card-pop flex flex-col gap-5 p-5 sm:p-7 md:flex-row md:items-center md:gap-8 ${dragOver ? "!bg-mint-soft" : ""}`}>
-        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-mint-soft sm:h-28 sm:w-28" aria-hidden="true">
-          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z" />
-            <path d="M14 2.5V8h5.5M12 17.5v-6M9.2 14.2 12 11.4l2.8 2.8" />
+      <div>
+        <div className="grid gap-7 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+          <div className="card-pop flex flex-col p-5 sm:p-7">
+            <h2 className="display text-[1.9rem] sm:text-[2.5rem]">Start with a CSV or Excel file</h2>
+            <div
+              {...dragProps}
+              className={`mt-5 flex flex-1 flex-col items-center justify-center rounded-xl border-2 border-dashed border-accent px-4 py-8 text-center transition-colors ${dragOver ? "bg-mint" : "bg-mint-soft"}`}
+            >
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z" />
+                <path d="M14 2.5V8h5.5M12 17.5v-6M9.2 14.2 12 11.4l2.8 2.8" />
+              </svg>
+              <p className="display mt-3 text-[1.8rem] sm:text-[2.2rem]">Drop your file here</p>
+              <p className="mt-1 text-[17px] font-medium">or choose a file from your device</p>
+              <button type="button" className="btn-pop mt-5 min-w-[14rem]" onClick={() => fileInput.current?.click()} disabled={loading}>
+                Choose a file
+              </button>
+              <p className="mt-4 text-[15px] font-medium text-ink-2">
+                .CSV and .XLSX · Up to {formatBytes(limits.maxFileBytes).replace(/\.0 /, " ")} · {limits.maxRows.toLocaleString("en-US")} rows per file
+              </p>
+            </div>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t-2 border-rule pt-4">
+              <p className="text-[18px] font-extrabold">Just looking around?</p>
+              <button type="button" className="inline-flex items-center gap-2 text-[17px] font-extrabold underline decoration-2 underline-offset-4" onClick={loadSample} disabled={loading}>
+                Try a sample file
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 12h15M13 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+            {fileInputEl}
+          </div>
+
+          <div className="card-pop p-5 sm:p-7">
+            <h2 className="text-[1.6rem] font-extrabold tracking-[-0.02em] sm:text-[1.9rem]">A fresh start for your data</h2>
+            <ul className="mt-4 space-y-3 text-[17px] font-medium">
+              {["Trim extra spaces", "Remove blank and duplicate rows", "Standardize dates and numbers", "Preview every change"].map((t) => (
+                <li key={t} className="flex items-center gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-mint-soft" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m4.5 12.5 5 5 10-11" />
+                    </svg>
+                  </span>
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6 flex items-center gap-4 rounded-xl bg-lemon-soft p-4">
+              <svg className="shrink-0" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="4.5" width="18" height="16.5" rx="2.5" />
+                <path d="M8 2.5v4M16 2.5v4M3 9.5h18" />
+                <path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01M16.5 17h.01" strokeWidth="2.6" />
+              </svg>
+              <p>
+                <strong className="block text-[18px] font-extrabold">Unclear dates?</strong>
+                <span className="text-[15px] font-medium">We&apos;ll flag them for your review.</span>
+              </p>
+            </div>
+            <div className="mt-4 flex items-center gap-4 p-1">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-mint-soft" aria-hidden="true">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinejoin="round">
+                  <path d="M12 2.5 4 5.5v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10v-6z" />
+                </svg>
+              </span>
+              <p>
+                <strong className="block text-[18px] font-extrabold">Your file stays on your device.</strong>
+                <span className="text-[15px] font-medium">Processed in your browser. Never uploaded.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-5 flex items-center gap-2.5 text-[16px] font-medium">
+          <svg className="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 2.5 4 5.5v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10v-6z" />
           </svg>
+          {limits.planName} plan: up to {limits.maxFiles} files at once.{limits.planName === "Free" ? " No account required." : ""}
+        </p>
+        <div className="mt-5 flex flex-col gap-2 rounded-[10px] border-2 border-ink bg-surface px-5 py-4 sm:flex-row sm:items-center sm:gap-6">
+          <p className="text-[18px] font-extrabold sm:border-r-2 sm:border-rule sm:pr-6">What happens after I choose a file?</p>
+          <p className="text-[16px] font-medium text-ink-2">You&apos;ll review the proposed cleanup before downloading your updated file.</p>
         </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="display text-[1.75rem] sm:text-[2.2rem]">Start with your spreadsheet</h2>
-          <p className="mt-2 text-[17px] font-medium">Drop a CSV or Excel file here, or choose one to get started.</p>
-          <p className="mt-3 text-[15px] text-ink-3">
-            {limits.planName} plan: up to {limits.maxFiles} files at once · Up to {formatBytes(limits.maxFileBytes).replace(/\.0 /, " ")} and {limits.maxRows.toLocaleString("en-US")} rows per file
-          </p>
-        </div>
-        <div className="flex flex-col items-start gap-2 md:items-center">
-          <button type="button" className="btn-pop min-w-[14rem]" onClick={() => fileInput.current?.click()} disabled={loading}>
-            Choose a file
-          </button>
-          <p className="text-[15px] font-medium text-ink-3">.CSV · .XLSX</p>
-          <button type="button" className="text-[15px] font-bold underline decoration-2 underline-offset-4" onClick={loadSample} disabled={loading}>
-            Try a sample file
-          </button>
-        </div>
-        {fileInputEl}
       </div>
     ) : (
       <div {...dragProps} className={`ruled relative border px-4 py-4 ${dragOver ? "border-accent" : "border-rule-strong"}`}>

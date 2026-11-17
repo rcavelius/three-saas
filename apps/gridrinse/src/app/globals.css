@@ -10,6 +10,56 @@
   --sup-soft: var(--color-sunken);
   --sup-radius: 8px;
 }
+/* Bold outlines and offset shadows on the shared help/support widgets. */
+.sup-root .sup-input {
+  min-height: 2.9rem;
+  border: 2px solid var(--color-ink);
+  font-size: 1rem;
+}
+.sup-root .sup-button {
+  min-height: 2.9rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 10px;
+  font-weight: 800;
+  box-shadow: 3px 3px 0 var(--color-ink);
+}
+.sup-root .sup-button-secondary {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.sup-root .sup-label {
+  font-weight: 800;
+}
+.sup-root .sup-h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 2.5rem 0 1rem;
+}
+.sup-root .sup-cards {
+  border: 2px solid var(--color-ink);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 6px 6px 0 var(--color-ink);
+  overflow: hidden;
+}
+.sup-root .sup-card {
+  padding: 1rem 1.25rem;
+  border-bottom: 2px solid var(--color-ink);
+}
+.sup-root .sup-card:last-child {
+  border-bottom: 0;
+}
+.sup-root .sup-card-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  text-decoration-thickness: 2px;
+}
+.sup-root .sup-chat {
+  border: 2px solid var(--color-ink);
+  box-shadow: 6px 6px 0 var(--color-ink);
+}
 
 /*
  * GridRinse: mint and cream with bold black outlines and hard offset shadows; deep teal for actions.
@@ -116,6 +166,13 @@
     transform: translate(3px, 3px);
     box-shadow: 1px 1px 0 var(--color-ink);
   }
+  .btn-pop-ghost {
+    background: var(--color-surface);
+    color: var(--color-ink);
+  }
+  .btn-pop-ghost:hover:not(:disabled) {
+    background: var(--color-lemon-soft);
+  }
   .display {
     font-weight: 800;
     letter-spacing: -0.035em;
@@ -190,6 +247,10 @@
     font-size: 1rem;
     font-weight: 600;
     margin: 1.5rem 0 0.25rem;
+  }
+  .prose-doc > :first-child,
+  .prose-doc > :first-child > :first-child {
+    margin-top: 0;
   }
   .prose-doc p,
   .prose-doc li {

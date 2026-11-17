@@ -43,15 +43,15 @@ export async function openPortal(): Promise<string | null> {
   }
 }
 
-export function PlanButton({ planId, planName, primary }: { planId: string; planName: string; primary?: boolean }) {
+export function PlanButton({ planId, planName, primary, label }: { planId: string; planName: string; primary?: boolean; label?: string }) {
   const { entitlements } = useEntitlements();
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const cls = `btn ${primary ? "btn-primary" : ""}`;
+  const cls = `btn-pop w-full ${primary ? "" : "btn-pop-ghost"}`;
   if (planId === "free") {
     return (
-      <Link href="/" className="btn">
-        Use it now
+      <Link href="/how-it-works" className={`btn-pop w-full ${primary ? "" : "btn-pop-ghost"}`}>
+        {label ?? "Use it now"}
       </Link>
     );
   }
@@ -59,7 +59,7 @@ export function PlanButton({ planId, planName, primary }: { planId: string; plan
   if (!e?.signedIn) {
     return (
       <Link href={`/signup?plan=${encodeURIComponent(planId)}`} className={cls} onClick={() => track("upgrade_clicked", { from: "pricing", plan: planId as "pro" })}>
-        Choose {planName}
+        {label ?? `Choose ${planName}`}
       </Link>
     );
   }
@@ -77,7 +77,7 @@ export function PlanButton({ planId, planName, primary }: { planId: string; plan
           setBusy(false);
         }}
       >
-        Choose {planName}
+        {label ?? `Choose ${planName}`}
       </button>
       {msg && (
         <p role="alert" className="mt-2 text-[12px] text-del-ink">

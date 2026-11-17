@@ -15,6 +15,29 @@ export function PageviewTracker() {
   return null;
 }
 
+/** Main menu; the current section gets a highlighter pill. */
+export function NavLinks({ items }: { items: { href: string; label: string }[] }) {
+  const pathname = usePathname() ?? "/";
+  return (
+    <ul className="flex items-center gap-x-2 whitespace-nowrap text-[14px] font-bold sm:gap-x-3 sm:text-[15px] lg:gap-x-4 lg:text-[17px]">
+      {items.map((n) => {
+        const active = pathname === n.href || pathname.startsWith(`${n.href}/`) || (n.href === "/guides" && pathname.startsWith("/for/"));
+        return (
+          <li key={n.href}>
+            <Link
+              href={n.href}
+              aria-current={active ? "page" : undefined}
+              className={`inline-block rounded-lg px-2.5 py-1 decoration-2 underline-offset-4 sm:px-3 ${active ? "bg-lemon" : "hover:underline"}`}
+            >
+              {n.label}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 /** Account links in the header: reads the session from our own /api/auth (same origin). */
 export function AccountNav() {
   const { data, isPending } = authClient().useSession();

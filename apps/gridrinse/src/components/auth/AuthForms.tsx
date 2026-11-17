@@ -18,12 +18,12 @@ function Field({ label, type = "text", value, onChange, autoComplete, hint, minL
   const id = useId();
   return (
     <div>
-      <label htmlFor={id} className="label">
+      <label htmlFor={id} className="label !text-[14px] !font-extrabold !text-ink">
         {label}
       </label>
       <input
         id={id}
-        className="field"
+        className="field !min-h-12 !rounded-lg !border-2 !border-ink !px-3 !text-base"
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -43,10 +43,12 @@ function Field({ label, type = "text", value, onChange, autoComplete, hint, minL
 
 function Shell({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
   return (
-    <div className="mx-auto max-w-[460px] px-4 py-12 sm:px-6">
-      <p className="eyebrow">{eyebrow}</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight">{title}</h1>
-      <div className="mt-6">{children}</div>
+    <div className="mint-grid min-h-[75vh] px-4 py-10 sm:py-16">
+      <div className="card-pop mx-auto max-w-[480px] p-6 sm:p-8">
+        <p className="text-[14px] font-extrabold uppercase tracking-[0.04em] text-accent">{eyebrow}</p>
+        <h1 className="display mt-2 text-[2.2rem] sm:text-[2.6rem]">{title}</h1>
+        <div className="mt-6 text-[16px]">{children}</div>
+      </div>
     </div>
   );
 }
@@ -80,7 +82,7 @@ export function SignupForm({ plan }: { plan?: string }) {
           We sent a confirmation link to <strong>{email}</strong>. Open it to activate your account{paid ? " and continue to checkout" : ""}. The link expires in 1 hour.
         </p>
         <p className="mt-4 text-sm text-ink-3">
-          No email? Check spam, or <Link href={`/verify-email?email=${encodeURIComponent(email)}${paid ? `&plan=${paid}` : ""}`} className="text-accent underline">send it again</Link>.
+          No email? Check spam, or <Link href={`/verify-email?email=${encodeURIComponent(email)}${paid ? `&plan=${paid}` : ""}`} className="font-bold underline decoration-2 underline-offset-4">send it again</Link>.
         </p>
       </Shell>
     );
@@ -108,13 +110,13 @@ export function SignupForm({ plan }: { plan?: string }) {
         <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" />
         <Field label="Password" type="password" value={password} onChange={setPassword} autoComplete="new-password" minLength={10} hint="At least 10 characters." />
         <ErrorText msg={err} />
-        <button type="submit" className="btn btn-primary w-full" disabled={busy}>
+        <button type="submit" className="btn-pop w-full" disabled={busy}>
           {busy ? "Creating account…" : "Create account"}
         </button>
       </form>
       <p className="mt-5 text-sm text-ink-2">
         Already have an account?{" "}
-        <Link href="/login" className="text-accent underline">
+        <Link href="/login" className="font-bold underline decoration-2 underline-offset-4">
           Log in
         </Link>
       </p>
@@ -154,20 +156,20 @@ export function LoginForm({ next }: { next?: string }) {
         <ErrorText msg={err} />
         {unverified && (
           <p className="text-sm">
-            <Link href={`/verify-email?email=${encodeURIComponent(email)}`} className="text-accent underline">
+            <Link href={`/verify-email?email=${encodeURIComponent(email)}`} className="font-bold underline decoration-2 underline-offset-4">
               Send the confirmation email again
             </Link>
           </p>
         )}
-        <button type="submit" className="btn btn-primary w-full" disabled={busy}>
+        <button type="submit" className="btn-pop w-full" disabled={busy}>
           {busy ? "Logging in…" : "Log in"}
         </button>
       </form>
       <p className="mt-5 flex flex-wrap justify-between gap-2 text-sm text-ink-2">
-        <Link href="/forgot-password" className="text-accent underline">
+        <Link href="/forgot-password" className="font-bold underline decoration-2 underline-offset-4">
           Forgot your password?
         </Link>
-        <Link href="/signup" className="text-accent underline">
+        <Link href="/signup" className="font-bold underline decoration-2 underline-offset-4">
           Create an account
         </Link>
       </p>
@@ -195,7 +197,7 @@ export function VerifyEmail({ status, error, email: initialEmail, plan }: { stat
           <div className="mt-5">
             <button
               type="button"
-              className="btn btn-primary"
+              className="btn-pop"
               disabled={busy}
               onClick={async () => {
                 setBusy(true);
@@ -213,7 +215,7 @@ export function VerifyEmail({ status, error, email: initialEmail, plan }: { stat
           </div>
         ) : (
           <p className="mt-5">
-            <Link href="/" className="btn btn-primary">
+            <Link href="/" className="btn-pop">
               Open the cleaner
             </Link>
           </p>
@@ -240,7 +242,7 @@ export function VerifyEmail({ status, error, email: initialEmail, plan }: { stat
         }}
       >
         <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" />
-        <button type="submit" className="btn" disabled={busy}>
+        <button type="submit" className="btn-pop btn-pop-ghost" disabled={busy}>
           Send a new link
         </button>
         {msg && (
@@ -274,7 +276,7 @@ export function ForgotPasswordForm() {
         >
           <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" />
           <ErrorText msg={err} />
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn-pop">
             Send reset link
           </button>
         </form>
@@ -292,7 +294,7 @@ export function ResetPasswordForm({ token, error }: { token?: string; error?: st
       <Shell eyebrow="Password" title="Password changed">
         <p className="text-ink-2">You were signed out on all devices. Log in with your new password.</p>
         <p className="mt-5">
-          <Link href="/login" className="btn btn-primary">
+          <Link href="/login" className="btn-pop">
             Log in
           </Link>
         </p>
@@ -303,7 +305,7 @@ export function ResetPasswordForm({ token, error }: { token?: string; error?: st
     <Shell eyebrow="Password" title="Choose a new password">
       {!token ? (
         <p className="text-ink-2">
-          This page needs the link from your email. <Link href="/forgot-password" className="text-accent underline">Ask for a new link</Link>.
+          This page needs the link from your email. <Link href="/forgot-password" className="font-bold underline decoration-2 underline-offset-4">Ask for a new link</Link>.
         </p>
       ) : (
         <form
@@ -317,7 +319,7 @@ export function ResetPasswordForm({ token, error }: { token?: string; error?: st
         >
           <Field label="New password" type="password" value={password} onChange={setPassword} autoComplete="new-password" minLength={10} hint="At least 10 characters." />
           <ErrorText msg={err} />
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn-pop">
             Save new password
           </button>
         </form>
@@ -339,10 +341,10 @@ export function AcceptInvitation({ id }: { id: string }) {
         <>
           <p className="text-ink-2">Log in (or create an account with the invited email address) to accept this invitation.</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link href={`/login?next=${encodeURIComponent(next)}`} className="btn btn-primary">
+            <Link href={`/login?next=${encodeURIComponent(next)}`} className="btn-pop">
               Log in
             </Link>
-            <Link href="/signup" className="btn">
+            <Link href="/signup" className="btn-pop btn-pop-ghost">
               Create an account
             </Link>
           </div>
@@ -351,7 +353,7 @@ export function AcceptInvitation({ id }: { id: string }) {
         <>
           <p className="text-ink-2">You joined the team. Its saved workflows are now available in the cleaner.</p>
           <p className="mt-5">
-            <Link href="/" className="btn btn-primary">
+            <Link href="/" className="btn-pop">
               Open the cleaner
             </Link>
           </p>
@@ -363,7 +365,7 @@ export function AcceptInvitation({ id }: { id: string }) {
           <div className="mt-5 flex gap-2">
             <button
               type="button"
-              className="btn btn-primary"
+              className="btn-pop"
               disabled={state === "busy"}
               onClick={async () => {
                 setState("busy");
@@ -383,7 +385,7 @@ export function AcceptInvitation({ id }: { id: string }) {
             </button>
             <button
               type="button"
-              className="btn"
+              className="btn-pop btn-pop-ghost"
               onClick={async () => {
                 await authClient().organization.rejectInvitation({ invitationId: id });
                 setErr("Invitation declined.");

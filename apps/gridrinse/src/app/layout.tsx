@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { AccountNav, PageviewTracker } from "@/components/SiteChrome";
+import { AccountNav, NavLinks, PageviewTracker } from "@/components/SiteChrome";
 import { appUrl } from "@/lib/site";
 import "@repo/support/styles.css";
 import "./globals.css";
@@ -30,8 +30,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export const viewport: Viewport = { themeColor: "#6cd99a", width: "device-width", initialScale: 1 };
 
 const nav = [
-  { href: "/#how-it-works", label: "How it works" },
-  { href: "/help", label: "Features" },
+  { href: "/how-it-works", label: "How it works" },
+  { href: "/features", label: "Features" },
   { href: "/pricing", label: "Pricing" },
   { href: "/guides", label: "Resources" },
 ];
@@ -53,15 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span className="text-[1.35rem] font-extrabold tracking-[-0.03em] sm:text-[1.9rem]">GridRinse</span>
             </Link>
             <nav aria-label="Main" className="order-3 w-full overflow-x-auto [scrollbar-width:none] lg:order-none lg:w-auto">
-              <ul className="flex items-center gap-x-5 whitespace-nowrap text-[14px] font-bold sm:gap-x-6 sm:text-[15px] lg:gap-x-9 lg:text-[17px]">
-                {nav.map((n) => (
-                  <li key={n.href}>
-                    <Link href={n.href} className="decoration-2 underline-offset-4 hover:underline">
-                      {n.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <NavLinks items={nav} />
             </nav>
             <AccountNav />
           </div>

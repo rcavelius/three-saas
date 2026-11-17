@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
+import { PageHero } from "@/components/PageHero";
 import { Notice, TicketForm } from "@repo/support/ui";
 import { SupportChat } from "@repo/support/client";
 import { getPlatform } from "@/server/platform";
@@ -18,20 +19,21 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   const viewer = await p.support.getViewer(new Headers(await headers()));
   const email = viewer.kind === "anonymous" ? null : viewer.user.email;
   return (
-    <div className="sup-root mx-auto max-w-[900px] px-4 py-10 sm:px-6">
-      <p className="eyebrow">Support</p>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight">How can we help?</h1>
-      <p className="mt-3 max-w-[65ch] text-ink-2">
+    <div className="sup-root">
+      <PageHero narrow eyebrow="Support" title="How can we help?">
+      <p>
         The assistant answers from our help articles and cannot see or change your account (and never sees your files: they stay in your
         browser). Refunds, disputes, security reports, legal and data requests are handled by a person.
       </p>
+      </PageHero>
+      <div className="mx-auto max-w-[900px] px-4 py-10 sm:px-8 sm:py-14">
       {sp.sent === "1" && (
         <div className="mt-6">
           <Notice kind="success">Thanks, your request was sent.</Notice>
         </div>
       )}
       <section aria-labelledby="assistant" className="mt-8">
-        <h2 id="assistant" className="text-lg font-semibold">
+        <h2 id="assistant" className="text-[1.8rem] font-extrabold tracking-[-0.02em]">
           Ask the assistant
         </h2>
         <div className="mt-3">
@@ -46,7 +48,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
         </p>
       </section>
       <section aria-labelledby="contact-heading" id="contact" className="mt-12 scroll-mt-6">
-        <h2 id="contact-heading" className="text-lg font-semibold">
+        <h2 id="contact-heading" className="text-[1.8rem] font-extrabold tracking-[-0.02em]">
           Contact a person
         </h2>
         <p className="mt-1 text-ink-2">
@@ -63,6 +65,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
           <TicketForm signedInEmail={email} error={typeof sp.error === "string" ? sp.error : null} />
         </div>
       </section>
+      </div>
     </div>
   );
 }
