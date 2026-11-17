@@ -10,7 +10,9 @@ Live checkout stays off until every owner item below is done and the owner gives
 
 ## Owner items
 
-1. **Restricted live key** (Stripe → Media Masters LLC → Developers → API keys → Create restricted key), name
+1. **Done 2026-11-17:** restricted key `products-billing` (rk_live_…wGyt) saved and checked read-only: all 10 permissions
+   work, balance and payouts are denied. Delete the old full-access `gridrinse` key in Stripe.
+   **Restricted live key** (Stripe → Media Masters LLC → Developers → API keys → Create restricted key), name
    `products-billing`, with:
    - **Write:** Products, Prices, Customers, Checkout Sessions, Customer portal, Subscriptions, Webhook Endpoints
    - **Read:** Events, Invoices, Charges, Refunds
