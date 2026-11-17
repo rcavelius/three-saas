@@ -81,17 +81,20 @@ async function main() {
       if (!plan.stripeLookupKey) continue;
       const productId = `${catalog.app}_${plan.id}`;
       const productName = `${BRAND_NAMES[catalog.app] ?? catalog.app} ${plan.name}`;
+      // Card statements show the product's domain (all products share one Stripe account / legal entity).
+      const descriptor = (APP_DOMAINS[catalog.app] ?? catalog.app).toUpperCase().slice(0, 22);
       let product: Stripe.Product;
       try {
         product = await stripe.products.retrieve(productId);
-        if (!product.active || product.name !== productName) {
-          product = await stripe.products.update(productId, { active: true, name: productName });
+        if (!product.active || product.name !== productName || product.statement_descriptor !== descriptor) {
+          product = await stripe.products.update(productId, { active: true, name: productName, statement_descriptor: descriptor });
         }
       } catch (e) {
         if ((e as { statusCode?: number }).statusCode !== 404) throw e;
         product = await stripe.products.create({
           id: productId,
           name: productName,
+          statement_descriptor: descriptor,
           metadata: { app: catalog.app, planId: plan.id },
         });
         console.log(`created product ${productId}`);
