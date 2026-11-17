@@ -31,7 +31,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build -w @apps/changekite -w @apps/gridrinse -w @apps/webhooktrail
-      - run: npm audit --audit-level=high
+      - run: node scripts/audit.mjs
 
   postgres:
     name: Real PostgreSQL 17 + backup/restore drill
