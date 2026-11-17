@@ -33,7 +33,9 @@ jobs:
       - id: pick
         run: |
           app="${{ github.event.inputs.app || 'all' }}"
-          if [ "$app" = "all" ]; then echo 'apps=["gridrinse","changekite","webhooktrail"]' >> "$GITHUB_OUTPUT";
+          # ChangeKite and WebhookTrail were shut down on 2026-11-17 (owner decision) to stop their hosting costs.
+          # "all" now means only the live product; deploy one of them by name to bring it back.
+          if [ "$app" = "all" ]; then echo 'apps=["gridrinse"]' >> "$GITHUB_OUTPUT";
           else echo "apps=[\"$app\"]" >> "$GITHUB_OUTPUT"; fi
 
   deploy:
