@@ -6,7 +6,16 @@ name is its domain (`GRIDRINSE.COM`, `CHANGEKITE.COM`, `WEBHOOKTRAIL.COM`, set p
 carries the owner's other business; the apps ignore events for customers they don't manage, and the revenue
 report splits by price lookup key, so the other business never shows up as product revenue.
 
-Live checkout stays off until every owner item below is done and the owner gives the final go-ahead.
+**2026-11-17: GridRinse is LIVE** on the owner's go-ahead ("turn on live payments"). `WORKER_SECRETS_GRIDRINSE`
+holds the restricted live key, the live webhook secret and `STRIPE_LIVE_MODE_AUTHORIZED=true`; the test-mode values
+are kept in `.secrets/cloudflare-gridrinse.testmode.json`. To go back to test mode, upload that file's uppercase keys
+as `WORKER_SECRETS_GRIDRINSE` (no `STRIPE_LIVE_MODE_AUTHORIZED`) and redeploy.
+
+**Customer-facing names (owner decision 2026-11-17):** the account's public business name changed from "Travel
+Snackbox" to **Media Masters**, and the account statement descriptor from TRAVEL SNACKBOX to **MEDIA MASTERS** (Stripe
+requires it to match the public name; the snack-box charges now show MEDIA MASTERS unless that shop sets its own).
+GridRinse Checkout shows "GridRinse" (`branding_settings`), subscription charges show GRIDRINSE.COM (product
+statement descriptor), the billing portal and Stripe receipts show Media Masters.
 
 ## Owner items
 
@@ -38,7 +47,7 @@ Live checkout stays off until every owner item below is done and the owner gives
 1. `STRIPE_LIVE_SETUP_APPROVED=yes STRIPE_SETUP_APPS=gridrinse` setup run: live "GridRinse Pro" $9/month and
    "GridRinse Business" $29/month and the GridRinse-only portal. Creating products charges nobody.
 2. Live webhook endpoint `https://gridrinse.com/api/billing/webhook` (the 9 events from the setup script).
-3. After the legal approval only: live key, webhook secret and `STRIPE_LIVE_MODE_AUTHORIZED=true` into
+3. **Done 2026-11-17:** live key, webhook secret and `STRIPE_LIVE_MODE_AUTHORIZED=true` into
    `WORKER_SECRETS_GRIDRINSE`, deploy, verify Checkout (merchant name, statement name), portal and webhook delivery.
 4. The refunded real purchase (item 4), then announce.
 5. ChangeKite and WebhookTrail follow the same steps when they go public.
