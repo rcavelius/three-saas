@@ -69,6 +69,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             <ul className="flex flex-wrap gap-x-6 gap-y-1 font-medium">
               {[
+                ["/tools/remove-duplicates-csv", "Remove duplicates"],
+                ["/tools/fix-dates-csv", "Fix dates"],
+                ["/tools/merge-csv-files", "Merge CSV files"],
+                ["/tools", "All tools"],
                 ["/for/bookkeeping-exports", "For bookkeepers"],
                 ["/for/ecommerce-exports", "For e-commerce"],
                 ["/for/crm-imports", "For CRM imports"],
