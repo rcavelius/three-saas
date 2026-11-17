@@ -436,3 +436,24 @@ describe("webhooks", () => {
     expect(t.seen.anomalies.some((a) => a.kind === "hook_failed")).toBe(true);
   });
 });
+
+describe("automatic tax", () => {
+  it("is off by default: checkout carries no tax settings", async () => {
+    const t = await setup();
+    const s = await t.billing.createCheckoutSession("org_a", "solo", "x@example.test");
+    const params = t.fake.sessionsById.get(s.id)!;
+    expect(params.automatic_tax).toBeUndefined();
+    expect(params.customer_update).toBeUndefined();
+  });
+
+  it("when enabled, checkout asks Stripe Tax, collects the billing address and saves it on the customer", async () => {
+    const t = await setup({ automaticTax: true });
+    const s = await t.billing.createCheckoutSession("org_a", "solo", "x@example.test");
+    expect(t.fake.sessionsById.get(s.id)).toMatchObject({
+      automatic_tax: { enabled: true },
+      billing_address_collection: "required",
+      customer_update: { address: "auto", name: "auto" },
+      tax_id_collection: { enabled: true },
+    });
+  });
+});

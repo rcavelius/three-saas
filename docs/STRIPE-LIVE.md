@@ -23,7 +23,14 @@ Live checkout stays off until every owner item below is done and the owner gives
    37837 Fenwick Circle, Selbyville, DE 19975; Delaware law; matches the Stripe account). **GridRinse terms and
    privacy approved by the owner 2026-11-17** and published (`LEGAL_APPROVED=1`, effective 2026-11-17).
    ChangeKite and WebhookTrail texts still have placeholders and need their own approval before launch.
-3. **Sales tax**: decide whether to enable Stripe Tax (paid per transaction, needs approval) or handle it another way.
+3. **Done 2026-11-17 (owner approved Stripe Tax):** tax monitoring set up (head office Delaware; fallback category
+   Electronically Supplied Services; GridRinse Pro and Business products = `txcd_10103000` SaaS personal use; USD
+   prices exclude tax, so it is added on top). GridRinse checkout sends `automatic_tax` (`STRIPE_AUTOMATIC_TAX=1`),
+   requires the billing address and offers a tax ID field; checked with an unpaid live session that was expired at
+   once. **No state registrations yet**, so Stripe collects $0 everywhere (Delaware has no sales tax) and only
+   monitors thresholds. When Stripe says a threshold is reached, the owner registers in that state and adds the
+   registration under Settings → Tax → Registrations; Stripe Tax fees apply only to transactions where tax is
+   collected. The snack-box products were not changed.
 4. **One real purchase** of GridRinse Pro on your own card, refunded afterwards (explicit approval needed).
 
 ## What I do after the key is saved

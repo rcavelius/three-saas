@@ -21,6 +21,7 @@
     "LEGAL_JURISDICTION": "the State of Delaware, USA",
     "LEGAL_EFFECTIVE": "2026-11-17",
     "LEGAL_APPROVED": "1",
+    "STRIPE_AUTOMATIC_TAX": "1",
     "EMAIL_FROM": "GridRinse <hello@gridrinse.com>",
     "SUPPORT_EMAIL": "support@gridrinse.com",
     "ABUSE_EMAIL": "abuse@gridrinse.com",

@@ -8,7 +8,9 @@ export const WEBHOOK_SECRET = "whsec_test_billingpackage_0123456789abcdef";
 export const APP_URL = "https://changekite.test";
 export const DAY = 86_400_000;
 
-export async function setup(opts: { catalog?: Catalog; latencyMs?: number; hooks?: Partial<BillingHooks> } = {}) {
+export async function setup(
+  opts: { catalog?: Catalog; latencyMs?: number; hooks?: Partial<BillingHooks>; automaticTax?: boolean } = {},
+) {
   const catalog = opts.catalog ?? CHANGEKITE_CATALOG;
   const clock = { t: new Date("2026-03-10T12:00:00.000Z") };
   const now = () => clock.t;
@@ -28,6 +30,7 @@ export async function setup(opts: { catalog?: Catalog; latencyMs?: number; hooks
     webhookSecret: WEBHOOK_SECRET,
     appUrl: APP_URL,
     now,
+    automaticTax: opts.automaticTax,
     hooks: {
       onPlanChanged: async (o, f, t) => void seen.planChanged.push([o, f, t]),
       onPaymentFailed: async (o, i) => void seen.paymentFailed.push([o, i]),

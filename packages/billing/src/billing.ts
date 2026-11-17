@@ -68,6 +68,12 @@ export interface BillingOptions {
   gracePeriodDays?: number;
   /** Checkout allow_promotion_codes. Default false. */
   allowPromotionCodes?: boolean;
+  /**
+   * Stripe Tax on checkout (and the subscription it creates). Needs Stripe Tax set up in the dashboard (head office,
+   * product tax codes). Tax is only collected where the account has a tax registration; elsewhere it is $0.
+   * Checkout then asks for the billing address and offers a business tax ID field. Default false.
+   */
+  automaticTax?: boolean;
   /** Proration for changePlan. Default "create_prorations" (difference billed on the next invoice). */
   prorationBehavior?: "create_prorations" | "always_invoice";
   paths?: { checkoutSuccess?: string; checkoutCancel?: string; portalReturn?: string };
@@ -787,6 +793,15 @@ export function createBilling(opts: BillingOptions): Billing {
       allow_promotion_codes: opts.allowPromotionCodes ?? false,
       metadata,
       subscription_data: { metadata },
+      ...(opts.automaticTax
+        ? {
+            automatic_tax: { enabled: true },
+            billing_address_collection: "required" as const,
+            // Saves the address Checkout collects on the existing customer, so renewals are taxed the same way.
+            customer_update: { address: "auto" as const, name: "auto" as const },
+            tax_id_collection: { enabled: true },
+          }
+        : {}),
     });
     return { url: session.url, id: session.id };
   }

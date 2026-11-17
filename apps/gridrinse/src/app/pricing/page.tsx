@@ -30,7 +30,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "How does billing work?",
-    a: "Plans are billed monthly in US dollars through Stripe. You can switch plans or update your card from the billing page; changes take effect immediately and Stripe prorates the difference.",
+    a: "Plans are billed monthly in US dollars through Stripe. Sales tax is added at checkout only where it applies to your billing address, and checkout shows it before you pay. You can switch plans or update your card from the billing page; changes take effect immediately and Stripe prorates the difference.",
   },
   {
     q: "How do I cancel?",

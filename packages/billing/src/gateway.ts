@@ -63,6 +63,10 @@ export interface CheckoutSessionParams {
   allow_promotion_codes: boolean;
   metadata: Record<string, string>;
   subscription_data: { metadata: Record<string, string> };
+  automatic_tax?: { enabled: boolean };
+  billing_address_collection?: "auto" | "required";
+  customer_update?: { address?: "auto" | "never"; name?: "auto" | "never" };
+  tax_id_collection?: { enabled: boolean };
 }
 
 export interface SubscriptionUpdateParams {

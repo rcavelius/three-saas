@@ -13,6 +13,8 @@ export interface AppEnv {
   clientIp: ClientIpConfig;
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
+  /** STRIPE_AUTOMATIC_TAX=1: Stripe Tax on checkout (set up in the Stripe dashboard first). */
+  stripeAutomaticTax: boolean;
   resendApiKey?: string;
   emailFrom: string;
   ownerAlertEmail?: string;
@@ -78,6 +80,7 @@ export function loadEnv(env: Record<string, string | undefined> = process.env): 
     clientIp: clientIpConfigFromEnv(env),
     stripeSecretKey: opt(env.STRIPE_SECRET_KEY),
     stripeWebhookSecret: opt(env.STRIPE_WEBHOOK_SECRET),
+    stripeAutomaticTax: env.STRIPE_AUTOMATIC_TAX === "1",
     resendApiKey: opt(env.RESEND_API_KEY),
     emailFrom: opt(env.EMAIL_FROM) ?? "GridRinse <hello@localhost>",
     ownerAlertEmail: opt(env.OWNER_ALERT_EMAIL),

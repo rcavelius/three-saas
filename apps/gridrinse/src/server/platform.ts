@@ -160,6 +160,7 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
     webhookSecret: env.stripeWebhookSecret ?? `unconfigured-${randomBytes(24).toString("hex")}`,
     appUrl: env.appUrl,
     now,
+    automaticTax: env.stripeAutomaticTax,
     paths: {
       checkoutSuccess: "/account/billing?checkout=success",
       checkoutCancel: "/account/billing?checkout=canceled",
