@@ -150,36 +150,38 @@ export function WorkflowPanel({
   const lockedCount = cloud?.filter((w) => w.locked).length ?? 0;
 
   return (
-    <section aria-labelledby="wf-heading" className="border border-rule bg-surface">
-      <div className="border-b border-rule px-3 py-2">
-        <h2 id="wf-heading" className="text-sm font-semibold">
-          Saved workflows
-        </h2>
-        <p className="text-[12px] text-ink-3">
-          A workflow is the list of steps, not your data. Literal text you type into steps (find &amp; replace values, column names) is saved with it.
-        </p>
-      </div>
-      <div className="space-y-2 px-3 py-3">
+    <section aria-labelledby="wf-heading" className="rounded-[12px] border-2 border-ink bg-surface p-4">
+      <h2 id="wf-heading" className="text-[20px] font-extrabold tracking-[-0.01em]">
+        Saved workflows
+      </h2>
+      <div className="mt-3 space-y-2.5">
         <div className="flex gap-2">
           <label htmlFor={nameId} className="sr-only">
             Workflow name
           </label>
-          <input id={nameId} className="field" placeholder="Workflow name, e.g. Monthly orders" value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
+          <input
+            id={nameId}
+            className="field !min-h-10 !rounded-lg !border-2 !border-rule-strong !text-[15px]"
+            placeholder="Workflow name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={100}
+          />
+          <button type="button" className="btn btn-primary !min-h-10 shrink-0 !border-2 !px-5 !text-[15px] !font-extrabold" onClick={saveLocal} disabled={steps.length === 0} aria-label="Save in this browser">
+            Save
+          </button>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn btn-sm" onClick={saveLocal} disabled={steps.length === 0}>
-            Save in this browser
-          </button>
           {canCloud && (
-            <button type="button" className="btn btn-sm btn-primary" onClick={() => void saveCloud(name || "My workflow", steps)} disabled={steps.length === 0 || busy}>
+            <button type="button" className="btn btn-primary !border-2 !font-bold" onClick={() => void saveCloud(name || "My workflow", steps)} disabled={steps.length === 0 || busy}>
               Save to account
             </button>
           )}
-          <button type="button" className="btn btn-sm" onClick={() => exportWf(makeWorkflow(name || "My workflow", steps))} disabled={steps.length === 0}>
-            Export as JSON
+          <button type="button" className="btn !border-2 !font-bold" onClick={() => exportWf(makeWorkflow(name || "My workflow", steps))} disabled={steps.length === 0}>
+            Export JSON
           </button>
-          <button type="button" className="btn btn-sm" onClick={() => importRef.current?.click()}>
-            Import JSON…
+          <button type="button" className="btn !border-2 !font-bold" onClick={() => importRef.current?.click()}>
+            Import JSON
           </button>
           <input
             ref={importRef}
@@ -196,6 +198,9 @@ export function WorkflowPanel({
           />
         </div>
         {!storageOk && <p className="text-[12px] text-del-ink">Local storage is unavailable here (private mode or blocked). Export/import still works.</p>}
+        <p className="text-[13px] text-ink-2" title="Literal text you type into steps (find & replace values, column names) is saved with the workflow.">
+          Saves steps, not your data.
+        </p>
         <p className="min-h-4 text-[12px] text-ink-2" aria-live="polite">
           {message}
         </p>
@@ -322,11 +327,11 @@ export function WorkflowPanel({
           </div>
         )}
         {!signedIn && (
-          <p className="text-[12px] text-ink-3">
-            <Link href="/login" className="text-accent underline">
-              Sign in
+          <p className="border-t-2 border-rule pt-3 text-[14px]">
+            <Link href="/login" className="font-bold text-accent underline underline-offset-2">
+              Sign in to sync workflows
             </Link>{" "}
-            to keep workflows in your account (Pro and Business).
+            <span className="text-ink-3">(Pro and Business)</span>
           </p>
         )}
       </div>

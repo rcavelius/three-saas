@@ -27,7 +27,7 @@ Other file types are refused with a message saying the file is not a CSV or Exce
 
 ## Files you can download
 
-- **CSV**: comma, semicolon or tab separator (tab downloads as `.tsv`). Options: **Excel-friendly (UTF-8 BOM)** and **Windows line endings (CRLF)**, both on by default, and **Neutralise formulas (=, +, @)**, off by default.
+- **CSV**: comma, semicolon or tab separator (tab downloads as `.tsv`). Options: **Excel-friendly (UTF-8 BOM)** and **Windows line endings (CRLF)**, both on by default, and **Neutralize formulas (=, +, @)**, off by default.
 - **XLSX**: plain numbers are stored as real numbers; values with leading zeros such as `00123` stay as text.
 - **Batch mode**: a ZIP of CSVs, a ZIP of XLSX files, or one XLSX with one sheet per file.
 

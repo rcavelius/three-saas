@@ -10,6 +10,7 @@ import { CLEANER_EVENTS, type CleanerStage } from "@/lib/cleaner-events";
 import { baseName, downloadBlob, MIME } from "@/lib/download";
 import { normalizeHeaders } from "@/lib/engine/ops/basic";
 import type { CsvExportOptions } from "@/lib/engine/export";
+import type { DateNeedsChoice } from "@/lib/engine/ops/dates";
 import { detectKind, type XlsxDateMode } from "@/lib/engine/parse";
 import { isCellChanged } from "@/lib/engine/pipeline";
 import type { Step, StepType } from "@/lib/engine/schema";
@@ -361,6 +362,16 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
     });
   };
 
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const reorderStep = (from: number, to: number) =>
+    setSteps((prev) => {
+      if (from === to || from < 0 || to < 0 || from >= prev.length || to >= prev.length) return prev;
+      const copy = prev.slice();
+      const [moved] = copy.splice(from, 1);
+      copy.splice(to, 0, moved!);
+      return copy;
+    });
   const moveStep = (i: number, d: -1 | 1) =>
     setSteps((prev) => {
       const j = i + d;
@@ -409,6 +420,11 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
   }, [result]);
 
   const ready = !!result && !pending && !runError;
+
+  // Date columns the "Standardize dates" step left alone because the order is ambiguous: asked above the table.
+  const dateIdx = steps.findIndex((s) => s.type === "formatDates" && s.enabled);
+  const dateRun = dateIdx >= 0 && !pending && shown?.result.steps[dateIdx]?.step.id === steps[dateIdx]!.id ? shown?.result.steps[dateIdx] : undefined;
+  const dateChoices = (dateRun?.report.details?.needsChoice as DateNeedsChoice[] | undefined) ?? [];
   const outName = isMerge ? "merged" : baseName(activeFile?.name ?? "data");
 
   const usage = (action: "download_csv" | "download_xlsx" | "download_zip" | "download_batch_xlsx", format: "csv" | "tsv" | "xlsx" | "zip_csv" | "zip_xlsx") => {
@@ -635,44 +651,48 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
         <div className="grid gap-5 lg:grid-cols-[minmax(320px,400px)_minmax(0,1fr)]">
           {/* ---------- Left: files, mode, steps, workflows ---------- */}
           <div className="flex min-w-0 flex-col gap-4">
-            <section aria-labelledby="files-heading" className="border border-rule bg-surface">
-              <div className="flex items-center justify-between border-b border-rule px-3 py-2">
-                <h2 id="files-heading" className="text-sm font-semibold">
-                  Files <span className="font-mono text-xs font-normal text-ink-3">{files.length}/{limits.maxFiles}</span>
+            <section aria-labelledby="files-heading" {...dragProps} className={`rounded-[12px] border-2 border-ink bg-surface p-4 ${dragOver ? "!bg-mint-soft" : ""}`}>
+              <div className="flex items-center justify-between">
+                <h2 id="files-heading" className="text-[20px] font-extrabold tracking-[-0.01em]">
+                  Files
                 </h2>
-                <button type="button" className="text-[12px] text-ink-2 underline hover:text-ink" onClick={startOver}>
-                  Start over
-                </button>
+                <span className="rounded-md bg-mint-soft px-2 py-0.5 text-[14px] font-extrabold tabular-nums">
+                  {files.length} / {limits.maxFiles}
+                </span>
               </div>
-              <ul className="divide-y divide-rule">
+              <ul className="mt-3 space-y-2">
                 {files.map((f) => (
-                  <li key={f.id} className={`px-3 py-2 ${f.id === activeFile?.id && !isMerge ? "bg-accent-wash/60" : ""}`}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
+                  <li key={f.id} className={`rounded-lg px-3 py-2.5 ${f.id === activeFile?.id && !isMerge ? "bg-mint-soft" : "bg-paper"}`}>
+                    <div className="flex items-start gap-2.5">
+                      <svg className="mt-0.5 shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8zM14 2.5V8h5.5" />
+                      </svg>
+                      <div className="min-w-0 flex-1">
                         {files.length > 1 && !isMerge ? (
-                          <label className="flex items-center gap-2 text-[13px] font-medium">
+                          <label className="flex items-center gap-2 text-[15px] font-extrabold">
                             <input type="radio" name="active-file" className="accent-accent" checked={f.id === activeFile?.id} onChange={() => setActiveId(f.id)} />
                             <span className="truncate">{f.name}</span>
                           </label>
                         ) : (
-                          <p className="truncate text-[13px] font-medium">{f.name}</p>
+                          <p className="truncate text-[15px] font-extrabold">{f.name}</p>
                         )}
-                        <p className="font-mono text-[11px] text-ink-3">
-                          {formatBytes(f.size)} · {f.parse.table.rows.length.toLocaleString("en-US")} rows × {f.parse.table.columns.length} cols
-                          {f.parse.delimiter ? ` · ${f.parse.delimiter === "\t" ? "tab" : `"${f.parse.delimiter}"`} separated` : ""}
+                        <p className="text-[12.5px] text-ink-2">
+                          {f.parse.table.rows.length.toLocaleString("en-US")} rows · {f.parse.table.columns.length} columns · {formatBytes(f.size)}
                           {f.parse.encoding && f.parse.encoding !== "utf-8" ? ` · ${f.parse.encoding}` : ""}
                         </p>
                       </div>
-                      <div className="flex shrink-0 gap-1">
-                        <button type="button" className="btn btn-sm" onClick={() => downloadOriginal(f)} aria-label={`Download original ${f.name}`} title="Download original">
-                          Original ⤓
-                        </button>
-                        <button type="button" className="btn btn-sm px-1.5" onClick={() => removeFile(f.id)} aria-label={`Remove ${f.name}`}>
-                          ×
-                        </button>
-                      </div>
+                      <button type="button" className="shrink-0 rounded p-1 hover:bg-surface" onClick={() => downloadOriginal(f)} aria-label={`Download original ${f.name}`} title="Download original">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+                        </svg>
+                      </button>
+                      <button type="button" className="shrink-0 rounded p-1 hover:bg-surface" onClick={() => removeFile(f.id)} aria-label={`Remove ${f.name}`}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+                          <path d="M6 6l12 12M18 6 6 18" />
+                        </svg>
+                      </button>
                     </div>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-ink-2">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 pl-[34px] text-[13px] text-ink-2">
                       {f.parse.sheets && f.parse.sheets.length > 1 && (
                         <label className="flex items-center gap-1.5">
                           Sheet
@@ -692,26 +712,36 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                           </select>
                         </label>
                       )}
-                      <label className="flex items-center gap-1.5">
-                        <input type="checkbox" className="accent-accent" checked={f.hasHeader} onChange={(e) => void reparse(f.id, { hasHeader: e.target.checked })} />
-                        First row is the header
-                      </label>
                     </div>
                     {f.parse.warnings.length > 0 && (
-                      <ul className="mt-1 space-y-0.5 text-[11.5px] text-ink-2">
+                      <ul className="mt-1 space-y-0.5 pl-[34px] text-[12px] text-ink-2">
                         {f.parse.warnings.map((w, i) => (
                           <li key={i}>⚠ {w}</li>
                         ))}
                       </ul>
                     )}
+                    <label className="mt-2 flex items-center gap-2 text-[14px] font-medium">
+                      <input type="checkbox" className="h-[18px] w-[18px] accent-accent" checked={f.hasHeader} onChange={(e) => void reparse(f.id, { hasHeader: e.target.checked })} />
+                      First row is the header
+                    </label>
                   </li>
                 ))}
               </ul>
-              {files.length < limits.maxFiles && <div className="border-t border-rule">{dropZone}</div>}
+              {files.length < limits.maxFiles && (
+                <button
+                  type="button"
+                  className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border-2 border-accent text-[16px] font-extrabold text-accent hover:bg-mint-soft disabled:opacity-50"
+                  onClick={() => fileInput.current?.click()}
+                  disabled={loading}
+                >
+                  <span aria-hidden="true" className="text-[20px] leading-none">+</span> Add another file
+                </button>
+              )}
+              {fileInputEl}
             </section>
 
             {files.length > 1 && (
-              <fieldset className="border border-rule bg-surface px-3 py-2">
+              <fieldset className="rounded-[12px] border-2 border-ink bg-surface px-4 py-3">
                 <legend className="sr-only">What to do with several files</legend>
                 <p className="mb-1 text-sm font-semibold">Several files</p>
                 <label className="flex items-start gap-2 py-0.5 text-[13px]">
@@ -740,15 +770,12 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
               />
             )}
 
-            <section aria-labelledby="steps-heading">
-              <div className="mb-2 flex items-end justify-between gap-2">
-                <div>
-                  <p className="eyebrow">Step 2 · Choose cleaning steps</p>
-                  <h2 id="steps-heading" className="text-sm font-semibold">
-                    Cleaning steps <span className="font-normal text-ink-3">(run top to bottom)</span>
-                  </h2>
-                </div>
-                <button type="button" className="text-[12px] text-ink-2 underline hover:text-ink" onClick={resetSteps}>
+            <section aria-labelledby="steps-heading" className="rounded-[12px] border-2 border-ink bg-surface p-4">
+              <div className="mb-3 flex items-baseline justify-between gap-2">
+                <h2 id="steps-heading" className="text-[20px] font-extrabold tracking-[-0.01em]">
+                  Cleaning steps <span className="ml-1 text-[13px] font-medium text-ink-2">Run from top to bottom</span>
+                </h2>
+                <button type="button" className="text-[13px] font-bold underline underline-offset-2" onClick={resetSteps}>
                   Reset
                 </button>
               </div>
@@ -765,22 +792,40 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                     update={(next) => updateStep(i, next)}
                     remove={() => setSteps((prev) => prev.filter((_, j) => j !== i))}
                     move={(d) => moveStep(i, d)}
+                    drag={{
+                      over: dragOverIdx === i && dragFrom !== null && dragFrom !== i,
+                      onDragStart: () => setDragFrom(i),
+                      onDragOver: (e) => {
+                        if (dragFrom === null) return;
+                        e.preventDefault();
+                        setDragOverIdx(i);
+                      },
+                      onDrop: () => {
+                        if (dragFrom !== null) reorderStep(dragFrom, i);
+                        setDragFrom(null);
+                        setDragOverIdx(null);
+                      },
+                      onDragEnd: () => {
+                        setDragFrom(null);
+                        setDragOverIdx(null);
+                      },
+                    }}
                   />
                 ))}
               </ol>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-3 flex gap-2">
                 <label htmlFor="add-step" className="sr-only">
                   Step to add
                 </label>
-                <select id="add-step" className="field" value={addType} onChange={(e) => setAddType(e.target.value as StepType)}>
+                <select id="add-step" className="field !min-h-10 !rounded-lg !border-2 !border-ink !text-[15px]" value={addType} onChange={(e) => setAddType(e.target.value as StepType)}>
                   {ADDABLE.map((t) => (
                     <option key={t} value={t}>
                       {STEP_META[t].label}
                     </option>
                   ))}
                 </select>
-                <button type="button" className="btn btn-sm shrink-0" onClick={addStep}>
-                  Add step
+                <button type="button" className="btn shrink-0 !min-h-10 !border-2 !text-[15px] !font-extrabold" onClick={addStep}>
+                  + Add step
                 </button>
               </div>
             </section>
@@ -798,11 +843,52 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
 
           {/* ---------- Right: preview and downloads ---------- */}
           <section aria-labelledby="preview-heading" className="flex min-w-0 flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[15px]">
+              <p className="min-w-0 truncate">
+                <button type="button" className="font-bold underline underline-offset-2" onClick={startOver}>
+                  Cleaner
+                </button>
+                <span className="mx-2 text-ink-3" aria-hidden="true">/</span>
+                <span className="font-medium">{isMerge ? "Merged table" : activeFile?.name}</span>
+              </p>
+              <button type="button" className="font-bold underline underline-offset-2" onClick={startOver}>
+                Start over
+              </button>
+            </div>
+            <ol className="grid gap-2 sm:grid-cols-3" aria-label="Progress">
+              {[
+                ["Add files", true],
+                ["Choose cleaning steps", true],
+                ["Review & download", downloaded],
+              ].map(([label, done], i) => {
+                const current = i === 2;
+                return (
+                  <li
+                    key={label as string}
+                    aria-current={current ? "step" : undefined}
+                    className={`flex items-center justify-center gap-2.5 rounded-lg border-2 px-3 py-2 text-[15px] font-extrabold ${
+                      current ? "border-ink bg-accent text-white" : "border-accent/40 bg-mint-soft"
+                    }`}
+                  >
+                    <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[13px] ${current && !done ? "bg-white text-accent" : "bg-ok text-white"}`}>
+                      {done ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-label="done">
+                          <path d="m4.5 12.5 5 5 10-11" />
+                        </svg>
+                      ) : (
+                        i + 1
+                      )}
+                    </span>
+                    {i + 1} {label}
+                  </li>
+                );
+              })}
+            </ol>
             <div>
-              <p className="eyebrow">Step 3 · Check the result, then download</p>
-              <h2 id="preview-heading" className="text-base font-semibold">
-                {isMerge ? "Merged table" : activeFile?.name}
+              <h2 id="preview-heading" className="display text-[2rem] sm:text-[2.4rem]">
+                Review your cleaned data
               </h2>
+              <p className="mt-1 text-[16px] font-medium text-ink-2">{isMerge ? `${files.length} files merged` : activeFile?.name}</p>
             </div>
 
             {runError && (
@@ -860,16 +946,16 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
 
             {result && input && (
               <>
-                <dl className="grid grid-cols-2 border-l border-t border-rule bg-surface sm:grid-cols-4">
+                <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
                     ["Rows", `${input.rows.length.toLocaleString("en-US")} → ${result.table.rows.length.toLocaleString("en-US")}`],
                     ["Rows removed", result.removed.length.toLocaleString("en-US")],
                     ["Cells changed", result.changedCount.toLocaleString("en-US")],
                     ["Columns", `${input.columns.length} → ${result.table.columns.length}`],
                   ].map(([k, v]) => (
-                    <div key={k} className="border-b border-r border-rule px-3 py-2">
-                      <dt className="eyebrow">{k}</dt>
-                      <dd className={`font-mono text-lg tabular-nums ${pending ? "text-ink-3" : ""}`}>{v}</dd>
+                    <div key={k} className="rounded-lg border-2 border-rule-strong bg-surface px-4 py-3">
+                      <dt className="text-[14px] font-medium">{k}</dt>
+                      <dd className={`text-[26px] font-extrabold tabular-nums tracking-[-0.02em] ${pending ? "text-ink-3" : ""}`}>{v}</dd>
                     </div>
                   ))}
                 </dl>
@@ -879,8 +965,46 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                   </p>
                 )}
 
+                {dateChoices.map((n) => (
+                  <div key={n.column} role="group" aria-label="Date order needed" className="flex flex-col gap-3 rounded-lg border-2 border-mark-edge/40 bg-lemon-soft px-4 py-3 md:flex-row md:items-center">
+                    <svg className="hidden shrink-0 sm:block" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M12 3 2 20.5h20z" />
+                      <path d="M12 10v5M12 17.6v.2" strokeLinecap="round" />
+                    </svg>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[17px] font-extrabold">Confirm the date format for {n.column}</p>
+                      <p className="text-[15px]">
+                        {n.reason === "conflict" ? (
+                          "This column mixes day-first and month-first dates."
+                        ) : (
+                          <>
+                            <strong>{n.examples[0] ?? "03/04"}</strong> could mean two different days.
+                          </>
+                        )}{" "}
+                        These dates stay unchanged until you choose.
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      {(["DMY", "MDY"] as const).map((o) => (
+                        <button
+                          key={o}
+                          type="button"
+                          className="btn !min-h-10 !border-2 !font-extrabold"
+                          onClick={() => {
+                            const st = steps[dateIdx];
+                            if (st?.type === "formatDates") updateStep(dateIdx, { ...st, orderByColumn: { ...st.orderByColumn, [n.column]: o } });
+                          }}
+                        >
+                          {o === "DMY" ? "Day first (DMY)" : "Month first (MDY)"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                <div className="rounded-[12px] border-2 border-ink bg-surface p-3 sm:p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div role="tablist" aria-label="Preview" className="flex border border-rule-strong">
+                  <div role="tablist" aria-label="Preview" className="flex gap-1.5">
                     {(
                       [
                         ["cleaned", "Cleaned"],
@@ -893,7 +1017,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                         type="button"
                         role="tab"
                         aria-selected={view === v}
-                        className={`px-3 py-1.5 text-[13px] font-medium ${view === v ? "bg-ink text-white" : "bg-surface text-ink-2 hover:bg-sunken"}`}
+                        className={`rounded-lg border-2 px-4 py-1.5 text-[15px] font-bold ${view === v ? "border-ink bg-accent text-white" : "border-transparent bg-surface hover:border-rule-strong"}`}
                         onClick={() => setView(v)}
                       >
                         {label}
@@ -901,7 +1025,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                     ))}
                   </div>
                   {view === "cleaned" && (
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink-2">
+                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-[14px] font-medium">
                       <label className="flex items-center gap-1.5">
                         <input type="checkbox" className="accent-accent" checked={onlyChanged} onChange={(e) => setOnlyChanged(e.target.checked)} />
                         Only changed rows
@@ -914,7 +1038,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                   )}
                 </div>
 
-                <div aria-busy={pending}>
+                <div aria-busy={pending} className="mt-3">
                   {view === "cleaned" && (
                     <DataGrid
                       key={`c-${result.table.rows.length}-${onlyChanged}`}
@@ -930,6 +1054,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                         return input.rows[result.rowOrigins[r]!]?.[oc];
                       }}
                       showOriginal={showOriginal}
+                      flaggedColumns={dateChoices.map((n) => result.table.columns.indexOf(n.column)).filter((i) => i >= 0)}
                       headerNotes={result.table.columns.map((name, c) => {
                         const oc = result.columnOrigins[c];
                         if (oc === null || oc === undefined) return "new column";
@@ -960,40 +1085,44 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                     />
                   )}
                 </div>
+                </div>
 
-                <section aria-labelledby="dl-heading" className="border border-rule bg-surface px-3 py-3">
-                  <h3 id="dl-heading" className="text-sm font-semibold">
-                    Download
+                <section aria-labelledby="dl-heading" className="rounded-[12px] border-2 border-ink bg-surface px-4 py-4 sm:px-5">
+                  <h3 id="dl-heading" className="text-[24px] font-extrabold tracking-[-0.02em]">
+                    Download your file
                   </h3>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button type="button" className="btn btn-primary" onClick={() => void downloadCsv()} disabled={!ready || exporting}>
+                  <div className="mt-3 flex flex-wrap gap-2.5">
+                    <button type="button" className="btn btn-primary !min-h-11 !border-2 !px-4 !text-[16px] !font-extrabold" onClick={() => void downloadCsv()} disabled={!ready || exporting}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+                      </svg>
                       Download cleaned CSV
                     </button>
-                    <button type="button" className="btn" onClick={() => void downloadXlsx()} disabled={!ready || exporting}>
+                    <button type="button" className="btn !min-h-11 !border-2 !px-4 !text-[16px] !font-bold" onClick={() => void downloadXlsx()} disabled={!ready || exporting}>
                       Download cleaned XLSX
                     </button>
                     {isBatch && (
                       <>
-                        <button type="button" className="btn" onClick={() => void downloadZip("csv")} disabled={!ready || exporting}>
+                        <button type="button" className="btn !min-h-11 !border-2 !px-4 !text-[16px] !font-bold" onClick={() => void downloadZip("csv")} disabled={!ready || exporting}>
                           All files → ZIP of CSVs
                         </button>
-                        <button type="button" className="btn" onClick={() => void downloadZip("xlsx")} disabled={!ready || exporting}>
+                        <button type="button" className="btn !min-h-11 !border-2 !px-4 !text-[16px] !font-bold" onClick={() => void downloadZip("xlsx")} disabled={!ready || exporting}>
                           All files → ZIP of XLSX
                         </button>
-                        <button type="button" className="btn" onClick={() => void downloadBatchXlsx()} disabled={!ready || exporting}>
+                        <button type="button" className="btn !min-h-11 !border-2 !px-4 !text-[16px] !font-bold" onClick={() => void downloadBatchXlsx()} disabled={!ready || exporting}>
                           All files → one XLSX
                         </button>
                       </>
                     )}
                     {activeFile && !isMerge && (
-                      <button type="button" className="btn" onClick={() => downloadOriginal(activeFile)}>
+                      <button type="button" className="btn !min-h-11 !border-2 !px-4 !text-[16px] !font-bold" onClick={() => downloadOriginal(activeFile)}>
                         Download original
                       </button>
                     )}
                   </div>
                   {!ready && !runError && <p className="mt-2 text-[12px] text-ink-3">Updating preview… downloads unlock when the preview matches your steps.</p>}
-                  <fieldset className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px] text-ink-2">
-                    <legend className="label">CSV options</legend>
+                  <fieldset className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-t-2 border-rule pt-3 text-[14px] font-medium">
+                    <legend className="mb-2 text-[14px] font-extrabold">CSV options</legend>
                     <label className="flex items-center gap-1.5">
                       Separator
                       <select className="field min-h-0 w-auto py-0.5 text-[12px]" value={csvOpts.delimiter} onChange={(e) => setCsvOpts({ ...csvOpts, delimiter: e.target.value })}>
@@ -1017,9 +1146,15 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                     </label>
                     <label className="flex items-center gap-1.5">
                       <input type="checkbox" className="accent-accent" checked={csvOpts.guardFormulas} onChange={(e) => setCsvOpts({ ...csvOpts, guardFormulas: e.target.checked })} />
-                      Neutralise formulas (=, +, @)
+                      Neutralize formulas (=, +, @)
                     </label>
                   </fieldset>
+                  <p className="mt-3 flex items-center gap-2 border-t-2 border-rule pt-3 text-[14px] font-medium text-ink-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-ok)" strokeWidth="2.2" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M12 2.5 4 5.5v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10v-6z" />
+                    </svg>
+                    Files are processed in your browser and never uploaded.
+                  </p>
                 </section>
               </>
             )}
@@ -1048,7 +1183,7 @@ function MergePanel({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <section aria-labelledby="merge-heading" className="border border-rule bg-surface">
+    <section aria-labelledby="merge-heading" className="rounded-[12px] border-2 border-ink bg-surface overflow-hidden">
       <div className="flex items-center justify-between border-b border-rule px-3 py-2">
         <h2 id="merge-heading" className="text-sm font-semibold">
           Merge settings

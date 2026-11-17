@@ -282,6 +282,7 @@ export function StepCard({
   remove,
   move,
   stale,
+  drag,
 }: {
   step: Step;
   index: number;
@@ -292,118 +293,144 @@ export function StepCard({
   remove: () => void;
   move: (delta: -1 | 1) => void;
   stale: boolean;
+  /** Drag-to-reorder wiring from the list (desktop); the up/down buttons stay for keyboards and touch. */
+  drag?: { onDragStart: () => void; onDragOver: (e: React.DragEvent) => void; onDrop: () => void; onDragEnd: () => void; over: boolean };
 }) {
   const meta = STEP_META[step.type];
   const needsChoice = (run?.report.details?.needsChoice as DateNeedsChoice[] | undefined) ?? [];
+  const review = needsChoice.length > 0 && step.enabled;
   const [open, setOpen] = useState(false);
-  const optionsId = useId();
+  const panelId = useId();
   const destructive = isDestructive(step);
-  const hasOptions = step.type !== "removeBlankRows";
+  const removesRows = step.type === "removeBlankRows" || step.type === "dedupe";
+  const [draggable, setDraggable] = useState(false);
   return (
-    <li className={`border border-rule bg-surface ${step.enabled ? "" : "opacity-70"}`}>
-      <div className="flex items-start gap-2 px-3 pt-2.5">
-        <span className="mt-0.5 w-5 shrink-0 font-mono text-[11px] text-ink-3">{String(index + 1).padStart(2, "0")}</span>
-        <div className="min-w-0 flex-1">
-          <label className="flex items-center gap-2 text-sm font-semibold">
-            <input type="checkbox" className="accent-accent" checked={step.enabled} onChange={(e) => update({ ...step, enabled: e.target.checked })} />
-            {meta.label}
-            {destructive && <span className="rounded-sm border border-del-ink/40 px-1 text-[10px] font-medium uppercase tracking-wide text-del-ink">removes data</span>}
-          </label>
-          <p className="mt-1 text-[12.5px] leading-snug text-ink-2">{meta.explain}</p>
-        </div>
-        <div className="flex shrink-0 gap-1">
-          <button type="button" className="btn btn-sm px-1.5" onClick={() => move(-1)} disabled={index === 0} aria-label={`Move ${meta.label} up`}>
-            ↑
-          </button>
-          <button type="button" className="btn btn-sm px-1.5" onClick={() => move(1)} disabled={index === total - 1} aria-label={`Move ${meta.label} down`}>
-            ↓
-          </button>
-          <button type="button" className="btn btn-sm px-1.5" onClick={remove} aria-label={`Remove step ${meta.label}`}>
-            ×
-          </button>
-        </div>
-      </div>
-
-      {needsChoice.length > 0 && step.enabled && (
-        <div className="mx-3 mt-2 border-l-2 border-mark-edge bg-mark/60 px-3 py-2 text-[12.5px]" role="group" aria-label="Date order needed">
-          {needsChoice.map((n) => (
-            <div key={n.column} className="py-1">
-              <p>
-                <strong className="font-semibold">{n.column}</strong>:{" "}
-                {n.reason === "conflict" ? "this column mixes day-first and month-first dates." : `dates like ${n.examples[0] ?? "03/04"} could be either order.`} Which is it?
-              </p>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                <button type="button" className="btn btn-sm" onClick={() => step.type === "formatDates" && update({ ...step, orderByColumn: { ...step.orderByColumn, [n.column]: "DMY" } })}>
-                  Day first (DMY)
-                </button>
-                <button type="button" className="btn btn-sm" onClick={() => step.type === "formatDates" && update({ ...step, orderByColumn: { ...step.orderByColumn, [n.column]: "MDY" } })}>
-                  Month first (MDY)
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      {step.type === "formatDates" && Object.keys(step.orderByColumn).length > 0 && (
-        <p className="mx-3 mt-2 text-[12px] text-ink-2">
-          Chosen order:{" "}
-          {Object.entries(step.orderByColumn).map(([c, o], i) => (
-            <span key={c}>
-              {i > 0 && ", "}
-              <span className="font-mono">{c}</span> = {o}{" "}
-              <button
-                type="button"
-                className="text-accent underline"
-                onClick={() => {
-                  const next = { ...step.orderByColumn };
-                  delete next[c];
-                  update({ ...step, orderByColumn: next });
-                }}
-              >
-                undo
-              </button>
+    <li
+      draggable={draggable}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        drag?.onDragStart();
+      }}
+      onDragOver={drag?.onDragOver}
+      onDrop={drag?.onDrop}
+      onDragEnd={() => {
+        setDraggable(false);
+        drag?.onDragEnd();
+      }}
+      className={`rounded-lg border-2 ${drag?.over ? "border-accent" : review ? "border-mark-edge/50" : "border-rule"} ${review ? "bg-lemon-soft" : "bg-surface"} ${
+        step.enabled ? "" : "opacity-70"
+      }`}
+    >
+      <div className="flex items-center gap-2 py-2 pl-1.5 pr-2">
+        <span
+          className="hidden cursor-grab touch-none px-1 text-ink-3 select-none active:cursor-grabbing lg:block"
+          aria-hidden="true"
+          title="Drag to reorder"
+          onMouseDown={() => setDraggable(true)}
+          onMouseUp={() => setDraggable(false)}
+        >
+          <svg width="14" height="20" viewBox="0 0 14 20" fill="currentColor">
+            {[3, 10, 17].flatMap((y) => [3, 11].map((x) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.8" />))}
+          </svg>
+        </span>
+        <input
+          type="checkbox"
+          className="h-5 w-5 shrink-0 accent-accent"
+          checked={step.enabled}
+          onChange={(e) => update({ ...step, enabled: e.target.checked })}
+          aria-label={`Use step: ${meta.label}`}
+        />
+        <button type="button" className="flex min-w-0 flex-1 items-center gap-2 text-left" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(!open)}>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-baseline gap-2">
+              <span className="text-[13px] font-extrabold tabular-nums">{String(index + 1).padStart(2, "0")}</span>
+              <span className="truncate text-[15px] font-extrabold">{meta.label}</span>
             </span>
-          ))}
-        </p>
-      )}
-
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 pb-2.5 pt-2">
-        <StepReport run={run} stale={stale} enabled={step.enabled} />
-        {hasOptions && (
-          <button type="button" className="text-[12px] font-medium text-accent hover:underline" aria-expanded={open} aria-controls={optionsId} onClick={() => setOpen(!open)}>
-            {open ? "Hide options" : "Options"}
-          </button>
-        )}
+            <span className="mt-0.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pl-6">
+              <StepSummary run={run} stale={stale} enabled={step.enabled} />
+              {review ? (
+                <span className="rounded-full bg-lemon px-2 py-0.5 text-[11px] font-bold">Needs review</span>
+              ) : destructive ? (
+                <span className="rounded-full bg-rose px-2 py-0.5 text-[11px] font-bold text-del-ink">{removesRows ? "Removes rows" : "Removes data"}</span>
+              ) : null}
+            </span>
+          </span>
+          <svg className={`shrink-0 transition-transform ${open ? "rotate-90" : ""}`} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        </button>
       </div>
-      {hasOptions && open && (
-        <div id={optionsId} className="border-t border-rule bg-paper px-3 py-3">
-          <StepOptions step={step} update={update} columns={columns} />
+
+      {open && (
+        <div id={panelId} className="border-t-2 border-rule px-3 pb-3 pt-2.5">
+          <p className="text-[13px] leading-snug text-ink-2">{meta.explain}</p>
+          <StepWarnings run={run} stale={stale} enabled={step.enabled} />
+          {step.type === "formatDates" && Object.keys(step.orderByColumn).length > 0 && (
+            <p className="mt-2 text-[12.5px] text-ink-2">
+              Chosen order:{" "}
+              {Object.entries(step.orderByColumn).map(([c, o], i) => (
+                <span key={c}>
+                  {i > 0 && ", "}
+                  <span className="font-mono">{c}</span> = {o}{" "}
+                  <button
+                    type="button"
+                    className="font-bold underline"
+                    onClick={() => {
+                      const next = { ...step.orderByColumn };
+                      delete next[c];
+                      update({ ...step, orderByColumn: next });
+                    }}
+                  >
+                    undo
+                  </button>
+                </span>
+              ))}
+            </p>
+          )}
+          {step.type !== "removeBlankRows" && (
+            <div className="mt-3 rounded-md bg-paper p-3">
+              <StepOptions step={step} update={update} columns={columns} />
+            </div>
+          )}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <button type="button" className="btn btn-sm" onClick={() => move(-1)} disabled={index === 0} aria-label={`Move ${meta.label} up`}>
+              ↑ Up
+            </button>
+            <button type="button" className="btn btn-sm" onClick={() => move(1)} disabled={index === total - 1} aria-label={`Move ${meta.label} down`}>
+              ↓ Down
+            </button>
+            <button type="button" className="btn btn-sm ml-auto" onClick={remove} aria-label={`Remove step ${meta.label}`}>
+              Remove
+            </button>
+          </div>
         </div>
       )}
     </li>
   );
 }
 
-function StepReport({ run, stale, enabled }: { run?: StepRun; stale: boolean; enabled: boolean }) {
-  if (!enabled) return <span className="font-mono text-[11.5px] text-ink-3">off</span>;
-  if (!run || stale) return <span className="font-mono text-[11.5px] text-ink-3">…</span>;
-  if (run.error) return <span className="text-[12px] text-del-ink">Not applied: {run.error}</span>;
+function StepSummary({ run, stale, enabled }: { run?: StepRun; stale: boolean; enabled: boolean }) {
+  if (!enabled) return <span className="text-[12.5px] text-ink-3">Off</span>;
+  if (!run || stale) return <span className="text-[12.5px] text-ink-3">…</span>;
+  if (run.error) return <span className="text-[12.5px] text-del-ink">Not applied</span>;
   const r = run.report;
   const bits: string[] = [];
-  if (r.rowsRemoved) bits.push(`−${r.rowsRemoved.toLocaleString("en-US")} rows`);
+  if (r.rowsRemoved) bits.push(`−${r.rowsRemoved.toLocaleString("en-US")} ${r.rowsRemoved === 1 ? "row" : "rows"}`);
   if (r.cellsChanged) bits.push(`${r.cellsChanged.toLocaleString("en-US")} cells`);
   const renamed = (r.details?.renamed as unknown[] | undefined)?.length;
   if (renamed) bits.push(`${renamed} headers`);
+  return <span className={`text-[12.5px] ${bits.length ? "text-ink-2" : "text-ink-3"}`}>{bits.length ? bits.join(" · ") : "No changes"}</span>;
+}
+
+function StepWarnings({ run, stale, enabled }: { run?: StepRun; stale: boolean; enabled: boolean }) {
+  if (!enabled || !run || stale) return null;
+  if (run.error) return <p className="mt-2 text-[12.5px] text-del-ink">Not applied: {run.error}</p>;
+  if (run.report.warnings.length === 0) return null;
   return (
-    <span className="min-w-0 text-[12px]">
-      <span className={`font-mono ${bits.length ? "text-ink" : "text-ink-3"}`}>{bits.length ? bits.join(" · ") : "no changes"}</span>
-      {r.warnings.length > 0 && (
-        <ul className="mt-1 list-none space-y-0.5 text-[11.5px] text-ink-2">
-          {r.warnings.slice(0, 3).map((w, i) => (
-            <li key={i}>⚠ {w}</li>
-          ))}
-        </ul>
-      )}
-    </span>
+    <ul className="mt-2 list-none space-y-0.5 text-[12px] text-ink-2">
+      {run.report.warnings.slice(0, 3).map((w, i) => (
+        <li key={i}>⚠ {w}</li>
+      ))}
+    </ul>
   );
 }

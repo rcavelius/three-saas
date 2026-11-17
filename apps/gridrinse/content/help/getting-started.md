@@ -22,7 +22,7 @@ When the first file loads, GridRinse adds a set of default steps that run from t
 - **Trim whitespace**
 - **Remove blank rows**
 - **Remove duplicate rows** (whole rows must match)
-- **Standardise dates**
+- **Standardize dates**
 - **Clean numbers** (switched on only when number columns were detected)
 
 Each step has a checkbox to switch it on or off, arrows to move it up or down, a remove button and an **Options** link. Use **Add step** to add more, such as Find & replace or Split a column. Steps marked **removes data** delete rows or columns. **Reset** puts the default steps back. See [Cleaning steps explained](/help/cleaning-steps) for what each step does.

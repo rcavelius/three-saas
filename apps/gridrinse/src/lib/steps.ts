@@ -11,7 +11,7 @@ export const STEP_META: Record<StepType, StepMeta> = {
   trim: { label: "Trim whitespace", explain: "Removes spaces at the start and end of cells, squeezes repeated spaces, and turns invisible characters (non-breaking and zero-width spaces) into normal ones." },
   removeBlankRows: { label: "Remove blank rows", explain: "Deletes rows where every cell is empty or only spaces." },
   dedupe: { label: "Remove duplicate rows", explain: "Deletes repeated rows. Compare whole rows, or only key columns such as Email." },
-  formatDates: { label: "Standardise dates", explain: "Finds date columns and rewrites every date in one format. If a column could be day/month or month/day, it is flagged for you to decide instead of guessed." },
+  formatDates: { label: "Standardize dates", explain: "Finds date columns and rewrites every date in one format. If a column could be day/month or month/day, it is flagged for you to decide instead of guessed." },
   formatNumbers: { label: "Clean numbers", explain: "Strips currency symbols and thousands separators, turns (45.00) into -45.00, and can fix the number of decimals." },
   findReplace: { label: "Find & replace", explain: "Replaces text, optionally only whole cells, only some columns, or with a regular expression." },
   renameColumns: { label: "Rename columns", explain: "Gives columns new names." },

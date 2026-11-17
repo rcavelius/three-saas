@@ -23,7 +23,7 @@ Deletes rows where every cell is empty or only spaces.
 
 Deletes repeated rows. **Compare by** lets you tick key columns such as Email; with none ticked, the whole row must match. Choose whether to keep the **first** or **last** copy, and whether to **Ignore upper/lower case** and **Ignore extra spaces** (on by default). See the guide on [removing duplicates](/guides/dedupe-strategies).
 
-## Standardise dates
+## Standardize dates
 
 Finds date columns and rewrites every date in one output format: `YYYY-MM-DD` (the default), `MM/DD/YYYY`, `DD/MM/YYYY`, `DD.MM.YYYY`, `D MMM YYYY` or `MMM D, YYYY`.
 

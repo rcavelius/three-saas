@@ -11,6 +11,8 @@ export interface DataGridProps {
   /** Indices into `rows` to display (filtering); defaults to all. */
   visible?: number[];
   isChanged?: (row: number, col: number) => boolean;
+  /** Columns that need the user's attention (e.g. ambiguous dates left unchanged): tinted yellow. */
+  flaggedColumns?: number[];
   originalValue?: (row: number, col: number) => string | undefined;
   showOriginal?: boolean;
   /** Per-column header note, e.g. "new" or the old name. */
@@ -81,6 +83,7 @@ export function DataGrid({
   rowNumbers,
   visible,
   isChanged,
+  flaggedColumns,
   originalValue,
   showOriginal = false,
   headerNotes,
@@ -101,8 +104,8 @@ export function DataGrid({
 
   return (
     <div className="flex min-w-0 flex-col">
-      <div className="relative max-h-[62vh] min-h-[180px] overflow-auto border border-rule bg-surface" tabIndex={0} role="region" aria-label={caption}>
-        <table className="w-max min-w-full border-collapse font-mono text-[12.5px] leading-5">
+      <div className="relative max-h-[62vh] min-h-[180px] overflow-auto rounded-md border-2 border-rule bg-surface" tabIndex={0} role="region" aria-label={caption}>
+        <table className="w-max min-w-full border-collapse text-[14px] leading-5 tabular-nums">
           <caption className="sr-only">{caption}</caption>
           <thead className="sticky top-0 z-10">
             <tr>
@@ -115,7 +118,7 @@ export function DataGrid({
                 </th>
               )}
               {columns.map((c, i) => (
-                <th key={i} scope="col" className="max-w-[28ch] border-b border-r border-rule-strong bg-sunken px-2 py-1.5 text-left align-bottom font-sans text-xs font-semibold text-ink">
+                <th key={i} scope="col" className="max-w-[28ch] border-b border-r border-rule-strong bg-sunken px-2 py-1.5 text-left align-bottom font-sans text-[13px] font-extrabold text-ink">
                   <span className="block truncate" title={c}>
                     {c === "" ? <span className="text-ink-3">(blank)</span> : c}
                   </span>
@@ -147,7 +150,7 @@ export function DataGrid({
                     return (
                       <td
                         key={c}
-                        className={`max-w-[32ch] border-b border-r border-rule px-2 py-0.5 align-top whitespace-pre ${changed ? "bg-mark shadow-[inset_2px_0_0_var(--color-mark-edge)]" : ""}`}
+                        className={`max-w-[32ch] border-b border-r border-rule px-2 py-0.5 align-top whitespace-pre ${changed ? "bg-mint-soft shadow-[inset_2px_0_0_var(--color-ok)]" : flaggedColumns?.includes(c) ? "bg-lemon-soft" : ""}`}
                         title={changed && originalValue ? `Was: ${originalValue(r, c) ?? "(new)"}` : value.length > 30 ? value : undefined}
                       >
                         {before !== undefined && (
@@ -168,7 +171,7 @@ export function DataGrid({
           </tbody>
         </table>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-x border-b border-rule bg-sunken px-3 py-1.5 text-xs text-ink-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-2 text-[13px] text-ink-2">
         <span className="font-mono">
           {indices.length === 0 ? "0 rows" : `Rows ${current * pageSize + 1}–${Math.min(indices.length, (current + 1) * pageSize)} of ${indices.length.toLocaleString("en-US")}`}
           {" · "}

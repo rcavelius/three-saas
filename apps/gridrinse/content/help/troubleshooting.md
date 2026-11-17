@@ -19,7 +19,7 @@ GridRinse reads files as UTF-8 and falls back to Windows-1252 when the bytes are
 
 ## Dates are wrong or not changed
 
-- A column like `03/04/2024` that could be day-first or month-first is left unchanged and flagged in **Standardise dates**. Choose **DMY** or **MDY** for that column.
+- A column like `03/04/2024` that could be day-first or month-first is left unchanged and flagged in **Standardize dates**. Choose **DMY** or **MDY** for that column.
 - Numbers such as `45296` are Excel date serials. Tick **Treat plain numbers as Excel date serials** in the step options and choose the column.
 - For Excel files, try the file's **Dates** menu: **as shown in Excel** or **as ISO (YYYY-MM-DD)**.
 - Values that cannot be read as dates are left as they were.

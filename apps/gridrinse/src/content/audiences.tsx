@@ -35,7 +35,7 @@ export const AUDIENCES: Audience[] = [
     summary:
       "Bank statements and accounting exports arrive with local date formats, currency symbols, bracketed negatives and blank lines. Fix them in your browser — client data never leaves your computer.",
     example: {
-      caption: "Example: a bank CSV before and after the default steps plus Standardise dates (DMY) and Clean numbers.",
+      caption: "Example: a bank CSV before and after the default steps plus Standardize dates (DMY) and Clean numbers.",
       before: [
         ["Date", "Description", "Amount"],
         ["03/04/2026", "  CARD PAYMENT  OFFICE SUPPLIES ", "(45.20)"],

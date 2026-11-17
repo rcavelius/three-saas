@@ -56,7 +56,7 @@ export const GUIDES: Guide[] = [
           1 March 1900 are off by one.
         </p>
         <p>
-          To fix them, choose the column explicitly in <em>Standardise dates</em> and tick <em>Treat plain numbers as Excel date serials</em>. It is off by default because a
+          To fix them, choose the column explicitly in <em>Standardize dates</em> and tick <em>Treat plain numbers as Excel date serials</em>. It is off by default because a
           column of quantities or IDs would otherwise turn into dates. A fractional part is the time of day: <code>45296.5</code> is noon.
         </p>
         <h2>3. The same date written five ways</h2>

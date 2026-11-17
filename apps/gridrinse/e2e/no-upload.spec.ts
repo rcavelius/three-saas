@@ -64,7 +64,8 @@ test("cleaning, merging, batch and ZIP export never send file names or contents 
   await page.locator("#file-input").setInputFiles(files);
   const status = page.locator('p.sr-only[role="status"]');
   await expect(status).toContainText(/Cleaned: 126 rows in/, { timeout: 30_000 });
-  await expect(page.getByRole("heading", { name: "Merged table" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Review your cleaned data" })).toBeVisible();
+  await expect(page.getByText(/^\d+ files merged$/)).toBeVisible();
 
   const dlMerged = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download cleaned CSV" }).click();
