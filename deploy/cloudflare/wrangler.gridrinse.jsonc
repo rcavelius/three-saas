@@ -19,6 +19,8 @@
     "LEGAL_ENTITY": "Media Masters LLC",
     "LEGAL_ADDRESS": "37837 Fenwick Circle, Selbyville, DE 19975, United States",
     "LEGAL_JURISDICTION": "the State of Delaware, USA",
+    "LEGAL_EFFECTIVE": "2026-11-17",
+    "LEGAL_APPROVED": "1",
     "EMAIL_FROM": "GridRinse <hello@gridrinse.com>",
     "SUPPORT_EMAIL": "support@gridrinse.com",
     "ABUSE_EMAIL": "abuse@gridrinse.com",

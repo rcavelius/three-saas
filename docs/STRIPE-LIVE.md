@@ -20,9 +20,9 @@ Live checkout stays off until every owner item below is done and the owner gives
    Save it with `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\save-stripe-live-key.ps1`
    (hidden input, writes git-ignored `.secrets/stripe-live.json`). Never paste it into chat.
 2. **Legal pages** (all three products): company details set 2026-11-17 in the wrangler vars (Media Masters LLC,
-   37837 Fenwick Circle, Selbyville, DE 19975; Delaware law; matches the Stripe account). Still open: the owner
-   approves the terms (14-day refund rule, cancel at period end) and privacy policy. Then `LEGAL_APPROVED=1` and
-   `LEGAL_EFFECTIVE` publish them.
+   37837 Fenwick Circle, Selbyville, DE 19975; Delaware law; matches the Stripe account). **GridRinse terms and
+   privacy approved by the owner 2026-11-17** and published (`LEGAL_APPROVED=1`, effective 2026-11-17).
+   ChangeKite and WebhookTrail texts still have placeholders and need their own approval before launch.
 3. **Sales tax**: decide whether to enable Stripe Tax (paid per transaction, needs approval) or handle it another way.
 4. **One real purchase** of GridRinse Pro on your own card, refunded afterwards (explicit approval needed).
 
