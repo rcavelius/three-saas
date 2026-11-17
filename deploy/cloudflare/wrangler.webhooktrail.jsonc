@@ -15,6 +15,9 @@
   "vars": {
     "APP_NAME": "WebhookTrail",
     "APP_URL": "https://webhooktrail.com",
+    "LEGAL_ENTITY": "Media Masters LLC",
+    "LEGAL_ADDRESS": "37837 Fenwick Circle, Selbyville, DE 19975, United States",
+    "LEGAL_JURISDICTION": "the State of Delaware, USA",
     "EMAIL_FROM": "WebhookTrail <hello@webhooktrail.com>",
     "SUPPORT_EMAIL": "support@webhooktrail.com",
     "GATE_EXEMPT": "/api/billing/webhook,/api/health,/api/cron/,/h/",
