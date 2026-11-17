@@ -14,6 +14,15 @@ if ($key -notmatch '^(rk|sk)_live_[A-Za-z0-9]+$') {
   Write-Host "That does not look like a live Stripe key (rk_live_... or sk_live_...). Nothing was saved." -ForegroundColor Red
   exit 1
 }
-$json = '{"STRIPE_LIVE_KEY":"' + $key + '","account":"Media Masters LLC","saved":"' + (Get-Date -Format s) + '"}'
+# Keep everything else already in the file (webhook secrets and ids); only the key and the date change.
+$data = [ordered]@{}
+if (Test-Path $out) {
+  $existing = [IO.File]::ReadAllText($out) | ConvertFrom-Json
+  foreach ($p in $existing.PSObject.Properties) { $data[$p.Name] = $p.Value }
+}
+$data["STRIPE_LIVE_KEY"] = $key
+$data["account"] = "Media Masters LLC"
+$data["saved"] = (Get-Date -Format s)
+$json = New-Object PSObject -Property $data | ConvertTo-Json -Compress
 [IO.File]::WriteAllText($out, $json, (New-Object Text.UTF8Encoding($false)))
 Write-Host ("Saved. Key ends in ..." + $key.Substring($key.Length - 4) + ". You can close this window.") -ForegroundColor Green
