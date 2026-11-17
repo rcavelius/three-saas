@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as claimRoute from "@/app/api/endpoints/claim/route";
 import * as endpointsRoute from "@/app/api/endpoints/route";
 import * as endpointRoute from "@/app/api/endpoints/[id]/route";
@@ -22,6 +22,14 @@ const saved = { ...limits };
 afterEach(() => Object.assign(limits, saved));
 
 describe("client IP handling (TRUSTED_PROXY=fly in tests)", () => {
+  // The per-IP limit is a fixed one-minute window. Start each test just after a minute boundary (clock still
+  // ticks) so a burst of requests never straddles two windows and gets its count reset halfway through.
+  beforeEach(() => {
+    const nextMinute = Math.floor(Date.now() / 60_000) * 60_000 + 60_000;
+    vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true, now: nextMinute + 1_000 });
+  });
+  afterEach(() => vi.useRealTimers());
+
   it("a spoofed X-Forwarded-For / X-Real-IP cannot dodge the per-IP capture limit", async () => {
     limits.capturePerIpPerMinute = 3;
     const { endpoint } = await createEndpoint();
