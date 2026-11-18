@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Cleaner } from "@/components/Cleaner";
+import { TOOLS } from "@/content/tools";
 import { HeroActions } from "@/components/HeroActions";
 import { JsonLd } from "@/components/JsonLd";
 import { Shield, SpecimenFigure } from "@/components/SpecimenFigure";
@@ -82,6 +84,20 @@ export default function Home() {
                 <h3 className="text-[21px] font-extrabold tracking-[-0.02em] sm:text-[23px]">{f.title}</h3>
                 <p className="mt-1.5 text-[16px] font-medium leading-snug sm:text-[17px]">{f.body}</p>
               </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section aria-labelledby="tools-heading" className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-8">
+        <h2 id="tools-heading" className="text-[1.6rem] font-extrabold tracking-[-0.02em]">
+          One job at a time
+        </h2>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {TOOLS.map((t) => (
+            <li key={t.slug}>
+              <Link href={`/tools/${t.slug}`} className="inline-block rounded-full border-2 border-ink bg-surface px-3 py-1.5 text-[15px] font-semibold hover:bg-lemon-soft">
+                {t.h1}
+              </Link>
             </li>
           ))}
         </ul>

@@ -186,6 +186,145 @@ export const TOOLS: ToolPage[] = [
     ],
     guide: { href: "/guides/merge-csv-files", label: "Guide: merging CSV files" },
   },
+  {
+    slug: "csv-to-excel",
+    title: "Convert CSV to Excel (XLSX) online, free and private",
+    h1: "Convert a CSV file to Excel (XLSX)",
+    description:
+      "Turn a CSV or TSV file into an Excel .xlsx workbook in your browser, and clean it on the way if you like. Free, no account, your file is never uploaded.",
+    intro:
+      "Opening a CSV straight in Excel can mangle leading zeros, long numbers and dates. GridRinse reads the CSV as text, lets you clean it, and saves a proper .xlsx file.",
+    stepName: "Download as Excel (.xlsx)",
+    howTo: [
+      "Choose your CSV or TSV file above.",
+      "Turn off any cleaning steps you don't want (or keep them to tidy the data first).",
+      "In \"Download your file\", choose Excel (.xlsx).",
+    ],
+    example: { input: { columns: [], rows: [] }, steps: [], note: "" },
+    faq: [
+      { q: "Is my file uploaded to convert it?", a: "No. The conversion happens in your browser; the file never reaches our servers." },
+      { q: "Can I convert several CSV files at once?", a: "Yes: choose several files and either merge them into one workbook or clean each separately and download them together (3 files on the free plan, 20 on Pro)." },
+      { q: "What about semicolon-separated files?", a: "The separator is detected when the file is read, so semicolon and tab files work too." },
+    ],
+    guide: { href: "/guides/csv-encoding-excel", label: "Guide: CSV files and Excel encoding problems" },
+  },
+  {
+    slug: "excel-to-csv",
+    title: "Convert Excel (XLSX, XLS, ODS) to CSV online, free",
+    h1: "Convert an Excel file to CSV",
+    description:
+      "Save an .xlsx, .xls or .ods spreadsheet as a clean CSV or TSV file, ready to import anywhere. Runs in your browser; the file is never uploaded. Free, no account.",
+    intro:
+      "Most import tools want CSV. GridRinse opens your Excel or OpenDocument file, tidies it if you want, and saves a CSV with the delimiter you choose.",
+    stepName: "Download as CSV",
+    howTo: [
+      "Choose your .xlsx, .xlsm, .xls or .ods file above.",
+      "Keep or turn off the cleaning steps.",
+      "In \"Download your file\", choose CSV (or tab-separated) and download.",
+    ],
+    example: { input: { columns: [], rows: [] }, steps: [], note: "" },
+    faq: [
+      { q: "Which Excel formats can I open?", a: ".xlsx, .xlsm, .xls and OpenDocument .ods, plus .csv, .tsv and .txt." },
+      { q: "Can I protect against formula injection?", a: "Yes. The CSV download can neutralize cells that start with =, +, @ so they can't run as formulas when someone opens the file." },
+    ],
+    guide: { href: "/guides/csv-encoding-excel", label: "Guide: CSV files and Excel encoding problems" },
+  },
+  {
+    slug: "split-column-csv",
+    title: "Split a column in a CSV, like full name into first and last",
+    h1: "Split one column into several",
+    description:
+      "Split a CSV or Excel column at a separator, for example \"Lee, Ann\" into Last and First, or \"City, State\" into two columns. Free, in your browser, no upload.",
+    intro:
+      "Names, addresses and codes often arrive squashed into one column. GridRinse splits the column at the separator you choose into as many new columns as you name.",
+    stepName: "Split a column",
+    howTo: [
+      "Choose your file above.",
+      "Add the step \"Split a column\", pick the column, type the separator (such as a comma) and name the new columns.",
+      "Check the review, then download.",
+    ],
+    example: {
+      input: { columns: ["Name", "Email"], rows: [["Lee, Ann", "ann@example.com"], ["Park, Sam", "sam@example.com"]] },
+      steps: [makeStep({ type: "splitColumn", column: "Name", separator: ", ", into: ["Last", "First"] })],
+      note: "\"Lee, Ann\" becomes Last = Lee and First = Ann.",
+    },
+    faq: [
+      { q: "Can I keep the original column?", a: "Yes, there's an option to keep it next to the new ones." },
+      { q: "What if a value has more parts than columns?", a: "Name as many columns as the most parts you expect; check the review table before downloading." },
+    ],
+  },
+  {
+    slug: "combine-columns-csv",
+    title: "Combine two columns in a CSV, like first + last name",
+    h1: "Combine columns into one",
+    description:
+      "Join two or more CSV or Excel columns into one, such as First + Last into Full name, with the separator you choose. Empty parts are skipped. Free, no upload.",
+    intro:
+      "Many imports want a single \"Full name\" or \"Address\" field. GridRinse joins the columns you pick, in order, with a space, comma or any separator.",
+    stepName: "Merge columns",
+    howTo: [
+      "Choose your file above.",
+      "Add the step \"Merge columns\", pick the columns in order, choose the separator and name the new column.",
+      "Check the review, then download.",
+    ],
+    example: {
+      input: { columns: ["First", "Last", "Email"], rows: [["Ann", "Lee", "ann@example.com"], ["Sam", "", "sam@example.com"]] },
+      steps: [makeStep({ type: "mergeColumns", columns: ["First", "Last"], separator: " ", into: "Full name" })],
+      note: "First and Last become one Full name column; the empty last name is skipped, so there's no trailing space.",
+    },
+    faq: [
+      { q: "Are the original columns removed?", a: "By default yes; turn on \"keep originals\" to keep them too." },
+      { q: "Can I use a comma as the separator?", a: "Yes, any separator up to 20 characters." },
+    ],
+  },
+  {
+    slug: "find-replace-csv",
+    title: "Find and replace in a CSV or Excel file (free, no upload)",
+    h1: "Find and replace across a CSV or Excel file",
+    description:
+      "Replace text in every cell or only some columns, match whole cells only, ignore case, or use a regular expression. Preview every change. Free, in your browser.",
+    intro:
+      "Rename a product everywhere, fix a misspelled city, or standardize \"N/A\", \"n/a\" and \"-\" to blank. GridRinse shows every changed cell before you download.",
+    stepName: "Find & replace",
+    howTo: [
+      "Choose your file above.",
+      "Add the step \"Find & replace\", type what to find and what to replace it with, and optionally limit it to some columns or whole cells.",
+      "Check the highlighted cells, then download.",
+    ],
+    example: {
+      input: { columns: ["Product", "Status"], rows: [["Widget", "N/A"], ["Gadget", "shipped"], ["Gizmo", "n/a"]] },
+      steps: [makeStep({ type: "findReplace", find: "n/a", replace: "", wholeCell: true })],
+      note: "Cells that are exactly \"N/A\" in any capitalization become blank; other cells are untouched.",
+    },
+    faq: [
+      { q: "Does it support regular expressions?", a: "Yes, switch on regex in the step." },
+      { q: "Can I limit it to one column?", a: "Yes, pick the columns it should apply to; by default it applies to all." },
+    ],
+  },
+  {
+    slug: "remove-columns-csv",
+    title: "Delete columns from a CSV or Excel file online (free)",
+    h1: "Remove columns you don't need",
+    description:
+      "Drop unwanted columns from a CSV or Excel export before you import or share it, such as internal IDs or personal data. Free, in your browser, no upload.",
+    intro:
+      "Exports come with dozens of columns you don't need, and some you shouldn't share. GridRinse removes the columns you pick and can reorder and rename the rest.",
+    stepName: "Drop columns",
+    howTo: [
+      "Choose your file above.",
+      "Add the step \"Drop columns\" and tick the columns to remove. Add \"Reorder columns\" or \"Rename columns\" if you need them too.",
+      "Check the review, then download.",
+    ],
+    example: {
+      input: { columns: ["id", "Name", "Email", "internal_note"], rows: [["17", "Ann Lee", "ann@example.com", "VIP"], ["18", "Sam Park", "sam@example.com", ""]] },
+      steps: [makeStep({ type: "dropColumns", columns: ["id", "internal_note"] })],
+      note: "Only Name and Email are left.",
+    },
+    faq: [
+      { q: "Is the original file changed?", a: "No. Your original file stays as it is; you download a new, cleaned copy." },
+      { q: "Can I save these steps for next month's export?", a: "Yes. Save the steps in your browser for free, or to your account on Pro to use them anywhere." },
+    ],
+  },
 ];
 
 export function getTool(slug: string): ToolPage | undefined {
