@@ -35,7 +35,7 @@ const spend: { date: string; app: string; usd: number }[] = existsSync("docs/mar
 const rows: Record<string, string | number>[] = [];
 const stripeKey = secretFor("gridrinse").stripeKey;
 const stripe = stripeKey ? new Stripe(stripeKey) : null;
-const mode = stripeKey?.startsWith("sk_live_") ? "live" : "test";
+const mode = stripeKey?.includes("_live_") ? "live" : "test";
 
 // Stripe: all subscriptions and refunds once, then split by app via the price lookup key.
 const subs: Stripe.Subscription[] = [];

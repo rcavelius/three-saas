@@ -1,0 +1,189 @@
+{
+  "generated_at": "2026-11-19T00:40:37.294Z",
+  "product": "gridrinse",
+  "accounts_total": 0,
+  "subscriptions_in_db": {},
+  "stripe": {
+    "available": true,
+    "mode": "live",
+    "active_paid_subscriptions": 0,
+    "mrr_usd": 0,
+    "subscriptions_ever": 0,
+    "canceled": 0,
+    "subscription_start_dates": []
+  },
+  "last_1d": {
+    "days": 1,
+    "visitors": 6,
+    "pageviews": 7,
+    "tool_users": 0,
+    "tool_runs": 0,
+    "pricing_views": 0,
+    "signup_starts": 0,
+    "checkout_starts": 0,
+    "new_accounts": 0,
+    "top_pages": [
+      {
+        "path": "/",
+        "views": 7,
+        "visitors": 6
+      }
+    ]
+  },
+  "last_7d": {
+    "days": 7,
+    "visitors": 62,
+    "pageviews": 149,
+    "tool_users": 4,
+    "tool_runs": 9,
+    "pricing_views": 12,
+    "signup_starts": 4,
+    "checkout_starts": 0,
+    "new_accounts": 0,
+    "top_pages": [
+      {
+        "path": "/",
+        "views": 81,
+        "visitors": 58
+      },
+      {
+        "path": "/pricing",
+        "views": 12,
+        "visitors": 6
+      },
+      {
+        "path": "/signup",
+        "views": 7,
+        "visitors": 4
+      },
+      {
+        "path": "/how-it-works",
+        "views": 6,
+        "visitors": 2
+      },
+      {
+        "path": "/help",
+        "views": 6,
+        "visitors": 4
+      },
+      {
+        "path": "/guides",
+        "views": 5,
+        "visitors": 2
+      },
+      {
+        "path": "/features",
+        "views": 5,
+        "visitors": 2
+      },
+      {
+        "path": "/login",
+        "views": 4,
+        "visitors": 4
+      },
+      {
+        "path": "/privacy",
+        "views": 3,
+        "visitors": 3
+      },
+      {
+        "path": "/for/ecommerce-exports",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/terms",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/tools",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "views": 2,
+        "visitors": 2
+      }
+    ]
+  },
+  "last_30d": {
+    "days": 30,
+    "visitors": 62,
+    "pageviews": 149,
+    "tool_users": 4,
+    "tool_runs": 9,
+    "pricing_views": 12,
+    "signup_starts": 4,
+    "checkout_starts": 0,
+    "new_accounts": 0,
+    "top_pages": [
+      {
+        "path": "/",
+        "views": 81,
+        "visitors": 58
+      },
+      {
+        "path": "/pricing",
+        "views": 12,
+        "visitors": 6
+      },
+      {
+        "path": "/signup",
+        "views": 7,
+        "visitors": 4
+      },
+      {
+        "path": "/how-it-works",
+        "views": 6,
+        "visitors": 2
+      },
+      {
+        "path": "/help",
+        "views": 6,
+        "visitors": 4
+      },
+      {
+        "path": "/guides",
+        "views": 5,
+        "visitors": 2
+      },
+      {
+        "path": "/features",
+        "views": 5,
+        "visitors": 2
+      },
+      {
+        "path": "/login",
+        "views": 4,
+        "visitors": 4
+      },
+      {
+        "path": "/privacy",
+        "views": 3,
+        "visitors": 3
+      },
+      {
+        "path": "/for/ecommerce-exports",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/terms",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/tools",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "views": 2,
+        "visitors": 2
+      }
+    ]
+  }
+}
