@@ -23,6 +23,23 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-19",
+      "agent": "convert",
+      "generation": 1,
+      "sales": 0,
+      "units": 0,
+      "did": [
+        "No ship: npm ci failed (403 fetching cdn.sheetjs.com xlsx tarball), so tests/tsc could not run; pricing-page 'Do you need Pro?' change reverted. Retry next run."
+      ],
+      "metrics": {
+        "visitors_7d": 62,
+        "tool_users_7d": 4,
+        "pricing_views_7d": 12,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }
