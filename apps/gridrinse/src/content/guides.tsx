@@ -369,6 +369,61 @@ export const GUIDES: Guide[] = [
     ),
   },
   {
+    slug: "clean-shopify-orders-export",
+    category: "cleaning",
+    title: "How to clean a Shopify orders export (CSV)",
+    summary: "Shopify's orders CSV has one row per line item, stray spaces and text-formatted amounts. Here is how to tidy it for a spreadsheet, accountant or import without losing rows.",
+    body: (
+      <>
+        <p>
+          A Shopify orders export opens fine, but it is not ready for totals or an import. The most common surprise: an order with three products appears on three rows, so
+          a careless &ldquo;remove duplicates&rdquo; can delete real data. This guide walks through a safe order of steps. It all runs in your browser, so customer names and
+          emails are never uploaded.
+        </p>
+        <h2>1. Know what one row means</h2>
+        <p>
+          In an orders export, each row is a line item, and the order-level columns (such as the order name and email) repeat on every line of the same order. Before you
+          dedupe, decide whether you want to count orders or line items.
+        </p>
+        <h2>2. Trim stray spaces first</h2>
+        <p>
+          Customer-typed fields like names, addresses and notes often carry leading or trailing spaces, or non-breaking spaces copied from other apps. Use the{" "}
+          <Link href="/tools/trim-spaces-csv">trim spaces tool</Link> so that matching and lookups work.
+        </p>
+        <h2>3. Remove duplicates carefully</h2>
+        <ul>
+          <li>Comparing whole rows only removes rows that are identical in every column, so separate line items of one order are kept.</li>
+          <li>Comparing by a single key such as the order name would keep only one line per order. Use that only when you want one row per order.</li>
+        </ul>
+        <p>
+          The <Link href="/tools/remove-duplicates-csv">duplicate remover</Link> lets you choose between whole rows and key columns, and lists every row it removes so you
+          can check. More options are in the <Link href="/guides/dedupe-strategies">duplicates guide</Link>.
+        </p>
+        <h2>4. Turn amounts into real numbers</h2>
+        <p>
+          If amounts arrive with currency symbols or thousands separators, spreadsheets treat them as text and will not sum them. The{" "}
+          <Link href="/tools/clean-numbers-csv">number cleaner</Link> strips those and turns <code>(45.00)</code> into <code>-45.00</code>. See also{" "}
+          <Link href="/guides/currency-and-number-formats">currency and number formats</Link>.
+        </p>
+        <h2>5. Standardize the dates</h2>
+        <p>
+          Put every date in one format with the <Link href="/tools/fix-dates-csv">date fixer</Link>. If a column could be day-first or month-first, GridRinse flags it for
+          you to decide rather than guessing. Check the result on a few rows you know.
+        </p>
+        <h2>6. Drop columns you do not need</h2>
+        <p>
+          Exports contain dozens of columns. Remove the ones your accountant or import does not need with the{" "}
+          <Link href="/tools/remove-columns-csv">column remover</Link>, which also reduces how much personal data you pass around.
+        </p>
+        <h2>7. Save the steps for next month</h2>
+        <p>
+          The same steps work on every new export. You can save them in your browser for free; Pro adds saving them to your account and cleaning up to 20 files at once.{" "}
+          <Link href="/">Open the cleaner</Link> to try it on your own file.
+        </p>
+      </>
+    ),
+  },
+  {
     slug: "browser-privacy",
     category: "privacy",
     title: "How browser-based privacy works",

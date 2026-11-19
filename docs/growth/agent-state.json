@@ -40,6 +40,23 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-19",
+      "agent": "guides",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "did": [
+        "New guide /guides/clean-shopify-orders-export linking to trim-spaces, remove-duplicates, clean-numbers, fix-dates and remove-columns tool pages"
+      ],
+      "metrics": {
+        "visitors_7d": 62,
+        "tool_users_7d": 4,
+        "pricing_views_7d": 12,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }
