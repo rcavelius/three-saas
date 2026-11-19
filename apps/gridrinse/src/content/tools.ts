@@ -325,6 +325,32 @@ export const TOOLS: ToolPage[] = [
       { q: "Can I save these steps for next month's export?", a: "Yes. Save the steps in your browser for free, or to your account on Pro to use them anywhere." },
     ],
   },
+  {
+    slug: "clean-csv-headers",
+    title: "Clean up CSV column headers: snake_case, Title Case (free)",
+    h1: "Clean up CSV and Excel column headers",
+    description:
+      "Trim messy column names, convert them to snake_case, Title Case or lower case, and fix blank or duplicate headers before an import. Free, in your browser, no upload.",
+    intro:
+      "Importers often reject headers with stray spaces, mixed capitalization, blank names or duplicates. GridRinse tidies the header row in one step and shows which columns were renamed before you download.",
+    stepName: "Tidy column headers",
+    howTo: [
+      "Choose your file above.",
+      "Open the step \"Tidy column headers\" and pick a style: trim only, snake_case, Title Case or lower case.",
+      "Check the renamed columns in the review, then download.",
+    ],
+    example: {
+      input: { columns: ["  First Name ", "Order ID", "orderDate", ""], rows: [["Ann", "1001", "2024-01-17", "x"], ["Sam", "1002", "2024-02-03", "y"]] },
+      steps: [makeStep({ type: "normalizeHeaders", style: "snake" })],
+      note: "Headers become first_name, order_id and order_date; the blank header gets the name column_4.",
+    },
+    faq: [
+      { q: "What happens to blank or duplicate headers?", a: "Blank headers get a name like column_4, and duplicate names get a _2 suffix, so every column has a unique name." },
+      { q: "Can I only trim spaces and keep my capitalization?", a: "Yes, the \"trim only\" style keeps your wording and just removes stray and invisible spaces." },
+      { q: "Is the data below the header changed?", a: "No. Only the header row is renamed by this step." },
+    ],
+    guide: { href: "/guides/csv-cleanup-checklist", label: "Guide: a CSV cleanup checklist" },
+  },
 ];
 
 export function getTool(slug: string): ToolPage | undefined {

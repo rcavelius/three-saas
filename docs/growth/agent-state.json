@@ -7,5 +7,22 @@
   "sales_seen": 0,
   "ignored_subscriptions": 0,
   "ignored_note": "Raise ignored_subscriptions by 1 if the owner makes his own refunded test purchase, so it does not count as a sale.",
-  "log": []
+  "log": [
+    {
+      "date": "2026-11-19",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "did": [
+        "New tool page /tools/clean-csv-headers (tidy column headers: snake_case/Title/lower, blank and duplicate names) with pinned test"
+      ],
+      "metrics": {
+        "visitors_7d": 62,
+        "tool_users_7d": 4,
+        "pricing_views_7d": 12,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
+    }
+  ]
 }

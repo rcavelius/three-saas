@@ -69,4 +69,8 @@ describe("tool landing pages", () => {
   it("numbers lose symbols and separators, parentheses become negatives", () => {
     expect(ex("clean-numbers-csv").after.rows.map((r) => r[1])).toEqual(["1234.50", "-45.00", "7.00"]);
   });
+
+  it("headers become snake_case and the blank one is named", () => {
+    expect(ex("clean-csv-headers").after.columns).toEqual(["first_name", "order_id", "order_date", "column_4"]);
+  });
 });
