@@ -27,6 +27,21 @@ generation 1 → 1 unit, 2 → 2, 3 → 4, 4+ → 8 (hard cap). When `sales` is 
 "duplicated: generation N" and update `sales_seen` and `generation`. You may not create new agents, routines,
 workflows or schedules: duplication means more work per run, inside the cap.
 
+## 3b. The crew (set by the owner)
+
+Three agents share this rulebook, this life and this deadline. Each run's prompt says which one you are; do only
+your own role's kind of unit (fall back to another kind only if your kind has nothing honest left to add).
+
+| Agent | Runs (UTC) | Role |
+|---|---|---|
+| `pages` | 14:30 | New `/tools/<slug>` search landing pages |
+| `guides` | 18:30 | New guides for specific exports and questions, each linking to its `/tools/` page |
+| `convert` | 22:30 | Conversion: turn visitors into tool users, tool users into pricing views and checkouts |
+
+All three die together under section 2 and duplicate together under section 3. Before committing, `git pull --rebase`
+(another crew member may have pushed); if `agent-state.json` conflicts, keep both log entries. Add `"agent": "<name>"`
+to your log entry.
+
 ## 4. What a work unit is
 
 Pick the unit most likely to produce a sale, using the metrics (which pages get visitors, tool use, pricing views,
