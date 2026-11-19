@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-19T00:41:53.109Z",
+  "generated_at": "2026-11-19T21:41:51.358Z",
   "product": "gridrinse",
   "accounts_total": 0,
   "subscriptions_in_db": {},
@@ -14,8 +14,8 @@
   },
   "last_1d": {
     "days": 1,
-    "visitors": 6,
-    "pageviews": 7,
+    "visitors": 5,
+    "pageviews": 5,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
@@ -25,36 +25,31 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 7,
-        "visitors": 6
+        "views": 5,
+        "visitors": 5
       }
     ]
   },
   "last_7d": {
     "days": 7,
-    "visitors": 62,
-    "pageviews": 149,
-    "tool_users": 4,
-    "tool_runs": 9,
-    "pricing_views": 12,
-    "signup_starts": 4,
+    "visitors": 53,
+    "pageviews": 125,
+    "tool_users": 3,
+    "tool_runs": 3,
+    "pricing_views": 8,
+    "signup_starts": 2,
     "checkout_starts": 0,
     "new_accounts": 0,
     "top_pages": [
       {
         "path": "/",
-        "views": 81,
-        "visitors": 58
+        "views": 73,
+        "visitors": 51
       },
       {
         "path": "/pricing",
-        "views": 12,
-        "visitors": 6
-      },
-      {
-        "path": "/signup",
-        "views": 7,
-        "visitors": 4
+        "views": 8,
+        "visitors": 2
       },
       {
         "path": "/how-it-works",
@@ -62,9 +57,9 @@
         "visitors": 2
       },
       {
-        "path": "/help",
-        "views": 6,
-        "visitors": 4
+        "path": "/signup",
+        "views": 5,
+        "visitors": 2
       },
       {
         "path": "/guides",
@@ -77,22 +72,17 @@
         "visitors": 2
       },
       {
-        "path": "/login",
+        "path": "/help",
         "views": 4,
-        "visitors": 4
+        "visitors": 2
       },
       {
-        "path": "/privacy",
-        "views": 3,
-        "visitors": 3
-      },
-      {
-        "path": "/for/ecommerce-exports",
+        "path": "/tools/remove-duplicates-csv",
         "views": 2,
         "visitors": 2
       },
       {
-        "path": "/terms",
+        "path": "/login",
         "views": 2,
         "visitors": 2
       },
@@ -102,16 +92,16 @@
         "visitors": 2
       },
       {
-        "path": "/tools/remove-duplicates-csv",
-        "views": 2,
-        "visitors": 2
+        "path": "/privacy",
+        "views": 1,
+        "visitors": 1
       }
     ]
   },
   "last_30d": {
     "days": 30,
-    "visitors": 62,
-    "pageviews": 149,
+    "visitors": 65,
+    "pageviews": 152,
     "tool_users": 4,
     "tool_runs": 9,
     "pricing_views": 12,
@@ -121,8 +111,8 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 81,
-        "visitors": 58
+        "views": 84,
+        "visitors": 61
       },
       {
         "path": "/pricing",
