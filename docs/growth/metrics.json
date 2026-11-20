@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-19T21:41:51.358Z",
+  "generated_at": "2026-11-20T21:21:27.404Z",
   "product": "gridrinse",
   "accounts_total": 0,
   "subscriptions_in_db": {},
@@ -14,8 +14,8 @@
   },
   "last_1d": {
     "days": 1,
-    "visitors": 5,
-    "pageviews": 5,
+    "visitors": 1,
+    "pageviews": 1,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
@@ -25,15 +25,15 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 5,
-        "visitors": 5
+        "views": 1,
+        "visitors": 1
       }
     ]
   },
   "last_7d": {
     "days": 7,
-    "visitors": 53,
-    "pageviews": 125,
+    "visitors": 43,
+    "pageviews": 115,
     "tool_users": 3,
     "tool_runs": 3,
     "pricing_views": 8,
@@ -43,8 +43,8 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 73,
-        "visitors": 51
+        "views": 63,
+        "visitors": 41
       },
       {
         "path": "/pricing",
@@ -100,8 +100,8 @@
   },
   "last_30d": {
     "days": 30,
-    "visitors": 65,
-    "pageviews": 152,
+    "visitors": 66,
+    "pageviews": 153,
     "tool_users": 4,
     "tool_runs": 9,
     "pricing_views": 12,
@@ -111,8 +111,8 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 84,
-        "visitors": 61
+        "views": 85,
+        "visitors": 62
       },
       {
         "path": "/pricing",
