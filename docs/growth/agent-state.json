@@ -193,6 +193,23 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-21",
+      "agent": "convert",
+      "generation": 1,
+      "sales": 0,
+      "units": 0,
+      "did": [
+        "No ship: npm ci still fails (403 for cdn.sheetjs.com xlsx tarball via agent proxy), so vitest/tsc cannot run; no changes made."
+      ],
+      "metrics": {
+        "visitors_7d": 43,
+        "tool_users_7d": 3,
+        "pricing_views_7d": 8,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }
