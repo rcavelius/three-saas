@@ -86,7 +86,7 @@ export function FlowDiagram({ replayNote }: { replayNote: string }) {
             </dl>
             <pre className="m-0 overflow-hidden whitespace-pre px-3 py-2 text-code">{`{
   "type": "checkout.session.completed",
-  "data": { "object": { "amount_total": 4900 } }
+  "amount_total": 4900
 }`}</pre>
           </div>
         </div>

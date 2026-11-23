@@ -119,64 +119,6 @@ export default function Home() {
           <MyEndpoints />
         </div>
 
-        {/* How it works: three cells, three verbs. */}
-        <section aria-labelledby="how" className="wt-reveal mt-16 border-t border-line md:mt-24">
-          <div className="g-fit border-b border-line px-4 py-5 md:px-5 md:py-6">
-            <PixelTitle as="h2" id="how" text="Capture inspect reply" lines={["Capture / inspect / reply"]} phoneEm={6.2} max={96} maxPhone={64} />
-          </div>
-          <ol className="g-row grid-cols-1 md:grid-cols-3">
-            <li className="g-x flex flex-col p-4 md:p-6">
-              <h3 className="g-cap wt-stag">Capture</h3>
-              <p className="wt-stag mt-2 text-[15px] leading-6" style={{ ["--d" as string]: "60ms" }}>
-                Any method, any sub-path.
-              </p>
-              <div className="wt-stag mt-6 flex flex-1 items-center justify-center py-4" style={{ ["--d" as string]: "120ms" }}>
-                <Art name="packet" sizes="200px" className="h-auto w-[180px] md:w-[200px]" />
-              </div>
-              <p className="mt-4 break-all border border-line bg-surface px-3 py-2.5 font-mono text-[12.5px]">https://webhooktrail.com/h/example-7f2a</p>
-            </li>
-            <li className="g-x flex flex-col p-4 md:p-6">
-              <h3 className="g-cap wt-stag">Inspect</h3>
-              <p className="wt-stag mt-2 text-[15px] leading-6" style={{ ["--d" as string]: "60ms" }}>
-                Headers, query, body. Secrets masked.
-              </p>
-              <dl className="wt-stag mt-6 flex flex-1 flex-col justify-center divide-y divide-line font-mono text-[12.5px]" style={{ ["--d" as string]: "120ms" }}>
-                {[
-                  ["content-type", "application/json"],
-                  ["user-agent", "Stripe/1.0"],
-                  ["stripe-signature", "••••••••"],
-                  ["type", "checkout.session.completed"],
-                ].map(([k, v = ""]) => (
-                  <div key={k} className="grid grid-cols-[9.5rem_1fr] gap-2 py-2.5">
-                    <dt className="text-fg-dim">{k}</dt>
-                    <dd className={`truncate ${v.startsWith("•") ? "text-signal" : ""}`}>{v}</dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="mt-4 font-mono text-[11.5px] text-fg-faint">Example values</p>
-            </li>
-            <li className="g-x g-x-r flex flex-col p-4 md:p-6">
-              <h3 className="g-cap wt-stag">Reply</h3>
-              <p className="wt-stag mt-2 text-[15px] leading-6" style={{ ["--d" as string]: "60ms" }}>
-                Pick the status and body it answers.
-              </p>
-              <div className="wt-stag mt-6 flex flex-1 flex-col justify-center divide-y divide-line" style={{ ["--d" as string]: "120ms" }}>
-                {[
-                  ["200", "ok"],
-                  ["422", "unprocessable"],
-                  ["503", "try again"],
-                ].map(([c, t], i) => (
-                  <p key={c} className={`flex items-baseline justify-between px-3 py-3 ${i === 2 ? "bg-fg text-bg" : ""}`}>
-                    <span className="font-[family-name:var(--font-pixel)] text-[34px] font-bold leading-none">{c}</span>
-                    <span className="font-mono text-[12px]">{t}</span>
-                  </p>
-                ))}
-              </div>
-              <p className="mt-4 font-mono text-[11.5px] leading-[17px] text-fg-faint">Replay to a verified URL: paid plans or the {offer.name}.</p>
-            </li>
-          </ol>
-        </section>
-
         {/* The product, on sample data, in a black console cell. */}
         <section aria-labelledby="see" className="wt-reveal mt-16 border-t border-line md:mt-24">
           <div className="g-row grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]">
