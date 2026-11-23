@@ -5,7 +5,7 @@ import { Cleaner } from "@/components/Cleaner";
 import { HeroDrop } from "@/components/HeroDrop";
 import { JsonLd } from "@/components/JsonLd";
 import { PlanButton } from "@/components/PlanButton";
-import { RinseCard } from "@/components/RinseCard";
+import { RinseExplainer } from "@/components/RinseExplainer";
 import { AUDIENCES } from "@/content/audiences";
 import { GUIDES } from "@/content/guides";
 import { TOOLS } from "@/content/tools";
@@ -52,25 +52,23 @@ export default function Home() {
   return (
     <>
       <section className="mint-grid overflow-hidden">
-        <div className="mx-auto grid max-w-[1400px] items-center gap-x-12 gap-y-10 px-4 pb-14 pt-6 sm:px-8 sm:pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.02fr)] lg:pb-40">
+        <div className="mx-auto grid max-w-[1400px] items-end gap-x-12 gap-y-8 px-4 pb-14 pt-6 sm:px-8 sm:pt-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-y-12 lg:pb-20">
           <div className="min-w-0">
-            <h1 className="display display-out rise text-[clamp(4.1rem,18vw,8.6rem)] leading-[0.9] lg:text-[clamp(5rem,8.2vw,8.6rem)]">
+            <h1 className="display display-out rise text-[clamp(4.1rem,18vw,8.6rem)] leading-[0.9] lg:text-[clamp(5rem,7.6vw,8rem)]">
               Messy in.
               <br />
               Clean out.
             </h1>
-            <p className="rise mt-4 max-w-[34rem] text-[18px] font-semibold leading-snug [animation-delay:80ms] sm:mt-6 sm:text-[21px]">
+            <p className="rise mt-4 max-w-[34rem] text-[18px] font-semibold leading-snug [animation-delay:80ms] sm:mt-5 sm:text-[21px]">
               Clean CSV and Excel files in your browser. Your file never leaves your device.
             </p>
-            <div className="rise relative mt-[5.4rem] [animation-delay:160ms] sm:mt-8">
-              <HeroDrop limitText={`.csv, .xlsx, .xls, .ods · free up to ${mb(free.maxFileBytes)} and ${free.maxRows.toLocaleString("en-US")} rows · no account`} />
-              <Art name="mascot-sm" eager className="float pointer-events-none absolute -top-[5.6rem] right-2 h-auto w-[120px] sm:hidden" />
-            </div>
           </div>
-
-          <div className="relative min-w-0 lg:-mt-24 lg:pl-6">
-            <RinseCard />
-            <Art name="mascot" className="float pointer-events-none absolute -bottom-[10.5rem] -right-4 hidden h-auto w-[230px] lg:block xl:w-[260px]" />
+          <div className="rise relative mt-[3.4rem] min-w-0 [animation-delay:160ms] sm:mt-0">
+            <HeroDrop limitText={`.csv, .xlsx, .xls, .ods · free up to ${mb(free.maxFileBytes)} and ${free.maxRows.toLocaleString("en-US")} rows · no account`} />
+            <Art name="mascot-sm" eager className="float pointer-events-none absolute -top-[5.6rem] right-2 h-auto w-[120px] sm:hidden" />
+          </div>
+          <div className="rise min-w-0 [animation-delay:240ms] lg:col-span-2">
+            <RinseExplainer />
           </div>
         </div>
       </section>
