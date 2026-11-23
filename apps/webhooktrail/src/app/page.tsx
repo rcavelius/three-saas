@@ -79,14 +79,14 @@ export default function Home() {
                 </div>
                 <span aria-hidden="true" className="wt-shadow absolute -bottom-1 left-1/2 h-4 w-[70%] -translate-x-1/2 rounded-[50%] bg-black/30 blur-[6px]" />
               </div>
-              <p className="g-cap absolute bottom-3 left-4 hidden text-fg-faint lg:block">unit_01 / receiver</p>
+              <p className="g-cap absolute left-4 top-4 hidden text-fg-faint lg:block">unit_01 / receiver</p>
             </div>
 
             {/* Promise + action. */}
             <div className="g-x flex flex-col justify-between gap-6 p-4 md:p-5 lg:order-1 lg:p-6">
               <div className="flex flex-col gap-5">
                 <div className="order-2 lg:order-1">
-                  <p className="max-w-[30ch] text-[15px] leading-[24px] text-fg lg:text-[17px] lg:leading-[27px]">
+                  <p className="max-w-[26ch] text-[16px] leading-[25px] text-fg lg:text-[22px] lg:leading-[32px]">
                     One private URL records every request. Read each header and byte, choose the reply, replay it.
                   </p>
                 </div>
@@ -154,14 +154,14 @@ export default function Home() {
               <p className="wt-stag mt-2 text-[15px] leading-6" style={{ ["--d" as string]: "60ms" }}>
                 Headers, query, body. Secrets masked.
               </p>
-              <dl className="wt-stag mt-6 grid flex-1 content-center gap-px bg-line font-mono text-[12.5px]" style={{ ["--d" as string]: "120ms" }}>
+              <dl className="wt-stag mt-6 flex flex-1 flex-col justify-center divide-y divide-line font-mono text-[12.5px]" style={{ ["--d" as string]: "120ms" }}>
                 {[
                   ["content-type", "application/json"],
                   ["user-agent", "Stripe/1.0"],
                   ["stripe-signature", "••••••••"],
                   ["type", "checkout.session.completed"],
                 ].map(([k, v = ""]) => (
-                  <div key={k} className="grid grid-cols-[9.5rem_1fr] gap-2 bg-bg py-2">
+                  <div key={k} className="grid grid-cols-[9.5rem_1fr] gap-2 py-2.5">
                     <dt className="text-fg-dim">{k}</dt>
                     <dd className={`truncate ${v.startsWith("•") ? "text-signal" : ""}`}>{v}</dd>
                   </div>
@@ -174,13 +174,13 @@ export default function Home() {
               <p className="wt-stag mt-2 text-[15px] leading-6" style={{ ["--d" as string]: "60ms" }}>
                 Pick the status and body it answers.
               </p>
-              <div className="wt-stag mt-6 flex flex-1 flex-col justify-center gap-px bg-line" style={{ ["--d" as string]: "120ms" }}>
+              <div className="wt-stag mt-6 flex flex-1 flex-col justify-center divide-y divide-line" style={{ ["--d" as string]: "120ms" }}>
                 {[
                   ["200", "ok"],
                   ["422", "unprocessable"],
                   ["503", "try again"],
                 ].map(([c, t], i) => (
-                  <p key={c} className={`flex items-baseline justify-between px-3 py-3 ${i === 2 ? "bg-fg text-bg" : "bg-bg"}`}>
+                  <p key={c} className={`flex items-baseline justify-between px-3 py-3 ${i === 2 ? "bg-fg text-bg" : ""}`}>
                     <span className="font-[family-name:var(--font-pixel)] text-[34px] font-bold leading-none">{c}</span>
                     <span className="font-mono text-[12px]">{t}</span>
                   </p>

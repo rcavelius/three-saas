@@ -1,15 +1,18 @@
 /**
  * The black cell: an example request trace that looks live. Pure CSS (no script): rows arrive one
- * after another on a 9 s loop, the newest one flashes, the cursor blinks and a pulse runs along
+ * after another on a 12 s loop, the newest one flashes, the cursor blinks and a pulse runs along
  * the scope line. Labelled as an example; nothing here is a real request. Under reduced motion it
  * is a still list.
  */
 const ROWS: [string, string, string, string][] = [
-  ["POST", "/stripe/checkout", "200", "evt"],
-  ["POST", "/github/push", "200", "push"],
-  ["PUT", "/shopify/orders/42", "422", "retry"],
-  ["GET", "/ci/build/14", "200", "ping"],
-  ["POST", "/stripe/checkout", "503", "test"],
+  ["14:27:08", "POST", "/stripe/checkout", "200"],
+  ["14:27:11", "POST", "/github/push", "200"],
+  ["14:27:15", "PUT", "/shopify/orders/42", "422"],
+  ["14:27:16", "PUT", "/shopify/orders/42", "200"],
+  ["14:27:21", "GET", "/ci/build/14", "200"],
+  ["14:27:30", "POST", "/stripe/invoice", "503"],
+  ["14:27:42", "POST", "/stripe/invoice", "200"],
+  ["14:27:55", "DELETE", "/hooks/old", "204"],
 ];
 
 export function TraceCell({ className = "" }: { className?: string }) {
@@ -26,12 +29,13 @@ export function TraceCell({ className = "" }: { className?: string }) {
         <path d="M0 18H200" stroke="#2b3138" strokeWidth="1" vectorEffect="non-scaling-stroke" />
         <path className="wt-scope" d="M0 18H70l6-12 8 20 6-14 4 6H200" stroke="var(--color-signal)" strokeWidth="1.5" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
       </svg>
-      <ol className="mt-3 grid flex-1 content-start gap-[7px]">
-        {ROWS.map(([m, p, s], i) => (
-          <li key={i} className="wt-trace-row grid grid-cols-[3.2em_1fr_auto] gap-2 whitespace-nowrap" style={{ ["--i" as string]: i }}>
+      <ol className="mt-4 grid flex-1 content-start gap-[9px] lg:content-evenly">
+        {ROWS.map(([t, m, p, s], i) => (
+          <li key={i} className="wt-trace-row grid grid-cols-[4.6em_3.8em_1fr_auto] gap-2 whitespace-nowrap" style={{ ["--i" as string]: i }}>
+            <span className="text-[#7d8790]">{t.slice(3)}</span>
             <span className="text-[#ffb27a]">{m}</span>
             <span className="truncate text-[#e9edf1]">{p}</span>
-            <span className={s === "200" ? "text-[#6be3ae]" : "text-[#ffb44d]"}>{s}</span>
+            <span className={s.startsWith("2") ? "text-[#6be3ae]" : "text-[#ffb44d]"}>{s}</span>
           </li>
         ))}
       </ol>

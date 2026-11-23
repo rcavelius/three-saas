@@ -19,7 +19,10 @@ const ADV = [
   1000, 1000, 750, 625, 750, 625, 750, 875, 625, 750, 500, 750, 875,
 ];
 
-/** Width of a line in em (trailing side bearing of the last glyph included, which is harmless). */
+/** Letter spacing applied by `.wt-pixel` (keep in sync with globals.css). */
+export const PIXEL_TRACKING = -0.04;
+
+/** Advance width of a line in em at zero tracking (from the font file). */
 export function pixelWidth(text: string): number {
   let w = 0;
   for (const ch of text.toUpperCase()) {
@@ -29,6 +32,11 @@ export function pixelWidth(text: string): number {
   return w / 1000;
 }
 
+/** Rendered width in em with the display tracking (applied after every glyph, as browsers do). */
+function setWidth(text: string): number {
+  return pixelWidth(text) + PIXEL_TRACKING * [...text].length;
+}
+
 /** Greedy split of one line into phone lines no wider than `target` em. */
 function splitLine(line: string, target: number): string[] {
   const words = line.split(/\s+/).filter(Boolean);
@@ -36,7 +44,7 @@ function splitLine(line: string, target: number): string[] {
   let cur = "";
   for (const w of words) {
     const next = cur ? `${cur} ${w}` : w;
-    if (cur && pixelWidth(next) > target) {
+    if (cur && setWidth(next) > target) {
       out.push(cur);
       cur = w;
     } else cur = next;
@@ -47,14 +55,14 @@ function splitLine(line: string, target: number): string[] {
 
 /** Balanced split into two desktop lines when the text is long. */
 function desktopLines(text: string, maxEm: number): string[] {
-  if (pixelWidth(text) <= maxEm) return [text];
+  if (setWidth(text) <= maxEm) return [text];
   const words = text.split(/\s+/);
   let best: string[] = [text];
   let bestW = Infinity;
   for (let i = 1; i < words.length; i++) {
     const a = words.slice(0, i).join(" ");
     const b = words.slice(i).join(" ");
-    const w = Math.max(pixelWidth(a), pixelWidth(b));
+    const w = Math.max(setWidth(a), setWidth(b));
     if (w < bestW) {
       bestW = w;
       best = [a, b];
@@ -89,8 +97,8 @@ export function PixelTitle({
 }) {
   const desk = lines ?? desktopLines(text, 16);
   const phone = desk.map((l) => splitLine(l, phoneEm));
-  const wd = Math.max(...desk.map(pixelWidth));
-  const wm = Math.max(...phone.flat().map(pixelWidth));
+  const wd = Math.max(...desk.map(setWidth)) + 0.02;
+  const wm = Math.max(...phone.flat().map(setWidth)) + 0.02;
   const style = {
     "--px-d": `min(${max}px, calc(100cqi / ${wd.toFixed(3)}))`,
     "--px-m": `min(${maxPhone}px, calc(100cqi / ${wm.toFixed(3)}))`,

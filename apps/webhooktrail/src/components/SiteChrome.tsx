@@ -17,7 +17,7 @@ export function Wordmark() {
   return (
     <span className="inline-flex items-center gap-2.5">
       <SignalMark />
-      <span className="font-[family-name:var(--font-pixel)] text-[16px] font-bold uppercase leading-none tracking-[0.02em]">WebhookTrail</span>
+      <span className="font-mono text-[15px] font-extrabold uppercase leading-none tracking-[0.06em]">WebhookTrail</span>
     </span>
   );
 }
