@@ -1,6 +1,7 @@
 {
-  "generated_at": "2026-11-23T06:26:32.216Z",
+  "generated_at": "2026-11-23T08:26:29.806Z",
   "product": "changekite",
+  "sources_tracked_since": null,
   "accounts_total": 0,
   "subscriptions_in_db": {},
   "stripe": {
@@ -14,43 +15,79 @@
   },
   "last_1d": {
     "days": 1,
-    "visitors": 0,
-    "pageviews": 0,
+    "visitors": 5,
+    "pageviews": 5,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
     "signup_starts": 0,
     "checkout_starts": 0,
     "new_accounts": 0,
-    "top_pages": []
+    "events": {
+      "pageview": {
+        "count": 5,
+        "visitors": 5
+      }
+    },
+    "top_pages": [
+      {
+        "path": "/",
+        "views": 5,
+        "visitors": 5
+      }
+    ],
+    "sources_available": false
   },
   "last_7d": {
     "days": 7,
-    "visitors": 0,
-    "pageviews": 0,
+    "visitors": 5,
+    "pageviews": 5,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
     "signup_starts": 0,
     "checkout_starts": 0,
     "new_accounts": 0,
-    "top_pages": []
+    "events": {
+      "pageview": {
+        "count": 5,
+        "visitors": 5
+      }
+    },
+    "top_pages": [
+      {
+        "path": "/",
+        "views": 5,
+        "visitors": 5
+      }
+    ],
+    "sources_available": false
   },
   "last_30d": {
     "days": 30,
-    "visitors": 2,
-    "pageviews": 14,
+    "visitors": 7,
+    "pageviews": 19,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 2,
     "signup_starts": 2,
     "checkout_starts": 0,
     "new_accounts": 0,
+    "events": {
+      "pageview": {
+        "count": 19,
+        "visitors": 7
+      },
+      "signup_started": {
+        "count": 2,
+        "visitors": 2
+      }
+    },
     "top_pages": [
       {
         "path": "/",
-        "views": 2,
-        "visitors": 2
+        "views": 7,
+        "visitors": 7
       },
       {
         "path": "/help",
@@ -82,6 +119,7 @@
         "views": 2,
         "visitors": 2
       }
-    ]
+    ],
+    "sources_available": false
   }
 }
