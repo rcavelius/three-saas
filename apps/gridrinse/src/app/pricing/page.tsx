@@ -132,7 +132,7 @@ export default function Pricing() {
       <section className="mint-grid overflow-hidden">
         <div className="relative mx-auto max-w-[1100px] px-4 pb-24 pt-10 sm:px-8 sm:pb-28 sm:pt-14">
           <Art name="mascot-wave" className="float pointer-events-none absolute -bottom-2 right-6 hidden h-auto w-[230px] md:block" />
-          <h1 className="display display-out rise text-[clamp(3.6rem,15vw,7.6rem)] leading-[0.9]">
+          <h1 className="display display-out text-[clamp(3.6rem,15vw,7.6rem)] leading-[0.9]">
             Clean data. <br />
             Simple pricing.
           </h1>

@@ -92,7 +92,7 @@ export default function GuidesIndex() {
         <div className="mx-auto grid max-w-[1400px] items-center gap-8 px-4 pb-12 pt-8 sm:px-8 sm:pb-16 sm:pt-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           <div>
             <p className="chip rise">The GridRinse resource hub</p>
-            <h1 className="display display-out rise mt-5 text-[clamp(3rem,12vw,6.4rem)] leading-[0.92] [animation-delay:60ms]">
+            <h1 className="display display-out mt-5 text-[clamp(3rem,12vw,6.4rem)] leading-[0.92] [animation-delay:60ms]">
               Less friction. <br />
               More know-how.
             </h1>
