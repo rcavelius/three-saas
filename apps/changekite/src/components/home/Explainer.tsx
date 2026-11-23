@@ -21,8 +21,8 @@ const SEV_DOT = { critical: "bg-[#ff3b4a]", warning: "bg-[#ffb21a]", notice: "bg
 function Pin({ label, className, d }: { label: string; className: string; d: number }) {
   return (
     <span className={`ex-pin absolute z-10 flex items-center gap-1.5 ${className}`} style={{ ["--d" as string]: `${d}ms` }}>
-      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#ff3b4a] text-[0.95rem] font-black text-white shadow-[0_0_0_3px_var(--color-ink)]">!</span>
-      <span className="whitespace-nowrap rounded-full bg-[#ff3b4a] px-2.5 py-1 text-[0.8rem] font-extrabold leading-none text-white shadow-[0_0_0_2.5px_var(--color-ink)] sm:text-[0.85rem]">
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#d7192b] text-[0.95rem] font-black text-white shadow-[0_0_0_3px_var(--color-ink)]">!</span>
+      <span className="whitespace-nowrap rounded-full bg-[#d7192b] px-2.5 py-1 text-[0.8rem] font-extrabold leading-none text-white shadow-[0_0_0_2.5px_var(--color-ink)] sm:text-[0.85rem]">
         {label}
       </span>
     </span>
