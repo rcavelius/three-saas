@@ -376,6 +376,39 @@ export const TOOLS: ToolPage[] = [
       { q: "Is my data changed?", a: "No. Only the header names and the column order change; the cells stay as they are." },
     ],
   },
+  {
+    slug: "remove-duplicate-emails-csv",
+    title: "Remove duplicate email addresses from a CSV or Excel list (free)",
+    h1: "Remove duplicate email addresses from a list",
+    description:
+      "Keep one row per email address in a CSV or Excel contact list, ignoring upper and lower case, and choose whether the first or last row wins. Free, no upload.",
+    intro:
+      "Mailing lists, CRM exports and sign-up sheets often contain the same address several times, sometimes as Ann@Example.com and ann@example.com. GridRinse matches on the Email column only, ignores capitalization, and shows which rows go before you download.",
+    stepName: "Remove duplicate rows",
+    howTo: [
+      "Choose your file above.",
+      "Open the step \"Remove duplicate rows\", pick your email column as the key and turn on ignore case. Choose whether to keep the first or the last row for each address.",
+      "Check the highlighted rows in the review, then download.",
+    ],
+    example: {
+      input: {
+        columns: ["Email", "Name", "Signed up"],
+        rows: [
+          ["Ann@Example.com", "Ann Lee", "2024-01-05"],
+          ["sam@example.com", "Sam Park", "2024-01-09"],
+          ["ann@example.com", "Ann Lee-Smith", "2024-03-12"],
+        ],
+      },
+      steps: [makeStep({ type: "dedupe", keys: ["Email"], ignoreCase: true, keep: "last" })],
+      note: "Ann@Example.com and ann@example.com count as one address; the later row (Ann Lee-Smith) is kept.",
+    },
+    faq: [
+      { q: "Are Ann@Example.com and ann@example.com the same?", a: "They are when \"ignore case\" is on, which is what you want for email addresses." },
+      { q: "Which row is kept for each address?", a: "Your choice: the first row (default) or the last one, for example when newer rows are more up to date." },
+      { q: "Does it check whether an address is valid?", a: "No. It only removes repeated values in the column you pick; it does not validate or contact addresses." },
+    ],
+    guide: { href: "/guides/dedupe-strategies", label: "Guide: ways to deduplicate a spreadsheet" },
+  },
 ];
 
 export function getTool(slug: string): ToolPage | undefined {

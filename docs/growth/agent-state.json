@@ -278,6 +278,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-23",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "New tool page /tools/remove-duplicate-emails-csv (dedupe by Email, ignore case, keep first/last; neighbour of remove-duplicates-csv) with pinned test"
+      ],
+      "metrics": {
+        "visitors_7d": 40,
+        "tool_users_7d": 5,
+        "pricing_views_7d": 4,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

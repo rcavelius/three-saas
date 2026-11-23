@@ -79,4 +79,11 @@ describe("tool landing pages", () => {
     expect(r.columns).toEqual(["Name", "Email", "Phone"]);
     expect(r.rows[0]).toEqual(["Ann Lee", "ann@example.com", "555-0101"]);
   });
+
+  it("duplicate emails match ignoring case and keep the last row", () => {
+    expect(ex("remove-duplicate-emails-csv").after.rows).toEqual([
+      ["sam@example.com", "Sam Park", "2024-01-09"],
+      ["ann@example.com", "Ann Lee-Smith", "2024-03-12"],
+    ]);
+  });
 });
