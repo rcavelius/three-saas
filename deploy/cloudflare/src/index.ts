@@ -231,6 +231,11 @@ function forwardable(request: Request, url: URL): Request {
   const ip = request.headers.get("cf-connecting-ip");
   if (ip) headers.set("cf-connecting-ip", ip);
   else headers.delete("cf-connecting-ip");
+  // Country code for first-party analytics (two letters, never the IP): the edge header, else request.cf.
+  const cf = (request as Request & { cf?: { country?: unknown } }).cf;
+  const country = request.headers.get("cf-ipcountry") ?? (typeof cf?.country === "string" ? cf.country : null);
+  if (country && /^[A-Za-z0-9]{2}$/.test(country)) headers.set("cf-ipcountry", country.toUpperCase());
+  else headers.delete("cf-ipcountry");
   headers.set("x-forwarded-proto", "https");
   headers.set("x-forwarded-host", url.host);
   const target = new URL(url);

@@ -4,7 +4,7 @@
  */
 import { createHash, timingSafeEqual } from "node:crypto";
 import { rateLimit as dbRateLimit, type DbHandle } from "@repo/database";
-import { DEFAULT_EVENT_NAMES, trackEvent } from "./analytics";
+import { DEFAULT_EVENT_NAMES, trackEvent, visitSourceFrom } from "./analytics";
 import { getClientIp, rateLimitKeyForIp, type ClientIpConfig } from "./client-ip";
 import { healthReport, publicHealth, type HealthOptions } from "./health";
 import type { Scheduler } from "./scheduler";
@@ -177,6 +177,9 @@ export function eventsRoute(o: EventsRouteOptions) {
     const b = body as Record<string, unknown>;
     if (typeof b.name !== "string" || !names.includes(b.name)) return json(400, { error: "event_not_allowed" });
     const userId = o.getUserId ? await o.getUserId(req) : null;
+    const ownHosts = [new URL(req.url).hostname, (req.headers.get("x-forwarded-host") ?? "").split(":")[0]!, ...(o.allowedOrigins ?? []).map((x) => new URL(x).hostname)].filter(
+      Boolean,
+    );
     await trackEvent(
       o.handle.executor,
       {
@@ -185,6 +188,7 @@ export function eventsRoute(o: EventsRouteOptions) {
         userId,
         path: typeof b.path === "string" ? b.path : null,
         props: pickProps(b.props, o.allowedProps?.[b.name as string]),
+        source: visitSourceFrom(req.headers, { referrer: b.referrer, utm: b.utm, landing: b.landing }, ownHosts),
       },
       { allowedNames: names, now },
     );

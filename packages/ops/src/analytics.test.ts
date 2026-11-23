@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { DbHandle } from "@repo/database";
-import { sanitizePath, sanitizeProps, trackEvent, MAX_PROPS_BYTES } from "./analytics";
+import { countryFromHeaders, deviceClass, isObviousBot, referrerHost, sanitizePath, sanitizeProps, sanitizeUtm, trackEvent, MAX_PROPS_BYTES } from "./analytics";
 import { eventsRoute } from "./next";
 import { makeClock, makeDb } from "./test/fixtures";
 
@@ -149,6 +149,115 @@ describe("eventsRoute", () => {
     const r2 = eventsRoute({ handle, rateLimit: { limit: 100, windowMs: 60_000 }, clientIp: { mode: "none" }, allowedOrigins: ["https://www.app.example/"] });
     expect((await r2(post({ name: "pageview" }, { origin: "https://www.app.example" }))).status).toBe(204);
     expect((await r2(post({ name: "pageview" }))).status).toBe(403);
+  });
+});
+
+describe("visit sources", () => {
+  const CHROME_DESKTOP = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36";
+  const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+  const GOOGLEBOT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+
+  it("referrerHost keeps only the host and drops self, IP and junk referrers", () => {
+    expect(referrerHost("https://www.google.com/search?q=clean+csv&email=a@b.example")).toBe("google.com");
+    expect(referrerHost("https://news.ycombinator.com/item?id=1")).toBe("news.ycombinator.com");
+    expect(referrerHost("https://m.facebook.com/")).toBe("facebook.com");
+    expect(referrerHost("https://gridrinse.com/tools", ["gridrinse.com"])).toBeNull();
+    expect(referrerHost("https://www.gridrinse.com/", ["gridrinse.com"])).toBeNull();
+    expect(referrerHost("http://203.0.113.9/page")).toBeNull();
+    expect(referrerHost("http://[2001:db8::1]/")).toBeNull();
+    expect(referrerHost("javascript:alert(1)")).toBeNull();
+    expect(referrerHost("not a url")).toBeNull();
+    expect(referrerHost("")).toBeNull();
+    expect(referrerHost(42)).toBeNull();
+    expect(referrerHost("android-app://com.google.android.gm/")).toBe("android-app:com.google.android.gm");
+  });
+
+  it("sanitizeUtm keeps short lowercase tokens and drops anything personal", () => {
+    expect(sanitizeUtm("Newsletter")).toBe("newsletter");
+    expect(sanitizeUtm("launch_2026-11")).toBe("launch_2026-11");
+    expect(sanitizeUtm("jane@example.com")).toBeNull();
+    expect(sanitizeUtm("<script>")).toBeNull();
+    expect(sanitizeUtm("x".repeat(500))).toHaveLength(64);
+    expect(sanitizeUtm(null)).toBeNull();
+  });
+
+  it("country, device and bot detection", () => {
+    expect(countryFromHeaders(new Headers({ "cf-ipcountry": "de" }))).toBe("DE");
+    expect(countryFromHeaders(new Headers({ "cf-ipcountry": "XX" }))).toBeNull();
+    expect(countryFromHeaders(new Headers({ "cf-ipcountry": "T1" }))).toBeNull();
+    expect(countryFromHeaders(new Headers({ "cf-ipcountry": "Germany" }))).toBeNull();
+    expect(countryFromHeaders(new Headers())).toBeNull();
+    expect(deviceClass(IPHONE)).toBe("mobile");
+    expect(deviceClass(CHROME_DESKTOP)).toBe("desktop");
+    expect(deviceClass(null)).toBeNull();
+    expect(isObviousBot(GOOGLEBOT)).toBe(true);
+    expect(isObviousBot("curl/8.4.0")).toBe(true);
+    expect(isObviousBot("Mozilla/5.0 HeadlessChrome/120.0")).toBe(true);
+    expect(isObviousBot(null)).toBe(true);
+    expect(isObviousBot(CHROME_DESKTOP)).toBe(false);
+    expect(isObviousBot(IPHONE)).toBe(false);
+  });
+
+  it("eventsRoute stores referrer host, utm, country, device and bot flag, never the IP or full URL", async () => {
+    const route = eventsRoute({ handle, rateLimit: { limit: 100, windowMs: 60_000 }, clientIp: { mode: "fly" }, allowedOrigins: ["https://app.example"] });
+    const send = (body: unknown, ua: string, country?: string) =>
+      route(
+        new Request("https://app.example/api/events", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            origin: "https://app.example",
+            "fly-client-ip": "198.51.100.20",
+            "user-agent": ua,
+            ...(country ? { "cf-ipcountry": country } : {}),
+          },
+          body: JSON.stringify(body),
+        }),
+      );
+    expect(
+      (
+        await send(
+          {
+            name: "pageview",
+            anonymousId: "anon_12345678",
+            path: "/tools/x",
+            referrer: "https://www.google.com/search?q=secret-query",
+            utm: { source: "Reddit", medium: "social", campaign: "launch", term: "ignored" },
+            landing: true,
+          },
+          IPHONE,
+          "nl",
+        )
+      ).status,
+    ).toBe(204);
+    expect((await send({ name: "pageview", path: "/", referrer: "https://app.example/pricing" }, GOOGLEBOT)).status).toBe(204);
+    const { rows: stored } = await handle.executor.query<Record<string, unknown>>(
+      `SELECT * FROM analytics_events WHERE name = 'pageview' ORDER BY is_bot`,
+    );
+    expect(stored[0]).toMatchObject({
+      referrer_host: "google.com",
+      utm_source: "reddit",
+      utm_medium: "social",
+      utm_campaign: "launch",
+      country: "NL",
+      device: "mobile",
+      is_bot: false,
+      is_landing: true,
+    });
+    expect(stored[1]).toMatchObject({ referrer_host: null, utm_source: null, country: null, device: "desktop", is_bot: true, is_landing: false });
+    const dump = JSON.stringify(stored);
+    expect(dump).not.toContain("198.51.100.20");
+    expect(dump).not.toContain("secret-query");
+    expect(dump).not.toContain("iPhone");
+  });
+
+  it("trackEvent re-sanitizes a source passed in directly", async () => {
+    await trackEvent(ex(), {
+      name: "pageview",
+      source: { referrerHost: "https://evil.example/path?email=a@b.example", utmSource: "a@b.example", country: "Narnia", device: "fridge" as never, isBot: "yes" as never },
+    });
+    const { rows: stored } = await handle.executor.query<Record<string, unknown>>(`SELECT * FROM analytics_events`);
+    expect(stored[0]).toMatchObject({ referrer_host: null, utm_source: null, country: null, device: null, is_bot: false });
   });
 });
 

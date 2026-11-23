@@ -315,6 +315,10 @@ export async function eventsRouteHandler(p: Platform, req: Request): Promise<Res
     const clean = JSON.stringify({
       name: b.name,
       anonymousId: typeof b.anonymousId === "string" ? b.anonymousId : null,
+      // Landing source (referrer origin + utm tokens); the shared route reduces these to host/short tokens.
+      referrer: typeof b.referrer === "string" ? b.referrer.slice(0, 200) : undefined,
+      utm: b.utm && typeof b.utm === "object" && !Array.isArray(b.utm) ? b.utm : undefined,
+      landing: b.landing === true ? true : undefined,
       path: typeof b.path === "string" ? b.path : null,
       props: sanitizeEventProps(b.name as EventName, (b.props && typeof b.props === "object" ? b.props : {}) as Record<string, unknown>),
     });
