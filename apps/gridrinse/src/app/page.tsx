@@ -4,6 +4,7 @@ import { Art } from "@/components/Art";
 import { Cleaner } from "@/components/Cleaner";
 import { HeroDrop } from "@/components/HeroDrop";
 import { JsonLd } from "@/components/JsonLd";
+import { LoopVideo } from "@/components/LoopVideo";
 import { PlanButton } from "@/components/PlanButton";
 import { RinseExplainer } from "@/components/RinseExplainer";
 import { AUDIENCES } from "@/content/audiences";
@@ -81,6 +82,27 @@ export default function Home() {
         <h2 id="cycle-heading" className="display text-[clamp(3rem,9vw,6.5rem)]">
           The rinse cycle
         </h2>
+
+        {/* The rinse as a short silent loop: messy sheet on a laptop -> squeegee -> clean sheet. */}
+        <div role="group" aria-labelledby="loop-heading" className="card-pop mt-8 grid items-center gap-6 overflow-hidden p-3 sm:mt-10 sm:p-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-10">
+          <div className="overflow-hidden rounded-[10px] border-[3px] border-ink bg-accent">
+            <LoopVideo src="/video/explainer" poster="/video/explainer-poster.webp" width={960} height={528} className="block aspect-[960/528] h-auto w-full" />
+          </div>
+          <div className="px-2 pb-3 lg:px-0 lg:pb-0 lg:pr-6">
+            <p className="text-[15px] font-extrabold uppercase tracking-[0.08em]">Watch it rinse</p>
+            <h3 id="loop-heading" className="display mt-2 text-[2.6rem] leading-[0.95] sm:text-[3.4rem]">
+              Messy CSV in <span aria-hidden="true">→</span>
+              <span className="sr-only">, </span> clean file out.
+            </h3>
+            <p className="mt-3 max-w-[30rem] text-[17px] font-semibold leading-snug sm:text-[19px]">
+              Duplicates, stray spaces, mixed dates and junk rows, rinsed on your own laptop. The file never leaves it.
+            </p>
+            <a href="#main" className="btn-pop mt-5">
+              Clean my file <span aria-hidden="true">↑</span>
+            </a>
+          </div>
+        </div>
+
         <ol className="mt-8 grid gap-5 sm:mt-10 lg:grid-cols-3 lg:gap-6">
           {STEPS.map((s) => (
             <li key={s.word} className={`card-pop flex items-center gap-4 p-5 sm:gap-6 sm:p-7 lg:min-h-[360px] lg:flex-col lg:items-start lg:justify-between ${s.tint}`}>
