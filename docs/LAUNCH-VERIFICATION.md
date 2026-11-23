@@ -1,5 +1,13 @@
 # Launch verification — 2026-11-12
 
+> **Update 2026-11-23: checkout proven end to end, now on a schedule.** `.github/workflows/checkout-e2e.yml` buys every
+> one-time pass and one monthly plan per app in Stripe TEST mode with a real headless browser (production build, service
+> Postgres, Stripe hosted Checkout with card 4242, webhooks via `stripe listen`, pass cookie + unlock link, paid limits):
+> GridRinse 24-hour pass $5 and Pro $9, ChangeKite full-report pass $9 and Solo $19, WebhookTrail 7-day pass $5 and
+> Developer $9 — all pass (weekly, Mondays). A daily live smoke opens a live Checkout for every pass and plan through the
+> live sites, checks price and amount, and expires it unpaid. Latest result: `docs/growth/checkout-health.json`.
+> Code: `scripts/checkout-e2e/`.
+
 Every result below came from a test that actually ran on 2026-11-12. "Live" means the deployed site on its real domain; "local" means the same production build running on this PC (`next build` + `next start`), used wherever a step needs a customer account, because the automation is not allowed to create accounts on a production domain.
 
 ## Summary

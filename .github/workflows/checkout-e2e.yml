@@ -9,8 +9,6 @@ name: Checkout health
 #    checks price and amount, and EXPIRES each session unpaid. Nothing is ever paid in live mode.
 # A failed run makes GitHub email the repository owner.
 on:
-  push:  # TEMP: run on the PR branch while it is being built (removed before merge)
-    branches: [claude/checkout-qa-1f4718]
   schedule:
     - cron: "0 7 * * *"   # live smoke
     - cron: "30 7 * * 1"  # test-mode end to end
@@ -35,7 +33,7 @@ env:
 jobs:
   prepare:
     name: Stripe test products and prices
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'live') || github.event.schedule == '30 7 * * 1'
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'live') || github.event.schedule == '30 7 * * 1'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -57,7 +55,7 @@ jobs:
   e2e:
     name: Test-mode checkout ${{ matrix.app }}
     needs: prepare
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'live') || github.event.schedule == '30 7 * * 1'
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'live') || github.event.schedule == '30 7 * * 1'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
@@ -140,9 +138,9 @@ jobs:
 
   live:
     name: Live checkout smoke (expired, never paid)
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'e2e') || github.event.schedule == '0 7 * * *'
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'e2e') || github.event.schedule == '0 7 * * *'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -26,14 +26,15 @@ interface Check {
 const results: Check[] = [];
 const usd = (c: number) => `$${(c / 100).toFixed(2).replace(/\.00$/, "")}`;
 
-async function retry<T>(fn: () => Promise<T>, n = 3): Promise<T> {
+/** Retries for about two minutes: a deploy swaps the container and answers 503 meanwhile (not a checkout fault). */
+async function retry<T>(fn: () => Promise<T>, n = 6): Promise<T> {
   let last: unknown;
   for (let i = 0; i < n; i++) {
     try {
       return await fn();
     } catch (e) {
       last = e;
-      await new Promise((r) => setTimeout(r, 5000 * (i + 1)));
+      if (i < n - 1) await new Promise((r) => setTimeout(r, 8000 * (i + 1)));
     }
   }
   throw last;
