@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Art } from "@/components/Art";
 import { Cleaner } from "@/components/Cleaner";
 import { HeroDrop } from "@/components/HeroDrop";
 import { JsonLd } from "@/components/JsonLd";
 import { PlanButton } from "@/components/PlanButton";
-import { Shield, SpecimenFigure } from "@/components/SpecimenFigure";
+import { RinseCard } from "@/components/RinseCard";
 import { AUDIENCES } from "@/content/audiences";
 import { GUIDES } from "@/content/guides";
 import { TOOLS } from "@/content/tools";
@@ -25,38 +26,21 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: [ogImage().url] },
 };
 
-const FEATURES = [
-  {
-    title: "Clean up the clutter",
-    body: "Remove blank rows, duplicates, and extra spaces.",
-    tint: "bg-mint-soft",
-    icon: (
-      <path d="M12 3 2.5 8 12 13l9.5-5zM2.5 12 12 17l9.5-5M2.5 16 12 21l9.5-5" />
-    ),
-  },
-  {
-    title: "Make formats consistent",
-    body: "Standardize dates and turn currency into usable numbers.",
-    tint: "bg-lemon-soft",
-    icon: (
-      <>
-        <rect x="3" y="4.5" width="18" height="16.5" rx="2.5" />
-        <path d="M8 2.5v4M16 2.5v4M3 9.5h18" />
-        <path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01M16.5 17h.01" strokeWidth="2.6" />
-      </>
-    ),
-  },
-  {
-    title: "Review before you export",
-    body: "See every change. Unclear dates are flagged for you.",
-    tint: "bg-sky-soft",
-    icon: (
-      <>
-        <path d="M1.5 12S5.5 4.5 12 4.5 22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12z" />
-        <circle cx="12" cy="12" r="3.5" />
-      </>
-    ),
-  },
+const STEPS = [
+  { word: "Drop", line: "CSV, TSV, Excel or ODS, straight from your desktop.", art: "sheet" as const, tint: "bg-mint" },
+  { word: "Rinse", line: "Spaces trimmed. Blanks and duplicates gone. Dates and money fixed.", art: "bubbles" as const, tint: "bg-pink" },
+  { word: "Download", line: "See every change first. Then export CSV or Excel.", art: "trophy" as const, tint: "bg-surface" },
+] as const;
+
+const FIXES = [
+  "Extra spaces",
+  "Blank rows",
+  "Duplicate rows",
+  "Jan 17, 2024 → 2024-01-17",
+  "$1,234.50 → 1234.50",
+  "(45.00) → -45.00",
+  "Merge files",
+  "Ambiguous dates flagged, never guessed",
 ];
 
 const mb = (bytes: number) => formatBytes(bytes).replace(/\.0 /, " ");
@@ -67,65 +51,97 @@ export default function Home() {
   const pass = passOffer();
   return (
     <>
-      <section className="mint-grid border-b-2 border-ink">
-        <div className="mx-auto grid max-w-[1400px] gap-8 px-4 pb-10 pt-4 sm:px-8 sm:pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-6 lg:pb-14">
-          <div>
-            <p className="text-[14px] font-extrabold uppercase tracking-[0.04em] sm:text-[16px]">Free · runs in your browser · no upload</p>
-            <h1 className="display mt-3 text-[2.5rem] sm:text-[4rem] lg:text-[4.4rem]">Clean a messy CSV or Excel file in seconds.</h1>
-            <p className="mt-4 max-w-[36rem] text-[17px] font-medium leading-snug sm:text-[20px]">
-              Trim spaces, remove blank and duplicate rows, fix dates and money columns. See every change, then download. Your file never leaves your device.
+      <section className="mint-grid overflow-hidden">
+        <div className="mx-auto grid max-w-[1400px] items-center gap-x-12 gap-y-10 px-4 pb-14 pt-6 sm:px-8 sm:pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.02fr)] lg:pb-24">
+          <div className="min-w-0">
+            <h1 className="display display-out rise text-[clamp(4.1rem,18vw,8.6rem)] leading-[0.9] lg:text-[clamp(5rem,8.2vw,8.6rem)]">
+              Messy in.
+              <br />
+              Clean out.
+            </h1>
+            <p className="rise mt-4 max-w-[34rem] text-[18px] font-semibold leading-snug [animation-delay:80ms] sm:mt-6 sm:text-[21px]">
+              Clean CSV and Excel files in your browser. Your file never leaves your device.
             </p>
-            <HeroDrop limitText={`.csv, .xlsx, .xls, .ods · free up to ${mb(free.maxFileBytes)} and ${free.maxRows.toLocaleString("en-US")} rows · no account`} />
-            <p className="mt-4 flex items-center gap-2.5 text-[15px] font-medium sm:text-[16px]">
-              <Shield /> Processed in your browser. Never uploaded.
-            </p>
+            <div className="rise relative mt-[4.2rem] [animation-delay:160ms] sm:mt-8">
+              <HeroDrop limitText={`.csv, .xlsx, .xls, .ods · free up to ${mb(free.maxFileBytes)} and ${free.maxRows.toLocaleString("en-US")} rows · no account`} />
+              <Art name="mascot-sm" eager className="float pointer-events-none absolute -top-[5.4rem] right-1 h-auto w-[128px] sm:hidden" />
+            </div>
           </div>
 
-          <SpecimenFigure />
+          <div className="relative min-w-0 lg:pl-6">
+            <RinseCard />
+            <Art name="mascot" className="float pointer-events-none absolute -bottom-16 -left-20 hidden h-auto w-[250px] lg:block xl:-left-24 xl:w-[290px]" />
+          </div>
         </div>
       </section>
 
-      <div className="pt-8 sm:pt-10">
+      <div className="pt-10 sm:pt-14">
         <Cleaner freeLimits={free} offers={upgradeOffers()} pass={pass} emptyState="hidden" />
       </div>
 
-      <section id="how-it-works" aria-labelledby="features-heading" className="mx-auto max-w-[1400px] scroll-mt-4 px-4 pb-16 sm:px-8">
-        <h2 id="features-heading" className="display text-[2.2rem] sm:text-[3rem]">
-          Clean data. Without the busywork.
+      <section id="how-it-works" aria-labelledby="cycle-heading" className="mx-auto max-w-[1400px] scroll-mt-4 px-4 py-16 sm:px-8 sm:py-24">
+        <h2 id="cycle-heading" className="display text-[clamp(3rem,9vw,6.5rem)]">
+          The rinse cycle
         </h2>
-        <ul className="mt-8 grid gap-6 md:grid-cols-3">
-          {FEATURES.map((f) => (
-            <li key={f.title} className={`card-pop flex items-start gap-4 p-5 sm:p-6 ${f.tint}`}>
-              <svg className="mt-1 shrink-0" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                {f.icon}
-              </svg>
+        <ol className="mt-8 grid gap-5 sm:mt-10 lg:grid-cols-3 lg:gap-6">
+          {STEPS.map((s) => (
+            <li key={s.word} className={`card-pop flex items-center gap-4 p-5 sm:gap-6 sm:p-7 lg:min-h-[360px] lg:flex-col lg:items-start lg:justify-between ${s.tint}`}>
+              <Art name={s.art} className="float h-auto w-[84px] shrink-0 sm:w-[110px] lg:w-[150px]" />
               <div>
-                <h3 className="text-[21px] font-extrabold tracking-[-0.02em] sm:text-[23px]">{f.title}</h3>
-                <p className="mt-1.5 text-[16px] font-medium leading-snug sm:text-[17px]">{f.body}</p>
+                <h3 className="display text-[2.7rem] sm:text-[3.6rem]">{s.word}</h3>
+                <p className="mt-1 max-w-[22rem] text-[17px] font-semibold leading-snug sm:text-[19px]">{s.line}</p>
               </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section aria-label="What gets fixed" className="overflow-hidden bg-ink py-5 text-white sm:py-7">
+        <ul className="marquee flex w-max whitespace-nowrap">
+          {[...FIXES, ...FIXES].map((f, i) => (
+            <li key={i} className="display flex items-center gap-10 pr-10 text-[2rem] sm:text-[2.9rem]" aria-hidden={i >= FIXES.length ? true : undefined}>
+              {f}
+              <span className="inline-block size-4 rotate-45 bg-mint" aria-hidden="true" />
             </li>
           ))}
         </ul>
       </section>
 
-      <section aria-labelledby="plans-heading" className="border-y-2 border-ink bg-paper">
-        <div className="mx-auto max-w-[1400px] px-4 py-14 sm:px-8">
-          <h2 id="plans-heading" className="display text-[2.2rem] sm:text-[3rem]">
-            Free for everyday cleanups. Pro for big and repeat jobs.
+      <section aria-labelledby="private-heading" className="bg-pink">
+        <div className="mx-auto grid max-w-[1400px] items-center gap-8 px-4 py-16 sm:px-8 sm:py-24 md:grid-cols-[auto_minmax(0,1fr)] md:gap-14">
+          <Art name="lock" className="float mx-auto h-auto w-[140px] sm:w-[200px]" />
+          <div>
+            <h2 id="private-heading" className="display text-[clamp(3.2rem,11vw,7.5rem)]">
+              Never uploaded.
+            </h2>
+            <p className="mt-4 max-w-[40rem] text-[19px] font-semibold leading-snug sm:text-[23px]">
+              Your file is read, cleaned and exported by your own browser. Our security policy blocks the page from sending data to any other server.
+            </p>
+            <Link href="/how-it-works" className="mt-6 inline-block text-[18px] font-extrabold underline decoration-[3px] underline-offset-[5px] hover:decoration-accent">
+              How it works
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="plans-heading" className="mint-grid">
+        <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-8 sm:py-24">
+          <h2 id="plans-heading" className="display display-out text-[clamp(3.4rem,10vw,6.5rem)]">
+            Free to rinse.
           </h2>
-          <p className="mt-3 max-w-3xl text-[17px] font-medium">Every plan has every cleaning step and cleans files in your browser. Paid plans raise the limits and keep your workflows in your account.</p>
-          <ul className="mt-8 grid gap-6 md:grid-cols-3">
+          <p className="mt-4 max-w-[40rem] text-[19px] font-semibold leading-snug sm:text-[21px]">Every plan has every cleaning step. Paid plans raise the limits.</p>
+          <ul className="ink-zone mt-10 grid gap-6 md:grid-cols-3">
             {plans.map((p) => {
               const l = processingLimits(p.id, p.name, p.limits);
               const wf = p.limits.savedWorkflows ?? 0;
               return (
-                <li key={p.id} className={`card-pop flex flex-col p-5 sm:p-6 ${p.id === "pro" ? "bg-lemon-soft" : ""}`}>
-                  <p className="text-[22px] font-extrabold tracking-[-0.02em]">{p.name}</p>
-                  <p className="mt-1 text-[15px] font-medium">
-                    <span className="text-[30px] font-extrabold tracking-[-0.02em]">${p.priceMonthly}</span>
-                    {p.priceMonthly > 0 ? " / month" : " · no account needed"}
+                <li key={p.id} className={`card-pop lift flex flex-col p-6 sm:p-7 ${p.id === "pro" ? "bg-mint" : ""}`}>
+                  <h3 className="text-[24px] font-extrabold tracking-[-0.02em]">{p.name}</h3>
+                  <p className="mt-1 flex items-baseline gap-2.5 text-[16px] font-bold">
+                    <span className="display text-[4.4rem] leading-none">${p.priceMonthly}</span>
+                    {p.priceMonthly > 0 ? "/ month" : "no account needed"}
                   </p>
-                  <ul className="mt-3 flex-1 space-y-1.5 text-[16px] font-medium">
+                  <ul className="mt-4 flex-1 space-y-1.5 text-[16px] font-semibold">
                     <li>Files up to {mb(l.maxFileBytes)}</li>
                     <li>{formatLimit(l.maxRows)} rows per file</li>
                     <li>{l.maxFiles} files at once (merge or batch)</li>
@@ -137,7 +153,7 @@ export default function Home() {
                     <li>{wf === 0 ? "Workflows saved in this browser" : wf < 0 ? "Unlimited workflows in your account" : `${wf} workflows in your account`}</li>
                     {p.features.sharedTeamWorkflows && <li>Shared team workflows, {p.limits.teamSeats} seats</li>}
                   </ul>
-                  <div className="mt-5">
+                  <div className="mt-6">
                     {p.id === "free" ? (
                       <a href="#main" className="btn-pop btn-pop-ghost w-full">
                         Use it free, no account
@@ -150,42 +166,43 @@ export default function Home() {
               );
             })}
           </ul>
-          <p className="mt-5 text-[15px] font-medium">
-            {pass && (
-              <>
-                One-off job? A {pass.name} (${pass.price}, one-time, no account) gives Pro&apos;s file limits and unlimited downloads for {pass.durationHours} hours.{" "}
-              </>
-            )}
-            <Link href="/pricing" className="font-extrabold underline decoration-2 underline-offset-4">
-              Compare plans in detail
-            </Link>
-          </p>
+          {pass && (
+            <div className="card-pop mt-8 flex flex-col gap-4 bg-pink p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-7">
+              <p className="display shrink-0 text-[5.5rem] leading-none">${pass.price}</p>
+              <p className="flex-1 text-[18px] font-bold leading-snug sm:text-[20px]">
+                One-off job? The {pass.name} is one payment and needs no account: Pro&apos;s file limits and unlimited downloads for {pass.durationHours} hours.
+              </p>
+              <Link href="/pricing" className="btn-pop btn-pop-ghost shrink-0">
+                Compare plans
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
-      <section aria-labelledby="tools-heading" className="mx-auto max-w-[1400px] px-4 pb-6 pt-14 sm:px-8">
-        <h2 id="tools-heading" className="text-[1.6rem] font-extrabold tracking-[-0.02em]">
+      <section aria-labelledby="tools-heading" className="mx-auto max-w-[1400px] px-4 pb-6 pt-16 sm:px-8 sm:pt-24">
+        <h2 id="tools-heading" className="display text-[clamp(2.6rem,7vw,4.8rem)]">
           One job at a time
         </h2>
-        <ul className="mt-4 flex flex-wrap gap-2">
+        <ul className="mt-6 flex flex-wrap gap-2.5">
           {TOOLS.map((t) => (
             <li key={t.slug}>
-              <Link href={`/tools/${t.slug}`} className="inline-block rounded-full border-2 border-ink bg-surface px-3 py-1.5 text-[15px] font-semibold hover:bg-lemon-soft">
+              <Link href={`/tools/${t.slug}`} className="lift inline-block rounded-full border-[3px] border-ink bg-surface px-4 py-2 text-[16px] font-bold shadow-[3px_3px_0_#0a0a0a] hover:bg-mint">
                 {t.h1}
               </Link>
             </li>
           ))}
         </ul>
       </section>
-      <section aria-labelledby="guides-heading" className="mx-auto grid max-w-[1400px] gap-10 px-4 pb-16 pt-8 sm:px-8 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <section aria-labelledby="guides-heading" className="mx-auto grid max-w-[1400px] gap-10 px-4 pb-20 pt-12 sm:px-8 sm:pb-28 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div>
-          <h2 id="guides-heading" className="text-[1.6rem] font-extrabold tracking-[-0.02em]">
+          <h2 id="guides-heading" className="display text-[2.6rem] sm:text-[3.2rem]">
             Guides
           </h2>
-          <ul className="mt-4 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+          <ul className="mt-4 grid gap-x-8 gap-y-2.5 sm:grid-cols-2">
             {GUIDES.map((g) => (
               <li key={g.slug}>
-                <Link href={`/guides/${g.slug}`} className="text-[16px] font-semibold underline decoration-rule-strong decoration-2 underline-offset-4 hover:decoration-ink">
+                <Link href={`/guides/${g.slug}`} className="text-[17px] font-bold underline decoration-rule-strong decoration-[3px] underline-offset-4 hover:decoration-accent">
                   {g.title}
                 </Link>
               </li>
@@ -193,11 +210,11 @@ export default function Home() {
           </ul>
         </div>
         <div>
-          <h2 className="text-[1.6rem] font-extrabold tracking-[-0.02em]">Made for</h2>
-          <ul className="mt-4 space-y-2">
+          <h2 className="display text-[2.6rem] sm:text-[3.2rem]">Made for</h2>
+          <ul className="mt-4 space-y-2.5">
             {AUDIENCES.map((a) => (
               <li key={a.slug}>
-                <Link href={`/for/${a.slug}`} className="text-[16px] font-semibold underline decoration-rule-strong decoration-2 underline-offset-4 hover:decoration-ink">
+                <Link href={`/for/${a.slug}`} className="text-[17px] font-bold underline decoration-rule-strong decoration-[3px] underline-offset-4 hover:decoration-accent">
                   {a.label}
                 </Link>
               </li>

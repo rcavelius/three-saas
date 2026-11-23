@@ -62,36 +62,40 @@
 }
 
 /*
- * GridRinse: mint and cream with bold black outlines and hard offset shadows; deep teal for actions.
- * Highlighter yellow marks changed cells; a rose wash marks removals.
+ * GridRinse v2 "Rinse Cycle": neo-brutalist. Electric cobalt fields with a raw spreadsheet grid, thick black outlines,
+ * hard offset shadows, acid lime and bubblegum pink. Token names are kept from v1 so every page picks the new look up:
+ * mint = lime (clean), lemon = pink (attention), accent = cobalt. Highlighter yellow still marks changed cells.
  */
 @theme {
-  --color-paper: #f8f4ec;
+  --color-paper: #eef1ff;
   --color-surface: #ffffff;
-  --color-sunken: #f1ede4;
-  --color-ink: #111111;
-  --color-ink-2: #3a3d40;
+  --color-sunken: #e3e7fb;
+  --color-ink: #0a0a0a;
+  --color-ink-2: #262a36;
   /* ink-3 and mark-edge keep 4.5:1 contrast on sunken and highlighter backgrounds (axe). */
-  --color-ink-3: #55595e;
-  --color-rule: #e2ddd2;
-  --color-rule-strong: #b9b3a6;
-  --color-accent: #115e59;
-  --color-accent-ink: #0b4440;
-  --color-accent-wash: #dcf5e8;
-  --color-mint: #6cd99a;
-  --color-mint-soft: #dcf7e7;
-  --color-lemon: #fbf38c;
-  --color-lemon-soft: #fdf8c8;
-  --color-sky-soft: #dff0fd;
-  --color-lime-soft: #dcf9cf;
-  --color-rose: #f9d3dc;
-  --color-mark: #fff2b3;
-  --color-mark-edge: #7a5d00;
-  --color-del: #fbe9e9;
-  --color-del-ink: #a32020;
-  --color-ok: #138a4a;
+  --color-ink-3: #4a4f5e;
+  --color-rule: #d3d8ee;
+  --color-rule-strong: #9aa2c2;
+  --color-accent: #1e3bff;
+  --color-accent-ink: #1027c4;
+  --color-accent-wash: #dde3ff;
+  --color-cobalt: #1e3bff;
+  --color-mint: #c6ff3a;
+  --color-mint-soft: #efffc7;
+  --color-lemon: #ff7ccf;
+  --color-lemon-soft: #ffe2f4;
+  --color-pink: #ff7ccf;
+  --color-sky-soft: #dde3ff;
+  --color-lime-soft: #efffc7;
+  --color-rose: #ffd6e9;
+  --color-mark: #fff2a8;
+  --color-mark-edge: #6b5200;
+  --color-del: #ffe9ee;
+  --color-del-ink: #b0122d;
+  --color-ok: #0c7a3c;
 
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-anton), "Arial Narrow", Impact, ui-sans-serif, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
@@ -106,8 +110,8 @@
     font-feature-settings: "tnum" 1;
   }
   :focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+    outline: 3px solid var(--color-accent);
+    outline-offset: 3px;
   }
   ::selection {
     background: var(--color-accent-wash);
@@ -124,20 +128,38 @@
     background-size: 96px 28px;
     background-position: -1px -1px;
   }
-  /* Mint worksheet backdrop of the hero and header. */
+  /*
+   * The cobalt field with a raw spreadsheet grid that opens every page (name kept from v1).
+   * Text set directly on it is white; outlined cards on it keep ink text.
+   */
   .mint-grid {
-    background-color: var(--color-mint);
+    background-color: var(--color-cobalt);
     background-image:
-      linear-gradient(to right, rgb(255 255 255 / 0.22) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(255 255 255 / 0.22) 1px, transparent 1px);
-    background-size: 28px 28px;
+      linear-gradient(to right, rgb(255 255 255 / 0.16) 2px, transparent 2px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.16) 2px, transparent 2px);
+    background-size: 64px 40px;
+    background-position: -1px -1px;
+    color: #fff;
+  }
+  .mint-grid :where(.text-ink-2, .text-ink-3, .text-ink):not(:where(.card-pop, .card-pop *, .btn-pop, .btn-pop *, .ink-zone, .ink-zone *)) {
+    color: rgb(255 255 255 / 0.92);
+  }
+  .mint-grid :focus-visible:not(:where(.card-pop *, .ink-zone *)) {
+    outline-color: var(--color-mint);
+  }
+  .mint-grid :where(a):not(:where(.card-pop *, .btn-pop, .ink-zone *)) {
+    color: #fff;
   }
   /* Outlined card with a hard offset shadow. */
   .card-pop {
-    border: 2px solid var(--color-ink);
-    border-radius: 10px;
+    border: 3px solid var(--color-ink);
+    border-radius: 14px;
     background: var(--color-surface);
+    color: var(--color-ink);
     box-shadow: 6px 6px 0 var(--color-ink);
+  }
+  .ink-zone {
+    color: var(--color-ink);
   }
   .btn-pop {
     display: inline-flex;
@@ -146,21 +168,30 @@
     gap: 0.6rem;
     min-height: 3.25rem;
     padding: 0 1.6rem;
-    border: 2px solid var(--color-ink);
-    border-radius: 10px;
-    background: var(--color-accent);
-    color: #fff;
+    border: 3px solid var(--color-ink);
+    border-radius: 12px;
+    background: var(--color-pink);
+    color: var(--color-ink);
     font-size: 1.15rem;
     font-weight: 800;
     letter-spacing: -0.01em;
     white-space: nowrap;
     box-shadow: 4px 4px 0 var(--color-ink);
-    transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease;
   }
-  .btn-pop:hover:not(:disabled) {
-    background: var(--color-accent-ink);
-    transform: translate(-1px, -1px);
-    box-shadow: 5px 5px 0 var(--color-ink);
+  .btn-pop:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-pop:hover:not(:disabled) {
+      background: var(--color-mint);
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--color-ink);
+    }
+    .btn-pop-ghost:hover:not(:disabled) {
+      background: var(--color-mint);
+    }
   }
   .btn-pop:active:not(:disabled) {
     transform: translate(3px, 3px);
@@ -170,13 +201,51 @@
     background: var(--color-surface);
     color: var(--color-ink);
   }
-  .btn-pop-ghost:hover:not(:disabled) {
-    background: var(--color-lemon-soft);
-  }
+  /* Display face: tall condensed caps. */
   .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    line-height: 0.95;
+  }
+  /* White display letters with a black outline and a hard black drop: the hero's poster type. */
+  .display-out {
+    color: #fff;
+    -webkit-text-stroke: 0.075em var(--color-ink);
+    paint-order: stroke fill;
+    text-shadow: 0.06em 0.07em 0 var(--color-ink);
+  }
+  /* Small black pill for plain facts ("Never uploaded"). */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border-radius: 999px;
+    background: var(--color-ink);
+    color: #fff;
+    padding: 0.4rem 0.95rem;
+    font-size: 0.95rem;
     font-weight: 800;
-    letter-spacing: -0.035em;
-    line-height: 0.98;
+  }
+  /* The art floats a little; the lift on hover is for cards that are links. */
+  .float {
+    animation: gr-float 5.5s ease-in-out infinite;
+  }
+  .lift {
+    transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .lift:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 9px 9px 0 var(--color-ink);
+    }
+  }
+  .rise {
+    animation: gr-rise 560ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .marquee {
+    animation: gr-marquee 38s linear infinite;
   }
   .btn {
     display: inline-flex;
@@ -285,12 +354,69 @@
   }
 }
 
+/* Hero rinse: the squeegee sweeps left to right once, the clean table is revealed behind it, the meter fills. */
+.rinse-after {
+  clip-path: inset(0 0 0 0);
+  animation: gr-wipe 1500ms cubic-bezier(0.65, 0, 0.35, 1) 700ms both;
+}
+.rinse-blade {
+  opacity: 0;
+  animation: gr-blade 1500ms cubic-bezier(0.65, 0, 0.35, 1) 700ms both;
+}
+.rinse-meter {
+  animation: gr-meter 1500ms cubic-bezier(0.65, 0, 0.35, 1) 700ms both;
+}
+.rinse-meter-live {
+  animation: gr-meter 900ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.rinse-tag-before {
+  animation: gr-fade-out 200ms ease-out 1900ms both;
+}
+.rinse-tag-after {
+  animation: gr-fade-in 200ms ease-out 1950ms both;
+}
+@keyframes gr-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes gr-blade {
+  0% { opacity: 1; transform: translateX(-100%); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(0); }
+}
+@keyframes gr-meter {
+  from { transform: scaleX(0.08); }
+  to { transform: scaleX(1); }
+}
+@keyframes gr-fade-out {
+  to { opacity: 0; }
+}
+@keyframes gr-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes gr-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+@keyframes gr-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes gr-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
   }
 }

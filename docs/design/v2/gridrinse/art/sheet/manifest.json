@@ -1,0 +1,12 @@
+{
+  "asset": "sheet",
+  "tool": "Higgsfield generate_image gpt_image_2_6 (quality high, 1:1) + remove_background",
+  "concept_job": "ed1afed7-f14a-4477-b241-cf4c217e9b4a",
+  "cutout_job": "3768b04c-4ec1-460e-ada1-afbb161c9fce",
+  "style_phrase": "glossy 3D toy render, iridescent soap-film and soft-touch vinyl, chunky rounded forms, bright studio lighting with crisp specular highlights",
+  "served": [
+    "sheet.webp (240x310, 11 KB)",
+    "sheet.avif 7 KB"
+  ],
+  "used_on": "gridrinse.com (apps/gridrinse/public/art)"
+}

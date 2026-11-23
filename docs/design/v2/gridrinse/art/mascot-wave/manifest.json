@@ -1,0 +1,12 @@
+{
+  "asset": "mascot-wave",
+  "tool": "Higgsfield generate_image gpt_image_2_6 (quality high, 1:1) + remove_background",
+  "concept_job": "d2f25d63-60f3-479c-82b0-58ec23dd1448",
+  "cutout_job": "8f511017-3034-474c-899c-cfdc86a5b204",
+  "style_phrase": "glossy 3D toy render, iridescent soap-film and soft-touch vinyl, chunky rounded forms, bright studio lighting with crisp specular highlights",
+  "served": [
+    "mascot-wave.webp (480x477, 31 KB)",
+    "mascot-wave.avif 21 KB"
+  ],
+  "used_on": "gridrinse.com (apps/gridrinse/public/art)"
+}

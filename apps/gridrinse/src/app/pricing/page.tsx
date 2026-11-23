@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
+import { Art } from "@/components/Art";
 import { JsonLd } from "@/components/JsonLd";
 import { PassButton } from "@/components/PassPaywall";
 import { PlanButton } from "@/components/PlanButton";
@@ -101,7 +102,7 @@ function planFeatures(p: DisplayPlan): string[] {
 
 function Tick() {
   return (
-    <svg className="mt-0.5 shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-ok)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg className="mt-0.5 shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="m4.5 12.5 5 5 10-11" />
     </svg>
   );
@@ -128,27 +129,28 @@ export default function Pricing() {
   const pass = passOffer();
   return (
     <>
-      <section className="mint-grid border-b-2 border-ink">
-        <div className="mx-auto max-w-[1100px] px-4 pb-10 pt-10 text-center sm:px-8 sm:pb-12 sm:pt-12">
-          <h1 className="display text-[3rem] sm:text-[4.4rem] lg:text-[5rem]">
+      <section className="mint-grid overflow-hidden">
+        <div className="relative mx-auto max-w-[1100px] px-4 pb-24 pt-10 sm:px-8 sm:pb-28 sm:pt-14">
+          <Art name="mascot-wave" className="float pointer-events-none absolute -bottom-2 right-6 hidden h-auto w-[230px] md:block" />
+          <h1 className="display display-out rise text-[clamp(3.6rem,15vw,7.6rem)] leading-[0.9]">
             Clean data. <br />
             Simple pricing.
           </h1>
-          <p className="mx-auto mt-4 max-w-[44rem] text-[18px] font-medium sm:text-[21px]">
+          <p className="rise mt-5 max-w-[36rem] text-[18px] font-semibold leading-snug [animation-delay:80ms] sm:text-[21px]">
             Start free. Take a 24-hour pass for a one-off job. Choose Pro when spreadsheet cleanup becomes part of your routine.
           </p>
         </div>
       </section>
 
-      <div className="mx-auto max-w-[1100px] px-4 py-12 sm:px-8 sm:py-14">
+      <div className="relative mx-auto -mt-16 max-w-[1100px] px-4 pb-16 sm:px-8 sm:pb-24">
         <div className={`grid items-start gap-8 ${pass ? "lg:grid-cols-3 lg:gap-6" : "md:grid-cols-2 md:gap-10"}`}>
-          <section aria-labelledby="plan-free" className="rounded-[12px] border-2 border-ink bg-surface px-6 py-7 sm:px-8 md:mt-4">
-            <h2 id="plan-free" className="text-[2.2rem] font-extrabold tracking-[-0.03em]">
+          <section aria-labelledby="plan-free" className="card-pop px-6 py-7 sm:px-8 lg:mt-6">
+            <h2 id="plan-free" className="display text-[2.6rem]">
               {free.name}
             </h2>
             <p className="mt-1 flex flex-wrap items-center gap-x-5 gap-y-2">
-              <span className="display text-[4rem]">${free.priceMonthly}</span>
-              <span className="rounded-md bg-sunken px-3 py-1.5 text-[15px] font-bold">No account required</span>
+              <span className="display text-[5rem] leading-none">${free.priceMonthly}</span>
+              <span className="chip">No account required</span>
             </p>
             <p className="mt-2 text-[17px] font-medium">For a quick spreadsheet cleanup.</p>
             <div className="mt-6">
@@ -158,12 +160,12 @@ export default function Pricing() {
           </section>
 
           {pass && (
-            <section aria-labelledby="plan-pass" className="rounded-[12px] border-2 border-ink bg-lemon-soft px-6 py-7 sm:px-8 md:mt-4">
-              <h2 id="plan-pass" className="text-[2.2rem] font-extrabold tracking-[-0.03em]">
+            <section aria-labelledby="plan-pass" className="card-pop bg-pink px-6 py-7 sm:px-8 lg:mt-6">
+              <h2 id="plan-pass" className="display text-[2.6rem]">
                 {pass.name.charAt(0).toUpperCase() + pass.name.slice(1)}
               </h2>
               <p className="mt-1 flex flex-wrap items-baseline gap-x-3">
-                <span className="display text-[4rem]">${pass.price}</span>
+                <span className="display text-[5rem] leading-none">${pass.price}</span>
                 <span className="text-[19px] font-bold">once</span>
               </p>
               <p className="mt-2 text-[17px] font-medium">One-time, no subscription, no account needed.</p>
@@ -183,14 +185,14 @@ export default function Pricing() {
             </section>
           )}
 
-          <section aria-labelledby="plan-pro" className="card-pop overflow-hidden">
-            <p className="border-b-2 border-ink bg-mint px-6 py-2.5 text-[17px] font-extrabold uppercase tracking-[0.02em] sm:px-8">For regular cleanup</p>
+          <section aria-labelledby="plan-pro" className="card-pop overflow-hidden bg-mint">
+            <p className="border-b-[3px] border-ink bg-ink px-6 py-2.5 text-[17px] font-extrabold text-mint sm:px-8">For regular cleanup</p>
             <div className="px-6 pb-7 pt-5 sm:px-8">
-              <h2 id="plan-pro" className="text-[2.2rem] font-extrabold tracking-[-0.03em]">
+              <h2 id="plan-pro" className="display text-[2.6rem]">
                 {pro.name}
               </h2>
               <p className="mt-1 flex items-baseline gap-3">
-                <span className="display text-[4rem]">${pro.priceMonthly}</span>
+                <span className="display text-[5rem] leading-none">${pro.priceMonthly}</span>
                 <span className="text-[19px] font-bold">/ month</span>
               </p>
               <p className="mt-2 text-[17px] font-medium">For people who work with spreadsheets regularly.</p>
@@ -198,15 +200,15 @@ export default function Pricing() {
                 <PlanButton planId={pro.id} planName={pro.name} primary label="Get Pro" />
               </div>
               <FeatureList items={planFeatures(pro)} />
-              <p className="mt-6 border-t-2 border-rule pt-4 text-center text-[15px] font-medium text-ink-2">Billed monthly through Stripe. Cancel any time.</p>
+              <p className="mt-6 border-t-[3px] border-ink pt-4 text-center text-[15px] font-medium text-ink-2">Billed monthly through Stripe. Cancel any time.</p>
             </div>
           </section>
         </div>
 
         {business && (
-          <section aria-labelledby="plan-business" className="mt-10 flex flex-col gap-5 rounded-[12px] border-2 border-ink bg-sky-soft px-6 py-6 sm:px-8 lg:flex-row lg:items-center lg:gap-10">
+          <section aria-labelledby="plan-business" className="card-pop mt-10 flex flex-col gap-5 px-6 py-6 sm:px-8 lg:flex-row lg:items-center lg:gap-10">
             <div className="lg:w-56 lg:shrink-0">
-              <h2 id="plan-business" className="text-[1.8rem] font-extrabold tracking-[-0.02em]">
+              <h2 id="plan-business" className="display text-[2.4rem]">
                 {business.name}
               </h2>
               <p className="flex items-baseline gap-2">
@@ -223,20 +225,20 @@ export default function Pricing() {
           </section>
         )}
 
-        <p className="mt-10 flex items-center justify-center gap-3 rounded-[12px] border-2 border-ink bg-lemon px-5 py-4 text-center text-[18px] font-extrabold sm:text-[21px]">
+        <p className="mt-10 flex items-center justify-center gap-3 rounded-[14px] bg-ink px-5 py-5 text-center text-[18px] font-extrabold text-white sm:text-[22px]">
           <svg className="shrink-0" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 2.5 4 5.5v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10v-6z" />
           </svg>
           Your files are processed locally on every plan.
         </p>
 
-        <section aria-labelledby="faq-heading" className="mt-14">
-          <h2 id="faq-heading" className="display text-[2.2rem] sm:text-[2.8rem]">
+        <section aria-labelledby="faq-heading" className="mt-20">
+          <h2 id="faq-heading" className="display text-[clamp(2.6rem,8vw,4.6rem)]">
             Frequently asked questions
           </h2>
           <div className="mt-6 space-y-3">
             {FAQ.map((f, i) => (
-              <details key={f.q} open={i === 0} className="group rounded-[10px] border-2 border-ink bg-surface open:bg-mint-soft">
+              <details key={f.q} open={i === 0} className="group rounded-[12px] border-[3px] border-ink bg-surface transition-colors open:bg-mint-soft">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3.5 text-[19px] font-extrabold tracking-[-0.01em] sm:px-6 sm:text-[21px] [&::-webkit-details-marker]:hidden">
                   {f.q}
                   <svg className="shrink-0 transition-transform group-open:rotate-180" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

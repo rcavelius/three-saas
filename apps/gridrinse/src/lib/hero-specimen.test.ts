@@ -12,4 +12,16 @@ describe("homepage hero example", () => {
     expect(removedRows).toEqual([2]);
     expect(notes).toEqual(["Spaces trimmed", "Duplicate removed"]);
   });
+
+  it("marks exactly the input cells the engine rewrote", () => {
+    const { input, output, changedCells } = heroSpecimen();
+    // Every date and amount in the kept rows was reformatted; the names were already clean.
+    expect(changedCells).toEqual([
+      [0, 1],
+      [0, 2],
+      [1, 1],
+      [1, 2],
+    ]);
+    for (const [r, c] of changedCells) expect(input.rows[r]![c]).not.toBe(output.rows[r === 0 ? 0 : 1]![c]);
+  });
 });

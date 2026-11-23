@@ -24,5 +24,9 @@ export function heroSpecimen() {
   const removedRows = input.rows.map((_, i) => i).filter((i) => !res.rowOrigins.includes(i));
   const trimmed = input.rows.some((r) => r.some((c) => c !== c.trim()));
   const notes = [trimmed && "Spaces trimmed", removedRows.length === 1 ? "Duplicate removed" : removedRows.length > 1 && `${removedRows.length} duplicates removed`].filter(Boolean) as string[];
-  return { input, output: res.table, removedRows, notes };
+  // Input cells the engine rewrote (by the row each output row came from): the hero marks them as "messy".
+  const changedCells = res.rowOrigins.flatMap((origin, i) =>
+    input.rows[origin]!.flatMap((cell, c) => (cell !== res.table.rows[i]![c] ? [[origin, c] as [number, number]] : [])),
+  );
+  return { input, output: res.table, removedRows, notes, changedCells };
 }

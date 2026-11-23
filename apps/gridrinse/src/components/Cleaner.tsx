@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DataGrid } from "@/components/DataGrid";
 import { DownloadPaywall, PassActiveNote } from "@/components/PassPaywall";
+import { RinseMeter } from "@/components/RinseMeter";
 import { StepCard } from "@/components/StepEditor";
 import { UpgradeNotice } from "@/components/UpgradeNotice";
 import { WorkflowPanel } from "@/components/WorkflowPanel";
@@ -691,9 +692,9 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
             <h2 className="display text-[1.9rem] sm:text-[2.5rem]">Start with a CSV or Excel file</h2>
             <div
               {...dragProps}
-              className={`mt-5 flex flex-1 flex-col items-center justify-center rounded-xl border-2 border-dashed border-accent px-4 py-8 text-center transition-colors ${dragOver ? "bg-mint" : "bg-mint-soft"}`}
+              className={`mt-5 flex flex-1 flex-col items-center justify-center rounded-xl border-[3px] border-dashed border-ink px-4 py-8 text-center transition-colors ${dragOver ? "bg-mint" : "bg-mint-soft"}`}
             >
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z" />
                 <path d="M14 2.5V8h5.5M12 17.5v-6M9.2 14.2 12 11.4l2.8 2.8" />
               </svg>
@@ -706,7 +707,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
                 .CSV and .XLSX · Up to {formatBytes(limits.maxFileBytes).replace(/\.0 /, " ")} · {limits.maxRows.toLocaleString("en-US")} rows per file
               </p>
             </div>
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t-2 border-rule pt-4">
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t-[3px] border-ink pt-4">
               <p className="text-[18px] font-extrabold">Just looking around?</p>
               <button type="button" className="inline-flex items-center gap-2 text-[17px] font-extrabold underline decoration-2 underline-offset-4" onClick={loadSample} disabled={loading}>
                 Try a sample file
@@ -724,7 +725,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
               {["Trim extra spaces", "Remove blank and duplicate rows", "Standardize dates and numbers", "Preview every change"].map((t) => (
                 <li key={t} className="flex items-center gap-3">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-mint-soft" aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <path d="m4.5 12.5 5 5 10-11" />
                     </svg>
                   </span>
@@ -733,7 +734,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
               ))}
             </ul>
             <div className="mt-6 flex items-center gap-4 rounded-xl bg-lemon-soft p-4">
-              <svg className="shrink-0" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg className="shrink-0" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <rect x="3" y="4.5" width="18" height="16.5" rx="2.5" />
                 <path d="M8 2.5v4M16 2.5v4M3 9.5h18" />
                 <path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01M16.5 17h.01" strokeWidth="2.6" />
@@ -745,7 +746,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
             </div>
             <div className="mt-4 flex items-center gap-4 p-1">
               <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-mint-soft" aria-hidden="true">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinejoin="round">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="2" strokeLinejoin="round">
                   <path d="M12 2.5 4 5.5v6c0 5 3.4 8.8 8 10 4.6-1.2 8-5 8-10v-6z" />
                 </svg>
               </span>
@@ -876,7 +877,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
                 {files.map((f) => (
                   <li key={f.id} className={`rounded-lg px-3 py-2.5 ${f.id === activeFile?.id && !isMerge ? "bg-mint-soft" : "bg-paper"}`}>
                     <div className="flex items-start gap-2.5">
-                      <svg className="mt-0.5 shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+                      <svg className="mt-0.5 shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
                         <path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8zM14 2.5V8h5.5" />
                       </svg>
                       <div className="min-w-0 flex-1">
@@ -1115,12 +1116,8 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
                 </h2>
                 <p className="mt-1 text-[16px] font-medium text-ink-2">
                   {isMerge ? `${files.length} files merged` : activeFile?.name}
-                  {result && !pending && (
-                    <strong className="block font-extrabold text-ink">
-                      {result.changedCount.toLocaleString("en-US")} cells fixed · {result.removed.length.toLocaleString("en-US")} rows removed
-                    </strong>
-                  )}
                 </p>
+                {result && !pending && <RinseMeter key={`${result.changedCount}:${result.removed.length}`} fixed={result.changedCount} removed={result.removed.length} />}
               </div>
               {!isBatch && (
                 <button type="button" className="btn-pop !min-h-11 !px-4 !text-[16px]" onClick={() => void downloadCsv()} disabled={!ready || exporting} aria-describedby="dl-heading">
@@ -1205,7 +1202,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
 
                 {dateChoices.map((n) => (
                   <div key={n.column} role="group" aria-label="Date order needed" className="flex flex-col gap-3 rounded-lg border-2 border-mark-edge/40 bg-lemon-soft px-4 py-3 md:flex-row md:items-center">
-                    <svg className="hidden shrink-0 sm:block" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+                    <svg className="hidden shrink-0 sm:block" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
                       <path d="M12 3 2 20.5h20z" />
                       <path d="M12 10v5M12 17.6v.2" strokeLinecap="round" />
                     </svg>

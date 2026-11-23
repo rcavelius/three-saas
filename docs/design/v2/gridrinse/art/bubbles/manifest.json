@@ -1,0 +1,12 @@
+{
+  "asset": "bubbles",
+  "tool": "Higgsfield generate_image gpt_image_2_6 (quality high, 1:1) + remove_background",
+  "concept_job": "3c57aa16-8ae8-4856-a6f4-73bf67bef879",
+  "cutout_job": "0c95fb24-425e-4add-b6c3-5bb1f5ffbfcf",
+  "style_phrase": "glossy 3D toy render, iridescent soap-film and soft-touch vinyl, chunky rounded forms, bright studio lighting with crisp specular highlights",
+  "served": [
+    "bubbles.webp (240x263, 13 KB)",
+    "bubbles.avif 10 KB"
+  ],
+  "used_on": "gridrinse.com (apps/gridrinse/public/art)"
+}

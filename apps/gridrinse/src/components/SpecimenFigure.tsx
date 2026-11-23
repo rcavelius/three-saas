@@ -63,7 +63,7 @@ export function SpecimenFigure({ compact = false }: { compact?: boolean }) {
         <path d="m82 60 15 14-16 12" />
       </svg>
       <svg className="absolute left-0 top-[335px] z-20 hidden h-16 w-16 lg:block" viewBox="0 0 64 64" aria-hidden="true">
-        <path d="M32 3c2 15 7 22 29 29-22 7-27 14-29 29-2-15-7-22-29-29C25 25 30 18 32 3z" fill="#fbf38c" stroke="#111" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M32 3c2 15 7 22 29 29-22 7-27 14-29 29-2-15-7-22-29-29C25 25 30 18 32 3z" fill="#ff7ccf" stroke="#111" strokeWidth="3" strokeLinejoin="round" />
       </svg>
 
       <div className={`card-pop relative z-10 mt-5 ml-auto w-full max-w-[36rem] overflow-hidden sm:w-[82%] ${compact ? "sm:-mt-1" : "sm:-mt-10"}`}>

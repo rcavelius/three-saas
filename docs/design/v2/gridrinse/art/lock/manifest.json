@@ -1,0 +1,12 @@
+{
+  "asset": "lock",
+  "tool": "Higgsfield generate_image gpt_image_2_6 (quality high, 1:1) + remove_background",
+  "concept_job": "b21133e3-8365-42ad-ae31-1100e7151f45",
+  "cutout_job": "700d0690-6ec2-488d-9861-7483afc2e362",
+  "style_phrase": "glossy 3D toy render, iridescent soap-film and soft-touch vinyl, chunky rounded forms, bright studio lighting with crisp specular highlights",
+  "served": [
+    "lock.webp (240x336, 14 KB)",
+    "lock.avif 9 KB"
+  ],
+  "used_on": "gridrinse.com (apps/gridrinse/public/art)"
+}

@@ -27,7 +27,7 @@ export function NavLinks({ items }: { items: { href: string; label: string }[] }
             <Link
               href={n.href}
               aria-current={active ? "page" : undefined}
-              className={`inline-block rounded-lg px-2.5 py-1 decoration-2 underline-offset-4 sm:px-3 ${active ? "bg-lemon" : "hover:underline"}`}
+              className={`inline-block rounded-lg px-2.5 py-1.5 transition-colors duration-150 decoration-2 underline-offset-4 sm:px-3 ${active ? "bg-ink text-white" : "hover:bg-mint"}`}
             >
               {n.label}
             </Link>
@@ -41,7 +41,7 @@ export function NavLinks({ items }: { items: { href: string; label: string }[] }
 /** Account links in the header: reads the session from our own /api/auth (same origin). */
 export function AccountNav() {
   const { data, isPending } = authClient().useSession();
-  const cta = "inline-flex min-h-10 items-center rounded-[10px] border-2 border-ink bg-accent px-3 text-[14px] sm:min-h-11 font-extrabold text-white hover:bg-accent-ink sm:px-6 sm:text-[17px]";
+  const cta = "inline-flex min-h-10 items-center rounded-[10px] border-[3px] border-ink bg-mint px-3 text-[14px] font-extrabold text-ink shadow-[3px_3px_0_#0a0a0a] transition-transform duration-150 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none sm:min-h-11 sm:px-6 sm:text-[17px] hover:bg-pink";
   if (isPending) return <span className="inline-block h-10 w-36 sm:h-11 sm:w-72" aria-hidden="true" />;
   if (!data) {
     return (
