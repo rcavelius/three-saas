@@ -63,7 +63,7 @@ export default function Home() {
               Clean CSV and Excel files in your browser. Your file never leaves your device.
             </p>
           </div>
-          <div className="rise relative mt-[3.4rem] min-w-0 [animation-delay:160ms] sm:mt-0">
+          <div className="rise relative mt-[4.2rem] min-w-0 [animation-delay:160ms] sm:mt-0">
             <HeroDrop limitText={`.csv, .xlsx, .xls, .ods · free up to ${mb(free.maxFileBytes)} and ${free.maxRows.toLocaleString("en-US")} rows · no account`} />
             <Art name="mascot-sm" eager className="float pointer-events-none absolute -top-[5.6rem] right-2 h-auto w-[120px] sm:hidden" />
           </div>

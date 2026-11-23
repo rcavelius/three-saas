@@ -93,3 +93,4 @@ Pro/Business checkout (no billing code changed), analytics events, SEO metadata,
 
 The Cleaner in use (sample loaded) is captured by `scripts/design-shots-cleaner.mjs`: the new rinse meter reads
 "34 cells fixed · 4 rows removed — Rinsed!" on the built-in sample.
+| 4 (`round4-explainer/`) | Owner asked for a one-glance explainer in the hero | `RinseExplainer`: "Messy CSV / Excel in" (stray spaces, a duplicate, four date formats, N/A, currency junk in red) → mascot + "Rinse" → "Clean file out, in your browser" (fixes in green, real engine output, rows land one by one). Lighthouse home 89, tool 91, pricing 94 |
