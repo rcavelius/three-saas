@@ -72,7 +72,7 @@ export async function passFlow(ctx: Ctx, browser: Browser): Promise<Flow> {
       session?.payment_status === "paid" && session.mode === "payment" && session.line_items?.data[0]?.price?.lookup_key === "webhooktrail_week_pass" && session.amount_total === 500,
       `${session?.payment_status} ${session?.amount_total}`,
     );
-    f.check("claim redirects back with ?pass=active", /[?&]pass=active/.test(page.url()), page.url().replace(ctx.base, ""));
+    f.check("claim redirects back with ?pass=active", /[?&]pass=active/.test(claim.location()), claim.location().replace(ctx.base, ""));
     await page.getByText(/Payment received/).first().waitFor({ timeout: 15_000 }).then(
       () => f.check("page confirms the pass (Payment received)", true),
       () => f.check("page confirms the pass (Payment received)", false),

@@ -230,7 +230,12 @@ export async function payOnStripe(ctx: Ctx, page: Page, flow: Flow, o: { amountT
   if (!ok) {
     await page.screenshot({ path: join(ctx.outDir, `${o.shot}-stripe-after-pay.png`), fullPage: true }).catch(() => undefined);
     await dumpStripe(ctx, page, `${o.shot}-after-pay`);
-    throw new Error("Stripe did not return to the app after Pay (see the after-pay screenshot)");
+    const id = page.url().match(/cs_test_[A-Za-z0-9]+/)?.[0];
+    const st = id ? await ctx.stripe.checkout.sessions.retrieve(id).catch(() => null) : null;
+    // A visible hCaptcha challenge means Stripe wants a human: the robot never solves CAPTCHAs, it reports it.
+    let captcha = false;
+    for (const f of page.frames()) if (/hcaptcha\.com.*frame=challenge/.test(f.url()) && (await f.locator("body").isVisible().catch(() => false))) captcha = true;
+    throw new Error(`Stripe did not return to the app after Pay (session ${st?.status ?? "?"}/${st?.payment_status ?? "?"}${captcha ? ", hCaptcha challenge visible" : ""})`);
   }
   flow.check("test card 4242 accepted, Stripe returns to the app", true, page.url().replace(ctx.base, ""));
 }
@@ -267,9 +272,13 @@ async function dumpStripe(ctx: Ctx, page: Page, shot: string): Promise<void> {
  * Holds the browser on Stripe's success redirect to the pass claim route until the webhook alone has recorded the
  * pass, so the test proves webhook delivery (not just the claim route's own Stripe lookup).
  */
-export async function holdClaimUntilWebhook(ctx: Ctx, page: Page, flow: Flow): Promise<{ sessionId: () => string }> {
+export async function holdClaimUntilWebhook(ctx: Ctx, page: Page, flow: Flow): Promise<{ sessionId: () => string; location: () => string }> {
   let sessionId = "";
   let held = false;
+  let location = "";
+  page.on("response", (r) => {
+    if (r.url().includes("/api/billing/pass/claim") && r.status() === 303) location = r.headers()["location"] ?? "";
+  });
   await page.route("**/api/billing/pass/claim**", async (route) => {
     if (held) return route.continue();
     held = true;
@@ -291,7 +300,7 @@ export async function holdClaimUntilWebhook(ctx: Ctx, page: Page, flow: Flow): P
     }
     await route.continue().catch(() => undefined);
   });
-  return { sessionId: () => sessionId };
+  return { sessionId: () => sessionId, location: () => location };
 }
 
 /** The visitor's pass cookie after the claim (name ends in "_pass"). */
