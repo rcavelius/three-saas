@@ -296,6 +296,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-23",
+      "agent": "guides",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "New guide /guides/clean-contacts-export-for-import (trim, dedupe emails, rename/reorder, drop columns) linking to four tool pages incl. the new remove-duplicate-emails-csv and rename-columns-csv"
+      ],
+      "metrics": {
+        "visitors_7d": 40,
+        "tool_users_7d": 5,
+        "pricing_views_7d": 9,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

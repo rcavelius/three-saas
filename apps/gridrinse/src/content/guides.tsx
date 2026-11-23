@@ -424,6 +424,49 @@ export const GUIDES: Guide[] = [
     ),
   },
   {
+    slug: "clean-contacts-export-for-import",
+    category: "cleaning",
+    title: "How to clean a contacts export before importing it (CRM or mailing list)",
+    summary: "Contact exports from a CRM, form tool or old mailing list repeat people, use odd column names and carry stray spaces. Here is a safe order of steps to get one tidy file ready for import.",
+    body: (
+      <>
+        <p>
+          Before you import contacts into a CRM or email tool, the file usually needs a tidy-up: the same person appears twice, column names do not match the import
+          template, and names carry stray spaces. This guide gives an order that avoids losing good rows. Everything runs in your browser, so the list is never uploaded.
+        </p>
+        <h2>1. Trim stray spaces first</h2>
+        <p>
+          A trailing space makes <code>ann@example.com </code> a different value from <code>ann@example.com</code>, so duplicates slip through. Run the{" "}
+          <Link href="/tools/trim-spaces-csv">trim spaces tool</Link> before anything else.
+        </p>
+        <h2>2. Remove repeated email addresses</h2>
+        <p>
+          Pick the email column as the key and turn on ignore case, so <code>Ann@Example.com</code> and <code>ann@example.com</code> count as one person. Choose whether the first
+          or the last row wins; the last is handy when newer rows are more up to date. The{" "}
+          <Link href="/tools/remove-duplicate-emails-csv">duplicate email remover</Link> shows which rows go before you download. It does not check whether an address is valid.
+        </p>
+        <h2>3. Match the import template</h2>
+        <p>
+          Import templates expect exact column names in a set order. Rename the columns and move the required ones to the front with the{" "}
+          <Link href="/tools/rename-columns-csv">rename and reorder columns tool</Link>. Only headers and column order change; the cells stay as they are.
+        </p>
+        <h2>4. Drop columns you do not need</h2>
+        <p>
+          Removing unneeded columns with the <Link href="/tools/remove-columns-csv">column remover</Link> also means less personal data travels with the file.
+        </p>
+        <h2>5. Check before you import</h2>
+        <p>
+          Open the cleaned file and look at a few rows you know. For wider options on duplicates, see the <Link href="/guides/dedupe-strategies">duplicates guide</Link>.
+        </p>
+        <h2>Repeat it next time</h2>
+        <p>
+          The same steps work on every new export. You can save them in your browser for free; Pro adds saving them to your account and cleaning up to 20 files at once.{" "}
+          <Link href="/">Open the cleaner</Link> and try it on your own file.
+        </p>
+      </>
+    ),
+  },
+  {
     slug: "browser-privacy",
     category: "privacy",
     title: "How browser-based privacy works",
