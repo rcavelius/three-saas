@@ -6,8 +6,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/client";
 import { timeUntil } from "@/lib/format";
 import { createLivePoller, PollFatalError, type LivePoller, type LiveState, type PollResult } from "@/lib/live-poller";
-import { CAPTURE_METHODS, type EndpointDTO, type RequestDetailDTO, type RequestListDTO, type RequestSummaryDTO } from "@/lib/types";
+import type { PaywallReason } from "@/lib/analytics-events";
+import {
+  CAPTURE_METHODS,
+  type EndpointDTO,
+  type PassStatusDTO,
+  type RequestDetailDTO,
+  type RequestListDTO,
+  type RequestSummaryDTO,
+} from "@/lib/types";
 import { CreateEndpointButton } from "../CreateEndpointButton";
+import { PassPaywall } from "../pass/PassPaywall";
+import { PassActiveNote } from "../pass/PassStatus";
 import { CopyButton } from "../ui";
 import { EndpointSettings } from "./EndpointSettings";
 import { RequestDetail } from "./RequestDetail";
@@ -74,6 +84,8 @@ export function Inspector({ endpointId }: { endpointId: string }) {
   const [retryIn, setRetryIn] = useState<number | null>(null);
   const [signedIn, setSignedIn] = useState(false);
   const [claimMsg, setClaimMsg] = useState<string | null>(null);
+  const [pass, setPass] = useState<PassStatusDTO | null>(null);
+  const [paywall, setPaywall] = useState<PaywallReason | null>(null);
 
   const requestsRef = useRef(requests);
   requestsRef.current = requests;
@@ -84,8 +96,9 @@ export function Inspector({ endpointId }: { endpointId: string }) {
 
   const loadEndpoint = useCallback(async () => {
     try {
-      const r = await api<{ endpoint: EndpointDTO; signedIn?: boolean }>(`/api/endpoints/${endpointId}`);
+      const r = await api<{ endpoint: EndpointDTO; signedIn?: boolean; pass?: PassStatusDTO | null }>(`/api/endpoints/${endpointId}`);
       setSignedIn(Boolean(r.signedIn));
+      setPass(r.pass ?? null);
       setEndpoint(r.endpoint);
       setLoad(r.endpoint.expired ? "expired" : "ready");
     } catch (e) {
@@ -300,6 +313,7 @@ export function Inspector({ endpointId }: { endpointId: string }) {
         <p className="mt-2 text-[14px] text-fg-muted">
           Its capture URL now answers <span className="font-mono">410 Gone</span> and its requests are deleted by the next cleanup run.
         </p>
+        {!endpoint.permissions.replayIncluded && !pass && <PassPaywall className="mt-6" reason="expired" />}
         <div className="mt-6 flex gap-3">
           <CreateEndpointButton size="sm" />
           <Link className="btn" href="/">
@@ -311,6 +325,9 @@ export function Inspector({ endpointId }: { endpointId: string }) {
   }
 
   const ep = endpoint!;
+  // Free owner without a pass: the pass is the upgrade we offer at the limits (paid plans include replay).
+  const offerPass = !ep.permissions.replayIncluded && !pass;
+  const storedFull = ep.storedCount >= ep.maxRequests;
   const selected = selectedId ? details[selectedId] : undefined;
   const filtered = Boolean(effFilters.method || effFilters.q || effFilters.range);
   const liveOn = live && visible;
@@ -331,8 +348,26 @@ export function Inspector({ endpointId }: { endpointId: string }) {
       )}
       {ep.locked && (
         <p role="status" className="border-b border-err/40 bg-err/5 px-4 py-1.5 text-[12.5px] text-err">
-          Paused: your workspace&apos;s plan covers fewer endpoints than it has, so this one answers 423 and stores nothing. Its history is
-          kept. <Link className="underline underline-offset-2" href="/account/billing">Upgrade</Link> or delete another endpoint.
+          {ep.owner === "org"
+            ? "Paused: your workspace's plan covers fewer endpoints than it has,"
+            : "Paused: the free plan covers fewer endpoints than this browser has,"}{" "}
+          so this one answers 423 and stores nothing. Its history is kept.{" "}
+          {ep.owner === "org" && (
+            <>
+              <Link className="underline underline-offset-2" href="/account/billing">
+                Upgrade
+              </Link>
+              {", "}
+            </>
+          )}
+          {offerPass && (
+            <>
+              <button type="button" className="underline underline-offset-2" onClick={() => setPaywall("locked")}>
+                get the 7-day pass
+              </button>{" "}
+            </>
+          )}
+          or delete another endpoint.
         </p>
       )}
       {claimMsg && (
@@ -357,9 +392,20 @@ export function Inspector({ endpointId }: { endpointId: string }) {
               <Link className="underline underline-offset-2 text-signal" href={`/login?next=${encodeURIComponent(`/e/${ep.id}`)}`}>
                 log in
               </Link>{" "}
-              to keep it in a workspace and unlock replay.
+              to keep it in a workspace.
             </span>
           )}
+        </div>
+      )}
+
+      {pass && (
+        <div className="border-b border-line bg-surface-2 px-4 py-1.5">
+          <PassActiveNote pass={pass} />
+        </div>
+      )}
+      {paywall && offerPass && (
+        <div className="border-b border-line px-4 py-3">
+          <PassPaywall reason={paywall} onClose={() => setPaywall(null)} className="max-w-2xl" />
         </div>
       )}
 
@@ -383,11 +429,27 @@ export function Inspector({ endpointId }: { endpointId: string }) {
         </div>
         <div className="flex items-center gap-4 font-mono text-[11.5px] text-fg-muted">
           <span>
-            <span className="text-fg tabular-nums">{ep.storedCount}</span>/{ep.maxRequests} stored
+            <span className={`tabular-nums ${storedFull ? "text-warn" : "text-fg"}`}>{ep.storedCount}</span>/{ep.maxRequests} stored
+            {storedFull && offerPass && (
+              <>
+                {" "}
+                <button type="button" className="text-signal underline underline-offset-2" onClick={() => setPaywall("stored_limit")}>
+                  keep more
+                </button>
+              </>
+            )}
           </span>
           {ep.expiresAt ? (
             <span title={new Date(ep.expiresAt).toLocaleString()}>
               expires <span className="text-fg">{timeUntil(ep.expiresAt, now)}</span>
+              {offerPass && (
+                <>
+                  {" "}
+                  <button type="button" className="text-signal underline underline-offset-2" onClick={() => setPaywall("expiry")}>
+                    keep 7 days
+                  </button>
+                </>
+              )}
             </span>
           ) : (
             <span>no expiry</span>

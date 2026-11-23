@@ -4,8 +4,9 @@ import { readBodyCapped } from "./body";
 import { clientIpOf, retryAfterSeconds } from "./http";
 import { SLUG_RE } from "./ids";
 import { maybeNotifyUsage } from "./notify";
-import { orgLimits } from "./org-data";
+import { endpointOwnerLimits } from "./org-data";
 import { OWNER_COOKIE } from "./owner";
+import { PASS_COOKIE } from "./pass";
 import { limits } from "./plans";
 import { getPlatform, type Platform } from "./platform";
 import { insertCapturedRequest } from "./requests";
@@ -50,10 +51,10 @@ export function subpathFromUrl(url: URL, slug: string): string {
   return (p === "" ? "/" : p).slice(0, limits.storedPathMaxLength);
 }
 
-/** WebhookTrail's own cookies (anonymous owner token, Better Auth session/cookies with the "wt" prefix). */
+/** WebhookTrail's own cookies (anonymous owner token, pass token, Better Auth session/cookies with the "wt" prefix). */
 export function isOwnCookie(name: string): boolean {
   const n = name.trim();
-  return n === OWNER_COOKIE || /^(__Secure-|__Host-)?wt\./.test(n);
+  return n === OWNER_COOKIE || n === PASS_COOKIE || /^(__Secure-|__Host-)?wt\./.test(n);
 }
 
 /** Headers as an ordered [name, value] list, without WebhookTrail's own cookies, size-capped. */
@@ -145,10 +146,13 @@ export async function handleCapture(req: Request, slug: string, opts: { platform
     return captureError(410, "expired", "This endpoint has expired.");
   }
   if (ep.locked_at !== null) {
-    return captureError(423, "endpoint_paused", "This endpoint is paused because the workspace's plan does not include it. Nothing was stored.");
+    return captureError(423, "endpoint_paused", ep.org_id
+        ? "This endpoint is paused because the workspace's plan does not include it. Nothing was stored."
+        : "This endpoint is paused because the free plan covers fewer endpoints than this browser has. Nothing was stored.");
   }
 
-  const plan = await orgLimits(p, ep.org_id);
+  // The owner's plan, or free + an active pass linked to this owner (never the capturing client's cookies).
+  const plan = await endpointOwnerLimits(p, ep);
   const epLimit = await rateLimit(ex, `hp:cap:ep:${ep.id}`, plan.capturePerEndpointPerMinute, 60_000, now);
   if (!epLimit.allowed) {
     return captureError(429, "rate_limited", "Too many requests to this endpoint.", {

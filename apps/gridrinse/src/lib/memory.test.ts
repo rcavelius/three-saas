@@ -42,7 +42,8 @@ describe("checkBeforeParse", () => {
 
 describe("processing limits from server entitlements", () => {
   it("converts catalog units and caps unlimited/oversized plans at the absolute limits", () => {
-    expect(processingLimits("pro", "Pro", { maxFileMb: 50, maxRows: 500_000, filesPerBatch: 20 })).toEqual({ planId: "pro", planName: "Pro", maxFileBytes: 50 * MB, maxRows: 500_000, maxFiles: 20 });
+    expect(processingLimits("pro", "Pro", { maxFileMb: 50, maxRows: 500_000, filesPerBatch: 20 })).toEqual({ planId: "pro", planName: "Pro", maxFileBytes: 50 * MB, maxRows: 500_000, maxFiles: 20, downloadRows: -1, downloadsPerDay: -1 });
+    expect(processingLimits("free", "Free", { maxFileMb: 5, downloadRows: 1000, downloadsPerDay: 1 })).toMatchObject({ downloadRows: 1000, downloadsPerDay: 1 });
     const big = processingLimits("x", "X", { maxFileMb: -1, maxRows: 10_000_000, filesPerBatch: -1 });
     expect(big).toMatchObject({ maxFileBytes: ABSOLUTE_LIMITS.fileBytes, maxRows: ABSOLUTE_LIMITS.rows, maxFiles: ABSOLUTE_LIMITS.files });
   });

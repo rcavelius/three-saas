@@ -76,6 +76,12 @@ test("cleaning, merging, batch and ZIP export never send file names or contents 
   // Batch mode: each file cleaned separately, exported as one ZIP (CSV and XLSX).
   await page.getByRole("radio", { name: /Batch/ }).check();
   await expect(status).toContainText(/Cleaned 3 files/, { timeout: 30_000 });
+  // The free plan's one download a day is used: the next download shows the pass paywall instead.
+  await page.getByRole("button", { name: "All files → ZIP of CSVs" }).click();
+  await expect(page.getByRole("region", { name: /Your cleaned file is ready/ })).toBeVisible();
+  // The daily count lives only in this browser (a value fence, nothing is sent); reset it to test the exports.
+  const resetFreeDownloads = () => page.evaluate(() => window.localStorage.removeItem("gridrinse.downloads.v1"));
+  await resetFreeDownloads();
   const dlZip = page.waitForEvent("download");
   await page.getByRole("button", { name: "All files → ZIP of CSVs" }).click();
   const zip = await dlZip;
@@ -84,6 +90,7 @@ test("cleaning, merging, batch and ZIP export never send file names or contents 
   expect(Object.keys(entries).sort()).toEqual(files.map((f) => f.name.replace(".csv", "-clean.csv")).sort());
   expect(strFromU8(Object.values(entries)[0]!)).toContain(MARKER);
 
+  await resetFreeDownloads();
   const dlZipX = page.waitForEvent("download");
   await page.getByRole("button", { name: "All files → ZIP of XLSX" }).click();
   expect(Object.keys(unzipSync(readFileSync((await (await dlZipX).path())!)))).toHaveLength(3);

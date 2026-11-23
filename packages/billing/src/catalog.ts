@@ -18,11 +18,35 @@ export interface PlanDef {
   features: Record<string, boolean>;
 }
 
+/**
+ * A one-time pass: paid once with Stripe Checkout (mode "payment"), never renews. While active it raises the
+ * holder's limits/features on top of their plan (limits: the larger value wins, -1 = unlimited; features: OR).
+ * Passes need no account: the buyer gets a signed cookie (and an unlock link); a signed-in buyer's org gets it too.
+ */
+export interface PassDef {
+  /** "day" | "report" | ... unique within the catalog's passes. */
+  id: string;
+  /** Customer-facing name, e.g. "24-hour pass". */
+  name: string;
+  /** One-time price in USD cents. */
+  priceCents: number;
+  /** How long the pass lasts after payment. */
+  durationHours: number;
+  /** Stripe Price lookup key of the one-time price, e.g. "gridrinse_day_pass". */
+  stripeLookupKey: string;
+  /** Limits the pass raises (subset of the plan limit keys). */
+  limits: Record<string, number>;
+  /** Features the pass switches on (subset of the plan feature keys). */
+  features: Record<string, boolean>;
+}
+
 export interface Catalog {
   /** App identifier, e.g. "changekite". Also stored in Stripe metadata. */
   app: string;
   plans: PlanDef[];
   freePlanId: string;
+  /** One-time passes (optional). */
+  passes?: PassDef[];
 }
 
 const idSchema = z.string().regex(/^[a-z][a-z0-9_-]{0,39}$/, "lowercase id");
@@ -41,11 +65,24 @@ export const planDefSchema = z
   })
   .strict();
 
+export const passDefSchema = z
+  .object({
+    id: idSchema,
+    name: z.string().min(1).max(60),
+    priceCents: z.number().int().min(50).max(1_000_000),
+    durationHours: z.number().int().min(1).max(24 * 366),
+    stripeLookupKey: z.string().regex(/^[a-z0-9_]{3,200}$/, "lookup key: lowercase letters, digits, underscore"),
+    limits: z.record(z.string(), z.number().int().min(-1)),
+    features: z.record(z.string(), z.boolean()),
+  })
+  .strict();
+
 export const catalogSchema = z
   .object({
     app: idSchema,
     plans: z.array(planDefSchema).min(1),
     freePlanId: idSchema,
+    passes: z.array(passDefSchema).optional(),
   })
   .strict()
   .superRefine((c, ctx) => {
@@ -79,6 +116,19 @@ export const catalogSchema = z
         ctx.addIssue({ code: "custom", message: `plan ${p.id} must define the same limit/feature keys as ${free.id}` });
       }
     }
+    const passIds = new Set<string>();
+    for (const pass of c.passes ?? []) {
+      if (passIds.has(pass.id)) ctx.addIssue({ code: "custom", message: `duplicate pass id ${pass.id}` });
+      passIds.add(pass.id);
+      if (keys.has(pass.stripeLookupKey)) ctx.addIssue({ code: "custom", message: `duplicate lookup key ${pass.stripeLookupKey}` });
+      keys.add(pass.stripeLookupKey);
+      for (const k of Object.keys(pass.limits)) {
+        if (!(k in free.limits)) ctx.addIssue({ code: "custom", message: `pass ${pass.id} limit ${k} is not a plan limit` });
+      }
+      for (const k of Object.keys(pass.features)) {
+        if (!(k in free.features)) ctx.addIssue({ code: "custom", message: `pass ${pass.id} feature ${k} is not a plan feature` });
+      }
+    }
   });
 
 /** Validates a catalog and returns it (throws a descriptive error otherwise). */
@@ -107,4 +157,29 @@ export function planByLookupKey(catalog: Catalog, lookupKey: string | null | und
 
 export function paidPlans(catalog: Catalog): PlanDef[] {
   return catalog.plans.filter((p) => p.id !== catalog.freePlanId);
+}
+
+export function getPass(catalog: Catalog, passId: string): PassDef | undefined {
+  return (catalog.passes ?? []).find((p) => p.id === passId);
+}
+
+/** Larger limit wins; -1 (unlimited) beats everything. */
+export function maxLimit(a: number, b: number): number {
+  if (a === -1 || b === -1) return -1;
+  return Math.max(a, b);
+}
+
+/** Plan limits/features raised by the given passes (pure; returns copies). */
+export function applyPassGrants(
+  limits: Record<string, number>,
+  features: Record<string, boolean>,
+  passes: Pick<PassDef, "limits" | "features">[],
+): { limits: Record<string, number>; features: Record<string, boolean> } {
+  const l = { ...limits };
+  const f = { ...features };
+  for (const p of passes) {
+    for (const [k, v] of Object.entries(p.limits)) l[k] = k in l ? maxLimit(l[k]!, v) : v;
+    for (const [k, v] of Object.entries(p.features)) f[k] = (f[k] ?? false) || v;
+  }
+  return { limits: l, features: f };
 }

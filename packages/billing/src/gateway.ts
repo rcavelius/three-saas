@@ -70,6 +70,41 @@ export interface CheckoutSessionParams {
   branding_settings?: { display_name: string; button_color?: string; background_color?: string; border_style?: "rounded" | "rectangular" | "pill" };
 }
 
+/** One-time payment Checkout (passes). No customer is passed: Checkout collects the email and creates one. */
+export interface PaymentCheckoutSessionParams {
+  mode: "payment";
+  customer_creation: "always";
+  customer_email?: string;
+  client_reference_id?: string;
+  line_items: { price: string; quantity: number }[];
+  success_url: string;
+  cancel_url: string;
+  allow_promotion_codes: boolean;
+  metadata: Record<string, string>;
+  payment_intent_data: { metadata: Record<string, string>; statement_descriptor_suffix?: string };
+  automatic_tax?: { enabled: boolean };
+  billing_address_collection?: "auto" | "required";
+  tax_id_collection?: { enabled: boolean };
+  branding_settings?: CheckoutSessionParams["branding_settings"];
+}
+
+export interface GatewayCheckoutSession {
+  id: string;
+  mode: string;
+  /** "open" | "complete" | "expired" */
+  status: string | null;
+  /** "paid" | "unpaid" | "no_payment_required" */
+  paymentStatus: string;
+  metadata: Record<string, string>;
+  customer: string | null;
+  customerEmail: string | null;
+  paymentIntent: string | null;
+  amountTotal: number | null;
+  currency: string | null;
+  livemode: boolean;
+  created: number;
+}
+
 export interface SubscriptionUpdateParams {
   items?: { id: string; price: string }[];
   proration_behavior?: "create_prorations" | "always_invoice" | "none";
@@ -86,7 +121,12 @@ export interface StripeGateway {
       opts?: { idempotencyKey?: string },
     ): Promise<{ id: string }>;
   };
-  checkout: { sessions: { create(params: CheckoutSessionParams): Promise<{ id: string; url: string }> } };
+  checkout: {
+    sessions: {
+      create(params: CheckoutSessionParams | PaymentCheckoutSessionParams): Promise<{ id: string; url: string }>;
+      retrieve(id: string): Promise<GatewayCheckoutSession>;
+    };
+  };
   billingPortal: {
     sessions: { create(params: { customer: string; return_url: string; configuration?: string }): Promise<{ url: string }> };
     /** Optional: portal configurations tagged metadata.app = <catalog app> (created by scripts/setup-stripe-test.ts). */
@@ -134,6 +174,27 @@ export function normalizeSubscription(raw: unknown): GatewaySubscription {
     cancelAt,
     created: numOrNull(s.created) ?? 0,
     metadata: (asObj(s.metadata) as Record<string, string>) ?? {},
+  };
+}
+
+export function normalizeCheckoutSession(raw: unknown): GatewayCheckoutSession {
+  const s = asObj(raw);
+  if (!s || typeof s.id !== "string") throw new Error("not a checkout session object");
+  const details = asObj(s.customer_details);
+  const email = typeof details?.email === "string" ? details.email : typeof s.customer_email === "string" ? s.customer_email : null;
+  return {
+    id: s.id,
+    mode: String(s.mode ?? ""),
+    status: typeof s.status === "string" ? s.status : null,
+    paymentStatus: String(s.payment_status ?? "unpaid"),
+    metadata: (asObj(s.metadata) as Record<string, string>) ?? {},
+    customer: idOf(s.customer),
+    customerEmail: email,
+    paymentIntent: idOf(s.payment_intent),
+    amountTotal: numOrNull(s.amount_total),
+    currency: typeof s.currency === "string" ? s.currency : null,
+    livemode: s.livemode === true,
+    created: numOrNull(s.created) ?? 0,
   };
 }
 
@@ -229,10 +290,11 @@ export function createStripeGateway(secretKey: string, opts: StripeGatewayOption
     checkout: {
       sessions: {
         create: async (params) => {
-          const s = await stripe.checkout.sessions.create(params);
+          const s = await stripe.checkout.sessions.create(params as Stripe.Checkout.SessionCreateParams);
           if (!s.url) throw new Error("Stripe returned a checkout session without url");
           return { id: s.id, url: s.url };
         },
+        retrieve: async (id) => normalizeCheckoutSession(await stripe.checkout.sessions.retrieve(id)),
       },
     },
     billingPortal: {
@@ -310,7 +372,7 @@ export function notConfiguredGateway(): StripeGateway {
   return {
     mode: "none",
     customers: { create: fail },
-    checkout: { sessions: { create: fail } },
+    checkout: { sessions: { create: fail, retrieve: fail } },
     billingPortal: { sessions: { create: fail } },
     subscriptions: { retrieve: fail, list: fail, update: fail, cancel: fail },
     prices: { listByLookupKeys: fail },

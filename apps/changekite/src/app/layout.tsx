@@ -7,9 +7,11 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Analytics } from "@/components/Analytics";
 import { env } from "@/lib/env";
-import { CHANGEKITE_CATALOG, paidPlans } from "@repo/billing";
+import { CHANGEKITE_CATALOG, getPass, paidPlans } from "@repo/billing";
 import { price } from "@/lib/marketing";
 
+const reportPass = getPass(CHANGEKITE_CATALOG, "report")!;
+const PASS_PRICE = `$${(reportPass.priceCents / 100).toFixed(reportPass.priceCents % 100 ? 2 : 0)}`;
 const FROM_PRICE = `${price(paidPlans(CHANGEKITE_CATALOG).sort((a, b) => a.priceMonthlyCents - b.priceMonthlyCents)[0]!)}/month`;
 
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap", axes: ["opsz"] });
@@ -22,12 +24,12 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: base,
     title: { default: "ChangeKite — a plain-spoken website inspection", template: "%s · ChangeKite" },
     description:
-      "Free website scanner and monitoring: broken links, titles, meta descriptions, canonicals, image alt text, sitemap, robots.txt, HTTPS and certificate checks, in one readable report.",
+      "Website scanner and monitoring: broken links, titles, meta descriptions, canonicals, image alt text, sitemap, robots.txt, HTTPS and certificate checks. Free scan with a summary and the top issues.",
     openGraph: {
       type: "website",
       siteName: "ChangeKite",
       title: "ChangeKite — a plain-spoken website inspection",
-      description: `Find broken links, missing titles, sitemap and HTTPS problems in one readable report. Free one-off scans; monitoring from ${FROM_PRICE}.`,
+      description: `Find broken links, missing titles, sitemap and HTTPS problems in one readable report. Free scan with summary and top issues; full report ${PASS_PRICE} one-time; monitoring from ${FROM_PRICE}.`,
       url: base.origin,
     },
     twitter: { card: "summary" },

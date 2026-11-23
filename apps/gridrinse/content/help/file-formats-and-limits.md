@@ -35,9 +35,10 @@ Other file types are refused with a message saying the file is not a CSV or Exce
 
 These limits apply to files processed in your browser:
 
-- **Free**: files up to 5 MB, 50,000 rows per file, 3 files at once
-- **Pro**: files up to 50 MB, 500,000 rows per file, 20 files at once
-- **Business**: files up to 200 MB, 2,000,000 rows per file, 100 files at once
+- **Free**: files up to 5 MB, 50,000 rows per file, 3 files at once; one cleaned download a day of up to 1,000 rows (the sample files can always be downloaded)
+- **24-hour pass** ($5, one-time): files up to 50 MB, 500,000 rows per file, 20 files at once, unlimited downloads for 24 hours
+- **Pro**: files up to 50 MB, 500,000 rows per file, 20 files at once, unlimited downloads
+- **Business**: files up to 200 MB, 2,000,000 rows per file, 100 files at once, unlimited downloads
 
 The drop area shows the limits for your current plan. If a file is too big, you see a message such as "your plan handles files up to 5.0 MB" and a link to see plans with larger limits. The row limit applies per file, so merging several full files can produce a larger table.
 

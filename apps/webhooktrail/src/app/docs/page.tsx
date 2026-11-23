@@ -47,7 +47,7 @@ export default function DocsPage() {
         <p className="label">Documentation</p>
         <h1 className="mt-3 text-[32px] font-semibold tracking-[-0.02em]">WebhookTrail reference</h1>
         <p>
-          WebhookTrail gives you a URL that records every HTTP request sent to it, a console to inspect them, and (on paid plans) replay of a
+          WebhookTrail gives you a URL that records every HTTP request sent to it, a console to inspect them, and (on paid plans or with the one-time 7-day pass) replay of a
           captured request to a destination you have verified. This page describes exactly what is implemented.
         </p>
 

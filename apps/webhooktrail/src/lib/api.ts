@@ -2,7 +2,8 @@ import { rateLimit, type SqlExecutor } from "@repo/database";
 import { getVisibleEndpoint, isExpired, type EndpointRow } from "./endpoints";
 import { apiError, checkOrigin, clientIpOf, notFound, tooManyRequests } from "./http";
 import { UUID_RE } from "./ids";
-import { orgLimits } from "./org-data";
+import { endpointOwnerLimits } from "./org-data";
+import { linkViewerPasses } from "./pass";
 import { limits, type PlanLimits } from "./plans";
 import { getPlatform, type Platform } from "./platform";
 import { canManage, getViewer, type Viewer } from "./viewer";
@@ -24,7 +25,10 @@ export async function apiContext(req: Request, opts: { mutating: boolean }): Pro
   const ip = clientIpOf(req, p.clientIp);
   const rl = await rateLimit(p.ex, `hp:api:${ip.key}`, limits.apiPerIpPerMinute, 60_000);
   if (!rl.allowed) return tooManyRequests(rl.resetAt);
-  return { p, ex: p.ex, viewer: await getViewer(p, req), ip };
+  const viewer = await getViewer(p, req);
+  // A pass cookie links the pass to this viewer's workspace / anonymous owner (capture-side limits, jobs).
+  await linkViewerPasses(p, viewer);
+  return { p, ex: p.ex, viewer, ip };
 }
 
 /** Like apiContext but requires a signed-in member of an organization (401 otherwise). */
@@ -66,5 +70,6 @@ export async function ownedEndpointContext(
   if (opts.manage && endpoint.org_id !== null && !canManage(ctx.viewer.org?.role)) {
     return apiError(403, "insufficient_role", "Only workspace owners and admins can do this.");
   }
-  return { ...ctx, endpoint, limits: await orgLimits(ctx.p, endpoint.org_id) };
+  const owner = endpoint.org_id ? { org_id: endpoint.org_id } : { org_id: null, anon_owner_hash: ctx.viewer.anonHash };
+  return { ...ctx, endpoint, limits: await endpointOwnerLimits(ctx.p, owner, ctx.viewer.passIds) };
 }

@@ -1,10 +1,12 @@
 import { createScanHandler, ScanSlots } from "@/lib/scan-handler";
 import { createProductionDeps } from "@/lib/scanner/deps";
 import { getPlatform } from "@/lib/platform";
+import { visitorAccess } from "@/lib/access";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// Pass holders may scan up to 250 pages (time budget up to ~70 s).
+export const maxDuration = 180;
 
 const g = globalThis as unknown as { __changekiteSlots?: ScanSlots; __changekiteScanHandler?: (req: Request) => Promise<Response> };
 
@@ -23,6 +25,8 @@ async function handler() {
       clientIp: p.clientIp,
       appUrl: e.APP_URL,
       logger: p.logger.child({ route: "api/scan" }),
+      // Signed-in plan + pass cookie: page cap and how much of the report is returned.
+      resolveAccess: async (req) => (await visitorAccess(p, req.headers)).ents,
     });
   }
   return g.__changekiteScanHandler;

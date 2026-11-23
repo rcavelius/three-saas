@@ -1,11 +1,40 @@
 /** Pricing copy and structured data derived from the billing catalog (single source of truth for numbers). */
-import { CHANGEKITE_CATALOG, type PlanDef } from "@repo/billing";
+import { CHANGEKITE_CATALOG, getPass, type PassDef, type PlanDef } from "@repo/billing";
+
+/** The one-time "Full-site report" pass. */
+export const REPORT_PASS: PassDef = getPass(CHANGEKITE_CATALOG, "report")!;
+const FREE_ISSUES = CHANGEKITE_CATALOG.plans.find((p) => p.id === CHANGEKITE_CATALOG.freePlanId)!.limits.reportIssues!;
+
+export function passPrice(p: PassDef): string {
+  return `$${(p.priceCents / 100).toFixed(p.priceCents % 100 ? 2 : 0)}`;
+}
+
+/** "7 days" / "24 hours" */
+export function passDuration(p: PassDef): string {
+  if (p.durationHours % 24 === 0) return p.durationHours === 24 ? "24 hours" : `${p.durationHours / 24} days`;
+  return `${p.durationHours} hours`;
+}
+
+export function passFeatures(p: PassDef): string[] {
+  return [
+    `Every issue with where it is and how to fix it, on every report you open for ${passDuration(p)}`,
+    `Scans of up to ${p.limits.pagesPerScan} pages`,
+    p.features.pdfReports ? "PDF export of reports" : "",
+    "Charged once: no subscription, no account needed",
+    "Ends by itself; no monitoring or alerts",
+  ].filter(Boolean);
+}
 
 export function planFeatures(p: PlanDef): string[] {
   const l = p.limits;
   const f = p.features;
   if (p.id === CHANGEKITE_CATALOG.freePlanId) {
-    return [`One-off scans, no account needed`, `Up to ${l.pagesPerScan} pages per scan`, "Shareable report link", "Print to PDF from the browser"];
+    return [
+      `One-off scans, no account needed`,
+      `Up to ${l.pagesPerScan} pages per scan`,
+      `Score, summary of every check and the top ${l.reportIssues} issues with fixes`,
+      "Shareable report link",
+    ];
   }
   return [
     `${l.sites} monitored site${l.sites === 1 ? "" : "s"}`,
@@ -14,6 +43,7 @@ export function planFeatures(p: PlanDef): string[] {
     f.emailAlerts ? "Email alerts only when something changes" : "",
     `${l.historyDays} days of report history`,
     `${l.teamSeats} team seat${l.teamSeats === 1 ? "" : "s"}`,
+    f.fullReport ? "Full reports: every issue with its fix" : "",
     f.pdfReports ? "Client-ready PDF reports" : "",
     f.priorityQueue ? "Priority scan queue" : "",
   ].filter(Boolean);
@@ -33,20 +63,49 @@ export function softwareApplicationJsonLd(appUrl: string): Record<string, unknow
     url: appUrl,
     description:
       "Website inspection and monitoring: broken links, titles, meta descriptions, canonicals, image alt text, sitemap, robots.txt, HTTPS and certificate checks.",
-    offers: CHANGEKITE_CATALOG.plans.map((p) => ({
-      "@type": "Offer",
-      name: p.name,
-      price: (p.priceMonthlyCents / 100).toFixed(2),
-      priceCurrency: "USD",
-      ...(p.priceMonthlyCents > 0
-        ? { priceSpecification: { "@type": "UnitPriceSpecification", price: (p.priceMonthlyCents / 100).toFixed(2), priceCurrency: "USD", unitText: "MONTH" } }
-        : {}),
-      url: `${appUrl}/pricing`,
-    })),
+    offers: [
+      ...CHANGEKITE_CATALOG.plans.map((p) => ({
+        "@type": "Offer",
+        name: p.id === CHANGEKITE_CATALOG.freePlanId ? `${p.name} scan (summary and top ${FREE_ISSUES} issues)` : p.name,
+        price: (p.priceMonthlyCents / 100).toFixed(2),
+        priceCurrency: "USD",
+        ...(p.priceMonthlyCents > 0
+          ? { priceSpecification: { "@type": "UnitPriceSpecification", price: (p.priceMonthlyCents / 100).toFixed(2), priceCurrency: "USD", unitText: "MONTH" } }
+          : {}),
+        url: `${appUrl}/pricing`,
+      })),
+      {
+        "@type": "Offer",
+        name: `${REPORT_PASS.name} (one-time, ${passDuration(REPORT_PASS)})`,
+        price: (REPORT_PASS.priceCents / 100).toFixed(2),
+        priceCurrency: "USD",
+        url: `${appUrl}/pricing`,
+      },
+    ],
   };
 }
 
 export const PRICING_FAQ: { q: string; a: string }[] = [
+  {
+    q: "What does the free scan include?",
+    a: `The score, a summary of every check with counts by severity, the number of pages read, and the ${FREE_ISSUES} most severe issues with how to fix them. The rest of the issues and their fixes are in the full report, which needs the ${REPORT_PASS.name} pass or a monthly plan.`,
+  },
+  {
+    q: `What is the ${REPORT_PASS.name} pass?`,
+    a: `A one-time payment of ${passPrice(REPORT_PASS)} that unlocks the full report (every issue, where it is and how to fix it) on every report you open for ${passDuration(REPORT_PASS)}, scans of up to ${REPORT_PASS.limits.pagesPerScan} pages and PDF export. No account is needed. It does not include monitoring or alerts.`,
+  },
+  {
+    q: "Does the pass renew?",
+    a: `No. It is charged once and ends by itself ${passDuration(REPORT_PASS)} after you pay. There is nothing to cancel.`,
+  },
+  {
+    q: "How do I use the pass on another device?",
+    a: "The pass works in the browser you bought it in. While it is active, every report shows a \u201cCopy unlock link\u201d button: open that link on another device to unlock it there too. Keep the link private. If you were signed in when you bought it, it also works for everyone in your workspace.",
+  },
+  {
+    q: "Can I get a refund for a pass?",
+    a: "Yes. If a pass did not unlock what the pricing page describes, email support within 7 days of purchase for a full refund; a refunded pass stops working.",
+  },
   {
     q: "How does billing work?",
     a: "Paid plans are billed monthly in US dollars through Stripe, starting the day you subscribe. Stripe handles your card details; ChangeKite never sees or stores them. Taxes may apply where required.",

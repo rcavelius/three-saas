@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DataGrid } from "@/components/DataGrid";
+import { DownloadPaywall, PassActiveNote } from "@/components/PassPaywall";
 import { StepCard } from "@/components/StepEditor";
 import { UpgradeNotice } from "@/components/UpgradeNotice";
 import { WorkflowPanel } from "@/components/WorkflowPanel";
 import { track } from "@/lib/analytics";
+import { hasCarryOver, saveCarryOver, sweepCarryOver, takeCarryOver, type CarryMeta } from "@/lib/carryOver";
 import { CLEANER_EVENTS, type CleanerStage } from "@/lib/cleaner-events";
 import { baseName, downloadBlob, MIME } from "@/lib/download";
+import { checkDownload, countsTowardsDaily, downloadsToday, recordDownload, type DownloadBlock } from "@/lib/downloadQuota";
 import { normalizeHeaders } from "@/lib/engine/ops/basic";
 import type { CsvExportOptions } from "@/lib/engine/export";
 import type { DateNeedsChoice } from "@/lib/engine/ops/dates";
@@ -16,7 +19,8 @@ import type { XlsxDateMode } from "@/lib/engine/parse";
 import { detectKind, zipFileName } from "@/lib/engine/names";
 import { isCellChanged } from "@/lib/engine/pipeline";
 import type { Step, StepType } from "@/lib/engine/schema";
-import { formatBytes, nextOffer, processingLimits, type ClientEntitlements, type ProcessingLimits, type UpgradeOffer } from "@/lib/limits";
+import { formatBytes, nextOffer, passFits, processingLimits, type ClientEntitlements, type PassOffer, type ProcessingLimits, type UpgradeOffer } from "@/lib/limits";
+import { formatPassTime } from "@/lib/passCheckout";
 import { checkBeforeParse, estimateCellsMemory, estimateFileMemory, maxCellsFor, memoryBudget } from "@/lib/memory";
 import { SAMPLE_CSV, SAMPLE_FILE_NAME } from "@/lib/sample";
 import { defaultSteps, renameRefs, STEP_META, templateFor, withToolSteps } from "@/lib/steps";
@@ -70,6 +74,8 @@ export interface CleanerProps {
   loadEntitlements?: () => Promise<ClientEntitlements | null>;
   /** Paid plans as the upgrade prompts may describe them (server-computed from the catalog). */
   offers?: UpgradeOffer[];
+  /** The one-time pass the paywall offers (server-computed from the catalog); none = plans only. */
+  pass?: PassOffer | null;
   /** A tool page's own sample (one or more files) and steps; defaults to the general messy orders export. */
   sample?: { files: { name: string; csv: string }[]; steps?: Step[] };
   /** "hidden": no empty-state drop card (the homepage hero is the drop zone and drives this component by event). */
@@ -84,14 +90,20 @@ interface LimitHit {
   kind: "size" | "rows" | "files";
 }
 
-export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offers = [], sample, emptyState = "full" }: CleanerProps) {
+/** A file to load: one chosen/dropped by the visitor, or bytes already in this browser (sample, restored work). */
+type AddItem = File | { name: string; bytes: Uint8Array; parseOpts?: { sheet?: string; dateMode: XlsxDateMode; hasHeader: boolean } };
+
+type PassStatus = "active" | "unpaid" | "canceled" | "expired" | "revoked" | "invalid" | "error";
+const PASS_STATUSES: readonly string[] = ["active", "unpaid", "canceled", "expired", "revoked", "invalid", "error"];
+
+export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offers = [], pass = null, sample, emptyState = "full" }: CleanerProps) {
   const clientRef = useRef<EngineClient | null>(null);
   const client = useCallback(() => (clientRef.current ??= createEngineClient()), []);
   useEffect(() => () => clientRef.current?.dispose(), []);
 
   // Plan limits for LOCAL processing come from the server's entitlements. They are value fences, not
   // security boundaries: the file never leaves this browser, so there is nothing server-side to protect.
-  const { entitlements, refresh: refreshEntitlements } = useEntitlements(loadEntitlements);
+  const { entitlements, loaded: entitlementsLoaded, refresh: refreshEntitlements } = useEntitlements(loadEntitlements);
   const limits: ProcessingLimits = entitlements ? processingLimits(entitlements.planId, entitlements.planName, entitlements.limits) : freeLimits;
   const [warnings, setWarnings] = useState<string[]>([]);
   const [runNonce, setRunNonce] = useState(0);
@@ -191,11 +203,12 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
   const activeFile = files.find((f) => f.id === activeId) ?? files[0] ?? null;
   const inputColumns = shown?.input.columns ?? activeFile?.parse.table.columns ?? [];
 
-  const planWord = `your plan (${limits.planName})`;
+  const activePass = entitlements?.pass ?? null;
+  const planWord = activePass && limits.planId === "free" ? `the ${activePass.name}` : `your plan (${limits.planName})`;
   const [limitHit, setLimitHit] = useState<LimitHit | null>(null);
   const [source, setSource] = useState<"sample" | "file">("file");
 
-  const addFiles = async (list: File[] | { name: string; bytes: Uint8Array }[], opts: { source?: "sample" | "file"; toolSteps?: Step[] } = {}) => {
+  const addFiles = async (list: AddItem[], opts: { source?: "sample" | "file"; toolSteps?: Step[]; restore?: CarryMeta } = {}) => {
     const errors: string[] = [];
     const warns: string[] = [];
     const rejected: RejectReason[] = [];
@@ -251,12 +264,13 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
       try {
         const bytes = item instanceof File ? new Uint8Array(await item.arrayBuffer()) : item.bytes;
         const loadedCells = loaded.reduce((n, f) => n + f.parse.table.rows.length * Math.max(1, f.parse.table.columns.length), 0);
-        const parse = await client().parse(name, bytes, {}, {
+        const parseOpts = item instanceof File ? undefined : item.parseOpts;
+        const parse = await client().parse(name, bytes, parseOpts ?? {}, {
           maxRows: limits.maxRows,
           maxCells: maxCellsFor(budget, inUse + estimateFileMemory(size, kind === "workbook" ? "xlsx" : "csv") / 4, loadedCells),
           planName: limits.planName,
         });
-        added.push({ id: `f${++fileCounter}`, name, size, bytes, parse, sheet: parse.sheet, dateMode: "display", hasHeader: true });
+        added.push({ id: `f${++fileCounter}`, name, size, bytes, parse, sheet: parse.sheet, dateMode: parseOpts?.dateMode ?? "display", hasHeader: parseOpts?.hasHeader ?? true });
       } catch (e) {
         if (isCancelled(e)) {
           errors.push("Loading was cancelled.");
@@ -274,7 +288,10 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
     setLoadErrors(errors);
     setWarnings(warns);
     setLimitHit(hit);
-    for (const reason of new Set(rejected)) track("file_rejected", { reason });
+    for (const reason of new Set(rejected)) {
+      track("file_rejected", { reason });
+      if (hit && (reason === "too_big" || reason === "too_many_files" || reason === "too_many_rows")) track("paywall_shown", { reason });
+    }
     if (added.length === 0) {
       setStatus(errors.length ? "No file was added." : "");
       return;
@@ -283,8 +300,16 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
     track("tool_used", { action: "clean", mode: MODE_OF(files.length + added.length, mode), files: files.length + added.length, steps: steps.length, source: src });
     if (files.length === 0) {
       const first = added[0]!;
-      setSteps(withToolSteps(defaultSteps(tidyNames(first.parse.table.columns, first.parse.suggestions.numberColumns)), opts.toolSteps));
-      setActiveId(first.id);
+      // Work kept across a pass checkout: the visitor's own steps (and settings) instead of the defaults.
+      const restore = opts.restore ?? (src === "file" ? keptSteps.current : null);
+      keptSteps.current = null;
+      if (restore) {
+        setSteps(restore.steps);
+        setMode(restore.mode);
+        setMerge({ ...restore.merge, mappings: {} });
+        setCsvOpts(restore.csvOpts);
+      } else setSteps(withToolSteps(defaultSteps(tidyNames(first.parse.table.columns, first.parse.suggestions.numberColumns)), opts.toolSteps));
+      setActiveId((opts.restore ? added[opts.restore.activeIndex]?.id : undefined) ?? first.id);
       setView("cleaned");
       setSource(src);
       // Arriving from the hero (or a drop anywhere on the page): bring the results into view.
@@ -351,6 +376,59 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
     heroActions.current.sample();
   }, []);
 
+  // Back from a pass checkout (?pass=<status> from the claim route or Stripe's cancel URL): a short message, and
+  // the work kept in this browser before leaving (steps, settings and, when IndexedDB allowed it, the files).
+  const [passStatus, setPassStatus] = useState<PassStatus | null>(null);
+  const [restored, setRestored] = useState<"files" | "steps" | null>(null);
+  const keptSteps = useRef<CarryMeta | null>(null);
+  const addFilesRef = useRef(addFiles);
+  addFilesRef.current = addFiles;
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const st = url.searchParams.get("pass");
+    if (st !== null) {
+      url.searchParams.delete("pass");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+      if (PASS_STATUSES.includes(st)) {
+        setPassStatus(st as PassStatus);
+        if (st === "active") track("pass_activated", { pass: "day" });
+      }
+    }
+    if (!hasCarryOver()) {
+      void sweepCarryOver();
+      return;
+    }
+    void (async () => {
+      const kept = await takeCarryOver();
+      if (!kept) return;
+      if (kept.files?.length) {
+        await addFilesRef.current(
+          kept.files.map((f) => ({ name: f.name, bytes: f.bytes, parseOpts: { sheet: f.sheet, dateMode: f.dateMode, hasHeader: f.hasHeader } })),
+          { source: "file", restore: kept.meta },
+        );
+        setRestored("files");
+      } else if (kept.meta.fileCount > 0) {
+        keptSteps.current = kept.meta;
+        setRestored("steps");
+      }
+    })();
+  }, []);
+
+  /** Keeps the current work in this browser before leaving for checkout (nothing is uploaded). */
+  const keepWork = async () => {
+    if (files.length === 0) return;
+    await saveCarryOver(
+      {
+        steps,
+        mode,
+        merge: { looseMatch: merge.looseMatch, addSource: merge.addSource, sourceName: merge.sourceName },
+        csvOpts,
+        activeIndex: Math.max(0, files.findIndex((f) => f.id === activeFile?.id)),
+      },
+      files.map((f) => ({ name: f.name, bytes: f.bytes, sheet: f.sheet, dateMode: f.dateMode, hasHeader: f.hasHeader })),
+    );
+  };
+
   // Progress for the "Choose file → Review changes → Download" steps on the How it works page.
   const [downloaded, setDownloaded] = useState(false);
   const stage: CleanerStage = files.length === 0 ? 1 : downloaded ? 3 : 2;
@@ -387,6 +465,9 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
   };
 
   const startOver = () => {
+    setPaywall(null);
+    keptSteps.current = null;
+    setRestored(null);
     setFiles([]);
     setActiveId(null);
     setSteps(defaultSteps([]));
@@ -484,6 +565,10 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
   // Upgrade prompts: only where a paid plan really helps, with that plan's real numbers.
   const signedIn = !!entitlements?.signedIn;
   const limitOffer = limitHit && limits.planId !== "business" ? nextOffer(offers, limits, limitHit.need) : null;
+  // The pass is offered first only where it would really take the file and beats what the visitor has now.
+  const passBeats = !!pass && (pass.maxFileBytes > limits.maxFileBytes || pass.maxRows > limits.maxRows || pass.maxFiles > limits.maxFiles);
+  const limitPass = limitHit && passBeats && passFits(pass, limitHit.need) ? pass : null;
+  const proOffer = offers.find((o) => o.planId === "pro") ?? offers[0] ?? null;
   const filesOffer = !limitHit && files.length >= limits.maxFiles ? nextOffer(offers, limits, { files: limits.maxFiles + 1 }) : null;
   const repeatOffer = downloaded && source === "file" && limits.planId === "free" ? nextOffer(offers, limits) : null;
 
@@ -493,7 +578,24 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
   const dateChoices = (dateRun?.report.details?.needsChoice as DateNeedsChoice[] | undefined) ?? [];
   const outName = isMerge ? "merged" : baseName(activeFile?.name ?? "data");
 
+  // The download paywall: free downloads are up to `downloadRows` rows, `downloadsPerDay` a day, counted in this
+  // browser (see lib/downloadQuota.ts: a value fence, the file never leaves this device). The sample is always free.
+  const [paywall, setPaywall] = useState<{ rows: number; reason: DownloadBlock } | null>(null);
+  const isSample = source === "sample";
+  const mayDownload = async (rows: number): Promise<boolean> => {
+    // Until the entitlements answer, ask once more so a pass holder is never stopped by the free defaults.
+    const ent = entitlementsLoaded ? entitlements : await refreshEntitlements();
+    const l = ent ? processingLimits(ent.planId, ent.planName, ent.limits) : freeLimits;
+    const v = checkDownload({ rows, limits: l, usedToday: downloadsToday(), sample: isSample });
+    if (v.ok) return true;
+    setPaywall({ rows, reason: v.reason });
+    track("paywall_shown", { reason: v.reason });
+    return false;
+  };
+
   const usage = (action: "download_csv" | "download_xlsx" | "download_zip" | "download_batch_xlsx", format: "csv" | "tsv" | "xlsx" | "zip_csv" | "zip_xlsx") => {
+    if (countsTowardsDaily(limits, isSample)) recordDownload();
+    setPaywall(null);
     setDownloaded(true);
     track("tool_used", { action, mode: MODE_OF(files.length, mode), files: files.length, steps: steps.length, format });
   };
@@ -513,6 +615,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
   const downloadCsv = () =>
     exportGuard(async () => {
       if (!result) return;
+      if (!(await mayDownload(result.table.rows.length))) return;
       const text = await client().csv(result.table, csvOpts);
       const tsv = csvOpts.delimiter === "\t";
       downloadBlob(text, `${outName}-clean.${tsv ? "tsv" : "csv"}`, MIME.csv);
@@ -521,14 +624,17 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
   const downloadXlsx = () =>
     exportGuard(async () => {
       if (!result) return;
+      if (!(await mayDownload(result.table.rows.length))) return;
       const bytes = await client().xlsx([{ name: outName, table: result.table }]);
       downloadBlob(bytes as BlobPart, `${outName}-clean.xlsx`, MIME.xlsx);
       usage("download_xlsx", "xlsx");
     });
   const downloadOriginal = (f: LoadedFile) => downloadBlob(f.bytes as BlobPart, f.name, "application/octet-stream");
   const batchTables = () => batch.map((b) => ({ name: files.find((f) => f.id === b.fileId)?.name ?? "data", table: b.res.result.table }));
+  const batchRows = () => batch.reduce((n, b) => n + b.res.result.table.rows.length, 0);
   const downloadBatchXlsx = () =>
     exportGuard(async () => {
+      if (!(await mayDownload(batchRows()))) return;
       const bytes = await client().xlsx(batchTables());
       downloadBlob(bytes as BlobPart, "batch-clean.xlsx", MIME.xlsx);
       usage("download_batch_xlsx", "xlsx");
@@ -536,6 +642,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
   /** One ZIP with a cleaned CSV (or XLSX) per file, built in the worker. Nothing is uploaded. */
   const downloadZip = (format: "csv" | "xlsx") =>
     exportGuard(async () => {
+      if (!(await mayDownload(batchRows()))) return;
       setStatus("Building ZIP…");
       const bytes = await client().zip(batchTables(), format, csvOpts);
       downloadBlob(bytes as BlobPart, zipFileName(), MIME.zip);
@@ -680,6 +787,27 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
         {status}
       </p>
 
+      {(passStatus || restored) && (
+        <div role="status" className="mb-3 rounded-lg border-2 border-ink bg-mint-soft px-4 py-3 text-[15px] font-medium">
+          {passStatus === "active" && (
+            <p className="font-extrabold">
+              {activePass ? `Pass active until ${formatPassTime(activePass.expiresAt)}.` : "Payment received. Your pass is active."} Downloads are unlocked in this browser.
+            </p>
+          )}
+          {passStatus === "unpaid" && <p className="font-extrabold">Payment is still processing — this page unlocks when it clears.</p>}
+          {passStatus === "canceled" && <p>Checkout canceled. Nothing was charged.</p>}
+          {passStatus === "expired" && <p>That pass has ended. A new one starts from the moment you buy it.</p>}
+          {passStatus === "revoked" && <p>That pass was refunded, so it no longer unlocks anything.</p>}
+          {(passStatus === "invalid" || passStatus === "error") && (
+            <p>
+              We could not confirm that pass. If you paid, <Link href="/support" className="font-bold underline">contact support</Link> and a person will sort it out.
+            </p>
+          )}
+          {restored === "files" && <p>Your file and cleaning steps are back, restored from this browser. Nothing was uploaded.</p>}
+          {restored === "steps" && <p>Your cleaning steps are kept. Drop the file again to download.</p>}
+        </div>
+      )}
+
       {files.length === 0 && (emptyState === "full" ? dropZone : fileInputEl)}
 
       {(loading || pending || exporting) && (
@@ -704,8 +832,16 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
             offer={limitOffer}
             from={limitHit.kind === "files" ? "files" : "limit"}
             signedIn={signedIn}
+            pass={limitPass}
+            beforeCheckout={keepWork}
             title={
-              limitHit.kind === "files"
+              limitPass
+                ? limitHit.kind === "files"
+                  ? `Clean up to ${limitPass.maxFiles} files at once with a ${limitPass.name} or ${limitOffer.planName}`
+                  : limitHit.kind === "size"
+                    ? `Open files up to ${formatBytes(limitPass.maxFileBytes).replace(/\.0 /, " ")} with a ${limitPass.name} or ${limitOffer.planName}`
+                    : `Read up to ${limitPass.maxRows.toLocaleString("en-US")} rows per file with a ${limitPass.name} or ${limitOffer.planName}`
+                : limitHit.kind === "files"
                 ? `${limitOffer.planName} cleans up to ${limitOffer.maxFiles} files at once`
                 : limitHit.kind === "size"
                   ? `${limitOffer.planName} opens files up to ${formatBytes(limitOffer.maxFileBytes).replace(/\.0 /, " ")}`
@@ -1223,6 +1359,26 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
                     )}
                   </div>
                   {!ready && !runError && <p className="mt-2 text-[12px] text-ink-3">Updating preview… downloads unlock when the preview matches your steps.</p>}
+                  {paywall && (
+                    <div className="mt-4">
+                      <DownloadPaywall
+                        rows={paywall.rows}
+                        reason={paywall.reason}
+                        downloadRows={freeLimits.downloadRows}
+                        downloadsPerDay={freeLimits.downloadsPerDay}
+                        pass={pass}
+                        pro={proOffer}
+                        signedIn={signedIn}
+                        beforeCheckout={keepWork}
+                        onClose={() => setPaywall(null)}
+                      />
+                    </div>
+                  )}
+                  {activePass && (
+                    <div className="mt-4">
+                      <PassActiveNote pass={activePass} />
+                    </div>
+                  )}
                   <fieldset className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-t-2 border-rule pt-3 text-[14px] font-medium">
                     <legend className="mb-2 text-[14px] font-extrabold">CSV options</legend>
                     <label className="flex items-center gap-1.5">

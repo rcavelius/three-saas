@@ -1,40 +1,47 @@
 import { rateLimit } from "@repo/database";
 import { getPlatform } from "@/lib/platform";
-import { getScan, SCAN_ID_PATTERN } from "@/lib/scans-repo";
+import { loadReportView } from "@/lib/report-access";
+import { SCAN_ID_PATTERN } from "@/lib/scans-repo";
 import { generateReportPdf } from "@/lib/pdf";
 import { json } from "@/lib/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PDF_PER_ORG_PER_HOUR = 30;
+const PDF_PER_HOUR = 30;
 
 /**
- * Server-generated PDF for account reports on plans with `pdfReports`. Org-scoped: non-members get 404
- * (same as a missing report). Anonymous reports keep browser printing.
+ * Server-generated PDF for viewers with `pdfReports` (Agency plan, or an active Full-site report pass). Account
+ * reports stay org-scoped (non-members get 404, same as a missing report); anonymous reports are reachable by
+ * their unguessable id like the HTML report. Everyone else keeps browser printing.
  */
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }): Promise<Response> {
   const { id } = await ctx.params;
   if (!SCAN_ID_PATTERN.test(id)) return json(404, { error: "not_found" });
   const p = await getPlatform();
-  const scan = await getScan(p.handle.executor, id, p.now());
-  if (!scan || !scan.orgId) return json(404, { error: "not_found" });
-  let org: { id: string; name: string };
-  try {
-    org = (await p.auth.requireOrg(req.headers, { orgId: scan.orgId })).org;
-  } catch {
-    return json(404, { error: "not_found" });
-  }
-  const ents = await p.billing.getEntitlements(org.id);
+  const view = await loadReportView(p, req.headers, id);
+  if (!view) return json(404, { error: "not_found" });
+  const { scan, ents } = view;
   if (!ents.features.pdfReports) {
-    return json(403, { error: "plan_required", message: "PDF export is included in the Agency plan. Use Print to save a PDF from your browser." });
+    return json(403, {
+      error: "plan_required",
+      message: "PDF export is included in the Full-site report pass and the Agency plan. Use Print to save a PDF from your browser.",
+    });
   }
-  const rl = await rateLimit(p.handle.executor, `pdf:${org.id}`, PDF_PER_ORG_PER_HOUR, 3_600_000, p.now());
+  let workspace = "Full-site report";
+  if (scan.orgId) {
+    const { rows } = await p.handle.executor.query<{ name: string }>(`SELECT name FROM auth_organization WHERE id = $1`, [scan.orgId]);
+    workspace = rows[0]?.name ?? "Workspace";
+  }
+  // Rate limit per payer: the org of an account report, else the pass (or the viewer's org) that granted the PDF.
+  const payer = scan.orgId ?? ents.pass?.id ?? "anon";
+  const rl = await rateLimit(p.handle.executor, `pdf:${payer}`, PDF_PER_HOUR, 3_600_000, p.now());
   if (!rl.allowed) {
     return json(429, { error: "rate_limited", message: "Too many PDF exports this hour." }, { "retry-after": String(Math.max(1, Math.ceil((rl.resetAt.getTime() - p.now().getTime()) / 1000))) });
   }
-  const pdf = await generateReportPdf(scan.report, {
-    workspace: org.name,
+  // view.report is the copy this viewer may see (the full report for every pdfReports holder in the catalog).
+  const pdf = await generateReportPdf(view.report, {
+    workspace,
     generatedAt: p.now(),
     reportUrl: `${new URL(p.env.APP_URL).origin}/report/${scan.id}`,
   });

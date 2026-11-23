@@ -7,6 +7,7 @@ import { maskBodyText } from "@/lib/mask-body";
 import { classifyReplayHeader, MAX_REPLAY_BODY_BYTES, planReplayHeaders, REPLAYABLE_METHODS } from "@/lib/replay-headers";
 import { displayHeaderValue } from "@/lib/sensitive";
 import type { DestinationDTO, EndpointDTO, ReplayDTO, RequestDetailDTO } from "@/lib/types";
+import { PassPaywall } from "../pass/PassPaywall";
 
 const STATUS_COLOR: Record<string, string> = {
   delivered: "text-ok",
@@ -30,6 +31,7 @@ export function ReplayPanel({ endpoint, request, bodyText }: { endpoint: Endpoin
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [history, setHistory] = useState<ReplayDTO[]>([]);
+  const [paywall, setPaywall] = useState(false);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -66,17 +68,43 @@ export function ReplayPanel({ endpoint, request, bodyText }: { endpoint: Endpoin
   );
 
   if (!endpoint.permissions.canReplay) {
+    const anonymous = endpoint.owner === "anonymous";
+    const next = encodeURIComponent(`/e/${endpoint.id}`);
+    const accountNote = (
+      <>
+        Replays only go to a destination you have verified, and destinations live in a workspace: after paying,{" "}
+        <Link className="underline underline-offset-2" href="/signup">
+          create a free account
+        </Link>{" "}
+        in this browser and claim this endpoint. The pass comes with you.
+      </>
+    );
     return (
       <section className="border-b border-line px-4 py-3">
         <h3 className="label">Replay</h3>
-        <p className="mt-2 text-[13px] text-fg-muted">
-          {endpoint.owner === "anonymous"
-            ? "Replay to your own verified destination needs an account: sign up or log in, then claim this endpoint."
-            : "Replay to a verified destination is included in the Developer and Pro plans."}{" "}
-          <Link className="text-signal underline underline-offset-2" href={endpoint.owner === "anonymous" ? "/signup" : "/pricing"}>
-            {endpoint.owner === "anonymous" ? "Create an account" : "See plans"}
-          </Link>
-        </p>
+        {endpoint.permissions.replayIncluded ? (
+          // Anonymous endpoint with an active pass: replay is paid for, it only needs a workspace.
+          <p className="mt-2 text-[13px] text-fg-muted">
+            Your pass includes replay. Replays go to a destination your workspace has verified, so{" "}
+            <Link className="text-signal underline underline-offset-2" href="/signup">
+              create a free account
+            </Link>{" "}
+            or{" "}
+            <Link className="text-signal underline underline-offset-2" href={`/login?next=${next}`}>
+              log in
+            </Link>{" "}
+            in this browser, then claim this endpoint.
+          </p>
+        ) : paywall ? (
+          <PassPaywall className="mt-2" reason="replay" note={anonymous ? accountNote : undefined} onClose={() => setPaywall(false)} />
+        ) : (
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <button type="button" className="btn h-8" onClick={() => setPaywall(true)}>
+              Replay…
+            </button>
+            <span className="text-[13px] text-fg-muted">Send this request again to your own server, with optional retries.</span>
+          </div>
+        )}
       </section>
     );
   }

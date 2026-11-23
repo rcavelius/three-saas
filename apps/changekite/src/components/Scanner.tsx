@@ -3,13 +3,16 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { ScanProgress, ScanReport } from "@/lib/scanner/types";
 import { Report } from "./Report";
+import { ReportPaywall } from "./ReportPaywall";
+import type { LockedSummary } from "@/lib/report-gate";
+import type { ReportOffer } from "@/lib/offer";
 import { CopyLink } from "./CopyLink";
 import { track } from "@/lib/client/track";
 
 type StreamEvent =
-  | { type: "accepted"; url: string }
+  | { type: "accepted"; url: string; maxPages?: number }
   | { type: "progress"; event: ScanProgress }
-  | { type: "result"; id: string; reportUrl: string; report: ScanReport }
+  | { type: "result"; id: string; reportUrl: string; report: ScanReport; locked?: LockedSummary | null }
   | { type: "error"; error: string };
 
 interface LogLine {
@@ -20,7 +23,7 @@ interface LogLine {
 type State =
   | { kind: "idle" }
   | { kind: "running"; url: string; started: number; phase: string; pages: number; maxPages: number; log: LogLine[] }
-  | { kind: "done"; id: string; reportUrl: string; report: ScanReport }
+  | { kind: "done"; id: string; reportUrl: string; report: ScanReport; locked: LockedSummary | null }
   | { kind: "error"; message: string };
 
 const PHASE_LABEL: Record<string, string> = {
@@ -42,7 +45,7 @@ function shortPath(url: string): string {
   }
 }
 
-export function Scanner() {
+export function Scanner({ offer }: { offer: ReportOffer }) {
   const inputId = useId();
   const hintId = useId();
   const [url, setUrl] = useState("");
@@ -76,7 +79,7 @@ export function Scanner() {
     abortRef.current = controller;
     const started = Date.now();
     setNow(started);
-    setState({ kind: "running", url: value, started, phase: "Starting", pages: 0, maxPages: 25, log: [{ t: started, text: `Request accepted for ${value}` }] });
+    setState({ kind: "running", url: value, started, phase: "Starting", pages: 0, maxPages: offer.freePages, log: [{ t: started, text: `Request accepted for ${value}` }] });
     setAnnounce("Scan started.");
 
     try {
@@ -117,7 +120,10 @@ export function Scanner() {
           } catch {
             continue;
           }
-          if (ev.type === "progress") {
+          if (ev.type === "accepted") {
+            const max = ev.maxPages;
+            if (typeof max === "number" && max > 0) setState((s) => (s.kind === "running" ? { ...s, maxPages: max } : s));
+          } else if (ev.type === "progress") {
             const p = ev.event;
             setState((s) => {
               if (s.kind !== "running") return s;
@@ -136,7 +142,7 @@ export function Scanner() {
           } else if (ev.type === "result") {
             finished = true;
             track("tool_used", { tool: "scan", score: ev.report.score });
-            setState({ kind: "done", id: ev.id, reportUrl: ev.reportUrl, report: ev.report });
+            setState({ kind: "done", id: ev.id, reportUrl: ev.reportUrl, report: ev.report, locked: ev.locked ?? null });
             setAnnounce(`Scan finished. Score ${ev.report.score} out of 100, ${ev.report.counts.critical} critical issues.`);
           } else if (ev.type === "error") {
             finished = true;
@@ -204,7 +210,8 @@ export function Scanner() {
           )}
         </div>
         <p id={hintId} className="mt-3 text-sm text-muted">
-          Free, no account. Up to 25 pages, about a minute. We follow your robots.txt.
+          Free, no account: up to {offer.freePages} pages, about a minute. You get the score, a summary of every check and the top{" "}
+          {offer.freeIssues} issues with fixes; the full report is {offer.price}. We follow your robots.txt.
         </p>
       </form>
 
@@ -257,7 +264,14 @@ export function Scanner() {
             </div>
           </div>
           <div ref={reportRef} tabIndex={-1} className="focus:outline-none">
-            <Report report={state.report} id={state.id} />
+            <Report
+              report={state.report}
+              id={state.id}
+              locked={state.locked}
+              paywall={
+                state.locked ? <ReportPaywall locked={state.locked} startUrl={state.report.startUrl} reportId={state.id} offer={offer} where="scan" /> : undefined
+              }
+            />
           </div>
         </div>
       )}

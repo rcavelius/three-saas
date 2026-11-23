@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalDraft, OperatorDetails } from "@/components/LegalDraft";
 import { legalInfo } from "@/lib/legal";
+import { passOffer } from "@/lib/pass";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +17,13 @@ export function generateMetadata(): Metadata {
 
 export default function TermsPage() {
   const legal = legalInfo();
+  const offer = passOffer();
   return (
     <LegalDraft title="Terms of service" updated="2026-11-23" legal={legal}>
       <h2>1. The service</h2>
       <p>
         WebhookTrail provides capture URLs that record the HTTP requests sent to them, a console and API to inspect those requests, custom
-        responses, and, on paid plans, replay of captured requests to destinations you have verified. The Free plan can be used without an
+        responses, and, on paid plans or with a one-time pass, replay of captured requests to destinations you have verified. The Free plan can be used without an
         account, within the limits shown on the <Link href="/pricing">pricing page</Link>.
       </p>
 
@@ -75,13 +77,26 @@ export default function TermsPage() {
         individually. Refunds go back to the original payment method through Stripe.
       </p>
 
-      <h2>7. Changes</h2>
+      <h2>7. One-time passes</h2>
+      <p>
+        A pass (for example the {offer.name}, {offer.price}) is a single payment in US dollars through Stripe. It is charged once and never
+        renews. It unlocks the features and limits described on the <Link href="/pricing">pricing page</Link> from the moment the payment is
+        confirmed, and access ends at the stated time ({offer.durationLabel} later); your endpoints then fall back to your plan&apos;s limits as
+        described in section 5. No account is needed to buy a pass. It works in the browser that bought it, in any browser where you open its
+        unlock link, and, if you bought it while signed in, for that workspace. Replay still only goes to destinations a workspace has verified.
+      </p>
+      <p>
+        If a pass did not unlock what the pricing page describes, email {legal.supportEmail} within 7 days of purchase for a full refund; a refunded
+        pass stops working.
+      </p>
+
+      <h2>8. Changes</h2>
       <p>
         These terms may change. Material changes will be announced on this page with a new date, and by email to paying customers at least 30
         days in advance.
       </p>
 
-      <h2>8. Who we are, contact and governing law</h2>
+      <h2>9. Who we are, contact and governing law</h2>
       <OperatorDetails legal={legal} />
       <p>These terms are governed by the laws of {legal.jurisdiction ?? "[jurisdiction — to be added before publication]"}.</p>
     </LegalDraft>

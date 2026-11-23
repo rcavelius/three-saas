@@ -3,7 +3,7 @@
  * names the scanner checks (CheckId) and rule ids that do the job, and every number on it comes from the scanner's
  * FREE_LIMITS or the billing catalog, so a page can only promise what the scanner does. tools.test.ts pins this.
  */
-import { CHANGEKITE_CATALOG, paidPlans, type PlanDef } from "@repo/billing";
+import { CHANGEKITE_CATALOG, getPass, paidPlans, type PlanDef } from "@repo/billing";
 import type { CheckId } from "@/lib/scanner/types";
 import type { ChangeKind } from "@/lib/monitoring/diff";
 import { FREE_LIMITS } from "@/lib/scanner/scan";
@@ -39,6 +39,17 @@ const planLine = (p: PlanDef) =>
 export const PLAN_SUMMARY = plans.map(planLine).join("; ");
 export const FROM_PRICE = `${price(cheapest)}/month`;
 
+const pass = getPass(CHANGEKITE_CATALOG, "report")!;
+const freeIssues = CHANGEKITE_CATALOG.plans.find((p) => p.id === CHANGEKITE_CATALOG.freePlanId)!.limits.reportIssues!;
+/** "$9" */
+export const PASS_PRICE = `$${(pass.priceCents / 100).toFixed(pass.priceCents % 100 ? 2 : 0)}`;
+const passDays = pass.durationHours / 24;
+/** Shared FAQ on every free tool page: what the free report shows and what the pass adds. */
+const FREE_REPORT_FAQ = {
+  q: "What does the free scan show?",
+  a: `The score, the result of every check and the ${freeIssues} most severe issues with how to fix them. The ${pass.name} pass (${PASS_PRICE} once, no subscription, no account) unlocks every issue with its page and fix on every report for ${passDays} days, scans of up to ${pass.limits.pagesPerScan} pages and PDF export.`,
+};
+
 const freeScope = `A free scan reads up to ${L.maxPages} pages, ${L.maxDepth} clicks deep from the address you enter, and stops after about ${Math.round(L.timeBudgetMs / 1000)} seconds.`;
 
 export const TOOLS: ToolPage[] = [
@@ -47,7 +58,7 @@ export const TOOLS: ToolPage[] = [
     title: "Free broken link checker: find dead links on your website",
     h1: "Broken link checker",
     description:
-      "Find broken internal and external links on your website for free. ChangeKite crawls your pages, tests every link and lists each dead one with the page it is on.",
+      "Find broken links on your website. The free scan tests every link, counts the dead ones and shows the worst; the full list with the page each is on is in the report.",
     intro:
       "Enter your homepage and ChangeKite follows the links on your site the way a crawler does. Every internal link is tested, outbound links are checked too, and each broken one is listed with its HTTP status and the pages that link to it, so you know exactly what to edit.",
     checks: ["internal-links", "external-links"],
@@ -79,7 +90,7 @@ export const TOOLS: ToolPage[] = [
     title: "Find 404 pages on your website (free 404 checker)",
     h1: "Find the 404 pages on your website",
     description:
-      "Find links on your site that lead to 404 Not Found and other error pages. Free scan, no account: each dead URL is listed with its status and the pages linking to it.",
+      "Find links on your site that lead to 404 Not Found and other error pages. Free scan, no account; the full report lists each dead URL and the pages linking to it.",
     intro:
       "A 404 usually means a page was moved or deleted and something still links to it. ChangeKite crawls your site, records the status of every internal URL it finds, and lists each one that answers 404, 410 or a server error, together with the pages that link to it.",
     checks: ["internal-links", "status"],
@@ -110,7 +121,7 @@ export const TOOLS: ToolPage[] = [
     title: "Redirect chain checker: find multi-hop redirects on your site",
     h1: "Redirect chain checker",
     description:
-      "Find pages that take two or more redirects to load and internal links that point at redirecting URLs. Free scan of your site with every hop listed.",
+      "Find pages that take two or more redirects to load and internal links that point at redirecting URLs. Free scan; the full report lists every hop.",
     intro:
       "http:// to https:// to www to a new slug: each hop costs visitors a round-trip. ChangeKite records every redirect it follows while crawling, lists pages that need two or more hops with the full chain, and points out internal links whose target redirects, so you can link to the final URL directly.",
     checks: ["status", "internal-links"],
@@ -132,7 +143,7 @@ export const TOOLS: ToolPage[] = [
     title: "Mixed content checker: find http:// resources on https pages",
     h1: "Mixed content checker",
     description:
-      "Find scripts, stylesheets, iframes, images and forms loaded over http:// on your https pages. Free scan that lists every insecure URL by page and type.",
+      "Find scripts, stylesheets, iframes, images and forms loaded over http:// on your https pages. Free scan; the full report lists every insecure URL by page and type.",
     intro:
       "An https page that loads a script or stylesheet over plain http gets it blocked by the browser, and the page can break. ChangeKite reads the HTML of every https page it crawls and lists each http:// resource, split into active content, passive content and form actions.",
     checks: ["mixed-content"],
@@ -264,7 +275,7 @@ export const TOOLS: ToolPage[] = [
     title: "Title tag and meta description checker for your whole site",
     h1: "Title tag and meta description checker",
     description:
-      "Find missing, empty, duplicate, too long or too short page titles and meta descriptions across your site in one free scan, page by page.",
+      "Find missing, empty, duplicate, too long or too short page titles and meta descriptions across your site in one scan; the full report lists them page by page.",
     intro:
       "Your title and meta description are the headline and snippet of your search result. ChangeKite reads them on every page it crawls, measures their length, and compares them across pages to find duplicates that make pages hard to tell apart.",
     checks: ["titles", "meta-description"],
@@ -297,7 +308,7 @@ export const TOOLS: ToolPage[] = [
     title: "Image alt text checker: find images missing alt attributes",
     h1: "Image alt text checker",
     description:
-      "Find every image on your site that has no alt attribute. Free scan that lists the images per page and correctly ignores decorative images with alt=\"\".",
+      "Find every image on your site that has no alt attribute. Free scan; the full report lists them per page and ignores decorative images with alt=\"\".",
     intro:
       "Screen-reader users hear alt text instead of seeing an image; without the attribute many screen readers read out the file name instead. ChangeKite looks at every <img> on the pages it crawls and lists the ones with no alt attribute, page by page.",
     checks: ["images"],
@@ -354,7 +365,7 @@ export const TOOLS: ToolPage[] = [
     alertKinds: ["site_down", "site_up", "home_status", "new_broken_links", "new_critical", "cert_expiring", "robots_blocks_all", "score_drop"],
     paid: true,
     howTo: [
-      "Run a free scan above to see the full report for one site.",
+      "Run a free scan above to see the summary and top issues for one site.",
       "Choose a plan on the pricing page and create your workspace.",
       "Add the sites you look after, and invite teammates if your plan includes more than one seat.",
       "ChangeKite re-scans them on schedule and emails you when something changes, including when a critical issue is fixed.",
@@ -372,6 +383,9 @@ export const TOOLS: ToolPage[] = [
     ],
   },
 ];
+
+// Every free tool page explains what the free report includes and what the one-time pass adds.
+for (const t of TOOLS) if (!t.paid) t.faq.push(FREE_REPORT_FAQ);
 
 export function getTool(slug: string): ToolPage | undefined {
   return TOOLS.find((t) => t.slug === slug);

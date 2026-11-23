@@ -55,4 +55,29 @@ CREATE TABLE IF NOT EXISTS billing_usage (
 );
 `,
   },
+  {
+    // One-time passes (Checkout mode "payment"). id = the Stripe Checkout Session id, so the webhook and the
+    // buyer's claim redirect record the same row at most once.
+    id: "billing_0002_passes",
+    sql: `
+CREATE TABLE IF NOT EXISTS billing_passes (
+  id text PRIMARY KEY,
+  app text NOT NULL,
+  pass_id text NOT NULL,
+  org_id text,
+  email text,
+  stripe_customer_id text,
+  payment_intent_id text,
+  amount_cents integer,
+  currency text,
+  livemode boolean NOT NULL DEFAULT false,
+  starts_at timestamptz NOT NULL,
+  expires_at timestamptz NOT NULL,
+  revoked_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS billing_passes_org_idx ON billing_passes (org_id, expires_at) WHERE org_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS billing_passes_payment_intent_idx ON billing_passes (payment_intent_id);
+`,
+  },
 ];

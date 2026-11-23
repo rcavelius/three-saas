@@ -11,7 +11,7 @@ import { TOOLS, getTool, toolExample } from "@/content/tools";
 import { formatBytes } from "@/lib/limits";
 import { breadcrumbLd } from "@/lib/seo";
 import { appUrl } from "@/lib/site";
-import { freeProcessingLimits, upgradeOffers } from "@/server/plans";
+import { freeProcessingLimits, passOffer, upgradeOffers } from "@/server/plans";
 
 export function generateStaticParams() {
   return TOOLS.map((t) => ({ slug: t.slug }));
@@ -78,7 +78,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
       <ToolSampleBox files={sample.files.map((f) => f.name)} xlsxName={sample.xlsx ? sample.files[0]!.name.replace(/\.csv$/, ".xlsx") : undefined} />
 
       <div className="pt-6 sm:pt-8">
-        <Cleaner freeLimits={freeProcessingLimits()} offers={offers} sample={{ files: sample.files, steps: sample.steps }} />
+        <Cleaner freeLimits={freeProcessingLimits()} offers={offers} pass={passOffer()} sample={{ files: sample.files, steps: sample.steps }} />
       </div>
 
       <div className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">

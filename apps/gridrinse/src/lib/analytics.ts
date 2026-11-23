@@ -22,6 +22,12 @@ export const EVENT_SPEC = {
   upgrade_clicked: { plan: ["pro", "business"], from: ["pricing", "billing", "limit", "workflows", "team", "files", "download", "home", "tool_page"] },
   /** A file was refused before cleaning; reason only, never the file name. */
   file_rejected: { reason: ["too_big", "too_many_files", "too_many_rows", "unsupported", "memory", "unreadable"] },
+  /** A paywall was shown at the moment of value: a cleaned download over the free allowance, or a file over the plan's limits. */
+  paywall_shown: { reason: ["download_rows", "download_daily", "too_big", "too_many_rows", "too_many_files"] },
+  /** "Get the 24-hour pass" was clicked (Stripe Checkout is being opened). */
+  pass_checkout_started: { pass: ["day"], from: ["download", "limit", "files", "pricing"] },
+  /** The visitor came back from a paid pass checkout with the pass active. */
+  pass_activated: { pass: ["day"] },
   /** Someone downloaded a messy sample file from a tool page. */
   sample_downloaded: {},
   tool_used: {

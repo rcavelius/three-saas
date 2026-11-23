@@ -64,7 +64,10 @@ describe("tool landing pages", () => {
 
   it("quote only prices, frequencies, site counts and page limits from the catalog and FREE_LIMITS", () => {
     const paid = CHANGEKITE_CATALOG.plans.filter((p) => p.priceMonthlyCents > 0);
-    const prices = new Set(paid.map((p) => `$${(p.priceMonthlyCents / 100).toFixed(p.priceMonthlyCents % 100 ? 2 : 0)}`));
+    const prices = new Set([
+      ...paid.map((p) => `$${(p.priceMonthlyCents / 100).toFixed(p.priceMonthlyCents % 100 ? 2 : 0)}`),
+      ...(CHANGEKITE_CATALOG.passes ?? []).map((p) => `$${(p.priceCents / 100).toFixed(p.priceCents % 100 ? 2 : 0)}`),
+    ]);
     const hours = new Set(paid.map((p) => String(p.limits.scanFrequencyHours)));
     const sites = new Set(paid.map((p) => String(p.limits.sites)));
     const pages = new Set([...CHANGEKITE_CATALOG.plans.map((p) => p.limits.pagesPerScan!.toLocaleString("en-US")), String(FREE_LIMITS.maxPages)]);
@@ -89,6 +92,19 @@ describe("tool landing pages", () => {
     const blc = copy(TOOLS.find((t) => t.slug === "broken-link-checker")!);
     expect(blc).toContain(`up to ${FREE_LIMITS.maxPages} pages`);
     expect(blc).toContain(`Up to ${FREE_LIMITS.maxExternalLinks} unique outbound links`);
+  });
+
+  it("free tool pages say the free report is a summary with the top issues, and quote the pass from the catalog", () => {
+    const pass = CHANGEKITE_CATALOG.passes!.find((p) => p.id === "report")!;
+    const free = CHANGEKITE_CATALOG.plans.find((p) => p.id === CHANGEKITE_CATALOG.freePlanId)!;
+    for (const t of TOOLS.filter((x) => !x.paid)) {
+      const text = copy(t);
+      expect(text, t.slug).toContain(`${free.limits.reportIssues} most severe issues`);
+      expect(text, t.slug).toContain(`$${pass.priceCents / 100} once`);
+      expect(text, t.slug).toContain(`${pass.durationHours / 24} days`);
+      // No claim that the free scan lists everything.
+      expect(text, t.slug).not.toMatch(/free scan (that )?lists every/i);
+    }
   });
 
   it("every tool page and the index are in the sitemap", () => {

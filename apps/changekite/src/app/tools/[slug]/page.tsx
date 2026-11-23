@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
 import { Scanner } from "@/components/Scanner";
+import { reportOffer } from "@/lib/offer";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import { FROM_PRICE, PLAN_SUMMARY, TOOLS, getTool } from "@/content/tools";
 import { CHECK_DOCS } from "@/lib/check-docs";
@@ -45,6 +46,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const base = new URL(env().APP_URL).origin;
   const docs = t.checks.map((id) => CHECK_DOCS.find((d) => d.id === id)!).filter(Boolean);
   const others = TOOLS.filter((o) => o.slug !== t.slug);
+  const offer = reportOffer();
 
   return (
     <>
@@ -59,7 +61,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               applicationCategory: "WebApplication",
               operatingSystem: "Any (web browser)",
               description: t.description,
-              offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+              offers: [
+                { "@type": "Offer", name: "Free scan (summary and top issues)", price: "0", priceCurrency: "USD" },
+                { "@type": "Offer", name: `${offer.name} (one-time, ${offer.duration})`, price: offer.price.replace("$", ""), priceCurrency: "USD" },
+              ],
             },
             {
               "@type": "FAQPage",
@@ -92,9 +97,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         <h1 className="mt-4 max-w-4xl font-display text-[2.4rem] font-semibold leading-[1.06] tracking-tight sm:text-6xl">{t.h1}</h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">{t.intro}</p>
         <div className="mt-10 max-w-3xl">
-          <Scanner />
+          <Scanner offer={offer} />
           <p className="mt-3 text-sm text-muted">
-            Free, no account needed: up to {FREE_LIMITS.maxPages} pages, {FREE_LIMITS.maxDepth} clicks deep. The report covers every check, not only this one.
+            Free, no account needed: up to {FREE_LIMITS.maxPages} pages, {FREE_LIMITS.maxDepth} clicks deep. The free report summarises every check, not
+            only this one, and lists the top {offer.freeIssues} issues with fixes; the full issue list is {offer.price} one-time.
           </p>
         </div>
       </section>

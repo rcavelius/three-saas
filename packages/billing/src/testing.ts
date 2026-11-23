@@ -13,11 +13,14 @@ import { CORE_MIGRATIONS } from "@repo/database";
 import type { Billing } from "./billing";
 import type { Catalog } from "./catalog";
 import {
+  normalizeCheckoutSession,
   normalizeEvent,
   normalizePrice,
   normalizeSubscription,
   type CheckoutSessionParams,
+  type GatewayCheckoutSession,
   type GatewayEvent,
+  type PaymentCheckoutSessionParams,
   type GatewayPrice,
   type GatewaySubscription,
   type StripeGateway,
@@ -81,6 +84,7 @@ export class FakeStripe implements StripeGateway {
     this.latencyMs = opts.latencyMs ?? 0;
     for (const c of opts.catalogs ?? []) {
       for (const p of c.plans) if (p.stripeLookupKey) this.addPrice(p.stripeLookupKey, p.priceMonthlyCents, `${c.app} ${p.name}`);
+      for (const p of c.passes ?? []) this.addPrice(p.stripeLookupKey, p.priceCents, `${c.app} ${p.name}`, { oneTime: true });
     }
   }
 
@@ -106,7 +110,7 @@ export class FakeStripe implements StripeGateway {
   }
 
   /** Adds a recurring monthly price. lookupKey null = a price not in any catalog. */
-  addPrice(lookupKey: string | null, unitAmount: number, productName = "Fake product"): string {
+  addPrice(lookupKey: string | null, unitAmount: number, productName = "Fake product", o: { oneTime?: boolean } = {}): string {
     const id = this.id("price");
     this.pricesById.set(id, {
       id,
@@ -117,8 +121,8 @@ export class FakeStripe implements StripeGateway {
       unit_amount: unitAmount,
       product: this.id("prod"),
       nickname: productName,
-      recurring: { interval: "month", interval_count: 1 },
-      type: "recurring",
+      recurring: o.oneTime ? null : { interval: "month", interval_count: 1 },
+      type: o.oneTime ? "one_time" : "recurring",
     });
     return id;
   }
@@ -206,11 +210,17 @@ export class FakeStripe implements StripeGateway {
 
   checkout = {
     sessions: {
-      create: async (params: CheckoutSessionParams) => {
+      create: async (params: CheckoutSessionParams | PaymentCheckoutSessionParams) => {
         this.calls.checkoutCreate++;
-        if (!this.customersById.has(params.customer)) throw new FakeStripeError("No such customer", 404, "resource_missing");
+        if (params.mode === "subscription" && !this.customersById.has(params.customer)) {
+          throw new FakeStripeError("No such customer", 404, "resource_missing");
+        }
         for (const li of params.line_items) {
-          if (!this.pricesById.has(li.price)) throw new FakeStripeError(`No such price: '${li.price}'`, 404, "resource_missing");
+          const price = this.pricesById.get(li.price);
+          if (!price) throw new FakeStripeError(`No such price: '${li.price}'`, 404, "resource_missing");
+          if ((params.mode === "payment") !== (price.type === "one_time")) {
+            throw new FakeStripeError("Price type does not match the Checkout mode", 400, "invalid_request");
+          }
         }
         const id = this.id("cs_test");
         const session = {
@@ -219,11 +229,18 @@ export class FakeStripe implements StripeGateway {
           status: "open",
           url: `https://checkout.stripe.test/c/pay/${id}`,
           subscription: null as string | null,
+          payment_status: "unpaid",
+          payment_intent: null as string | null,
           created: this.nowSec(),
           ...structuredClone(params),
         };
         this.sessionsById.set(id, session);
         return { id, url: session.url };
+      },
+      retrieve: async (id: string): Promise<GatewayCheckoutSession> => {
+        const session = this.sessionsById.get(id);
+        if (!session) throw new FakeStripeError(`No such checkout.session: '${id}'`, 404, "resource_missing");
+        return normalizeCheckoutSession(structuredClone(session));
       },
     },
   };
@@ -356,6 +373,49 @@ export class FakeStripe implements StripeGateway {
     this.emit("checkout.session.completed", session);
     this.emit("invoice.paid", this.invoice(sub, "paid"));
     return sub.id;
+  }
+
+  /**
+   * Customer pays a one-time pass Checkout. status "unpaid" leaves an async payment pending (no event yet);
+   * returns the payment intent id.
+   */
+  completePassCheckout(sessionId: string, opts: { email?: string; paymentStatus?: "paid" | "unpaid" } = {}): string {
+    const session = this.sessionsById.get(sessionId);
+    if (!session) throw new Error(`FakeStripe: no session ${sessionId}`);
+    if (session.status !== "open") throw new Error("FakeStripe: session already completed");
+    if (session.mode !== "payment") throw new Error("FakeStripe: not a payment session");
+    const price = this.pricesById.get(session.line_items[0].price)!;
+    const customer = this.id("cus");
+    const email = opts.email ?? session.customer_email ?? "buyer@example.test";
+    this.customersById.set(customer, { id: customer, object: "customer", email, metadata: {}, created: this.nowSec() });
+    session.status = "complete";
+    session.customer = customer;
+    session.customer_details = { email };
+    session.amount_total = price.unit_amount;
+    session.currency = "usd";
+    session.payment_intent = this.id("pi");
+    session.payment_status = opts.paymentStatus ?? "paid";
+    this.emit("checkout.session.completed", session);
+    return session.payment_intent;
+  }
+
+  /** A pending async payment of a pass Checkout succeeds. */
+  succeedAsyncPayment(sessionId: string) {
+    const session = this.sessionsById.get(sessionId)!;
+    session.payment_status = "paid";
+    this.emit("checkout.session.async_payment_succeeded", session);
+  }
+
+  /** Refunds the charge of a payment intent (full by default). */
+  refundPayment(paymentIntent: string, opts: { full?: boolean } = {}) {
+    const full = opts.full ?? true;
+    this.emit("charge.refunded", {
+      id: this.id("ch"),
+      object: "charge",
+      payment_intent: paymentIntent,
+      refunded: full,
+      amount_refunded: full ? 1 : 0,
+    });
   }
 
   /** Customer switches price in the Billing Portal. */

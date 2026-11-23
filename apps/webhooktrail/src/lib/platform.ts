@@ -37,6 +37,7 @@ import { appLogger } from "./log";
 import { WEBHOOKTRAIL_MIGRATIONS } from "./migrations";
 import { notifyPaymentFailed, notifyPlanChanged, notifySubscriptionCanceled } from "./notify";
 import { enforcePlanLimits, purgeOrgData } from "./org-data";
+import { applyPassToOwner, PASS_COOKIE, passCookieSecret } from "./pass";
 import { CATALOG } from "./plans";
 import { schema, type WebhookTrailSchema } from "./schema";
 import type { DbHandle } from "@repo/database";
@@ -109,7 +110,7 @@ const notConfigured = (): never => {
 export const UNCONFIGURED_STRIPE: StripeGateway = {
   mode: "test",
   customers: { create: async () => notConfigured() },
-  checkout: { sessions: { create: async () => notConfigured() } },
+  checkout: { sessions: { create: async () => notConfigured(), retrieve: async () => notConfigured() } },
   billingPortal: { sessions: { create: async () => notConfigured() } },
   subscriptions: {
     retrieve: async () => notConfigured(),
@@ -155,6 +156,9 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
     appUrl,
     automaticTax: o.stripeAutomaticTax ?? false,
     checkoutBranding: { display_name: "WebhookTrail", button_color: "#ffb020", background_color: "#ffffff", border_style: "rounded" },
+    // One-time passes: signed cookie (secret derived from the auth secret), card statement suffix.
+    passCookie: { name: PASS_COOKIE, secret: passCookieSecret(o.sessionSecret) },
+    passStatementDescriptorSuffix: "WEBHOOKTRAIL.COM",
     paths: {
       checkoutSuccess: "/account/billing?checkout=success",
       checkoutCancel: "/account/billing?checkout=canceled",
@@ -166,6 +170,10 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
         await notifyPlanChanged(p, orgId, from, to);
       },
       onPaymentFailed: async (orgId, info) => notifyPaymentFailed(p, orgId, info),
+      // A pass bought while signed in counts for the workspace at once: unlock / extend its endpoints now.
+      onPassPurchased: async (pass) => {
+        if (pass.orgId) await applyPassToOwner(p, { orgId: pass.orgId });
+      },
       onSubscriptionCanceled: async (orgId) => {
         await enforcePlanLimits(p, orgId);
         await notifySubscriptionCanceled(p, orgId);

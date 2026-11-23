@@ -9,7 +9,14 @@ export const APP_URL = "https://changekite.test";
 export const DAY = 86_400_000;
 
 export async function setup(
-  opts: { catalog?: Catalog; latencyMs?: number; hooks?: Partial<BillingHooks>; automaticTax?: boolean; checkoutBranding?: CheckoutBranding } = {},
+  opts: {
+    catalog?: Catalog;
+    latencyMs?: number;
+    hooks?: Partial<BillingHooks>;
+    automaticTax?: boolean;
+    checkoutBranding?: CheckoutBranding;
+    passCookie?: { name: string; secret: string };
+  } = {},
 ) {
   const catalog = opts.catalog ?? CHANGEKITE_CATALOG;
   const clock = { t: new Date("2026-03-10T12:00:00.000Z") };
@@ -32,6 +39,7 @@ export async function setup(
     now,
     automaticTax: opts.automaticTax,
     checkoutBranding: opts.checkoutBranding,
+    passCookie: opts.passCookie,
     hooks: {
       onPlanChanged: async (o, f, t) => void seen.planChanged.push([o, f, t]),
       onPaymentFailed: async (o, i) => void seen.paymentFailed.push([o, i]),

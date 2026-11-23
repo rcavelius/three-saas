@@ -53,4 +53,25 @@ export const billingUsage = pgTable(
   (t) => [primaryKey({ columns: [t.orgId, t.metric, t.period] })],
 );
 
-export const billingSchema = { billingCustomers, billingSubscriptions, billingEvents, billingUsage };
+export const billingPasses = pgTable(
+  "billing_passes",
+  {
+    id: text("id").primaryKey(),
+    app: text("app").notNull(),
+    passId: text("pass_id").notNull(),
+    orgId: text("org_id"),
+    email: text("email"),
+    stripeCustomerId: text("stripe_customer_id"),
+    paymentIntentId: text("payment_intent_id"),
+    amountCents: integer("amount_cents"),
+    currency: text("currency"),
+    livemode: boolean("livemode").notNull().default(false),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("billing_passes_org_idx").on(t.orgId, t.expiresAt), index("billing_passes_payment_intent_idx").on(t.paymentIntentId)],
+);
+
+export const billingSchema = { billingCustomers, billingSubscriptions, billingEvents, billingUsage, billingPasses };

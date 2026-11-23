@@ -2,16 +2,18 @@ import type { Metadata } from "next";
 import { DocPage } from "@/components/DocPage";
 import { OperatorDetails, legalEyebrow } from "@/components/OperatorDetails";
 import { legalInfo } from "@/lib/legal";
+import { REPORT_PASS, passDuration, passPrice } from "@/lib/marketing";
 
 export const dynamic = "force-dynamic";
 
 const UPDATED = "2026-11-23";
+const pass = REPORT_PASS;
 
 export function generateMetadata(): Metadata {
   const published = legalInfo().published;
   return {
     title: published ? "Terms of use" : "Terms (draft)",
-    description: "The terms for using ChangeKite: acceptable scanning, paid plans, cancellation, the 14-day refund promise and who runs the service.",
+    description: "The terms for using ChangeKite: acceptable scanning, paid plans, one-time passes, cancellation, refunds and who runs the service.",
     robots: published ? undefined : { index: false },
     alternates: { canonical: "/terms" },
   };
@@ -26,7 +28,7 @@ export default function TermsPage() {
         ChangeKite requests public pages of a website you name and produces a report about them. On a paid plan it re-scans the sites you add on a
         schedule and emails you when something meaningful changes. Reports describe what the server returned at the time of the scan and may be
         incomplete or wrong; they are not legal, security or SEO guarantees. The free scan is provided without an account, within the limits shown on
-        the pricing page.
+        the pricing page; its report shows a summary and the most severe issues, and the full report needs a one-time pass or a paid plan.
       </p>
 
       <h2>2. Acceptable use</h2>
@@ -55,7 +57,17 @@ export default function TermsPage() {
         price of a plan you are subscribed to.
       </p>
 
-      <h2>5. Cancellation and refunds</h2>
+      <h2>5. One-time passes</h2>
+      <p>
+        A pass, such as the {pass.name} pass ({passPrice(pass)} for {passDuration(pass)}), is charged once through Stripe and never renews; there is
+        nothing to cancel. It starts when the payment is confirmed and access ends at the time shown on the report and on your receipt page. It works in
+        the browser that bought it, on any other device where you open its unlock link, and, if you were signed in when you bought it, for every
+        member of that workspace. Keep the unlock link private: anyone who has it can use the pass until it ends. A pass does not include monitoring,
+        alerts or report history. If a pass did not unlock what this page describes, email{" "}
+        <a href={`mailto:${legal.supportEmail}`}>{legal.supportEmail}</a> within 7 days of purchase for a full refund; a refunded pass stops working.
+      </p>
+
+      <h2>6. Cancellation and refunds</h2>
       <p>
         You can cancel at any time from Account &rarr; Plan &amp; billing &rarr; Manage subscription; no email or call is needed. Cancellation takes
         effect at the end of the period you have paid for, and you keep paid features until then; you are not charged again. We do not pro-rate partial
@@ -65,10 +77,10 @@ export default function TermsPage() {
         subscriptions of workspaces you own alone immediately.
       </p>
 
-      <h2>6. Changes</h2>
+      <h2>7. Changes</h2>
       <p>These terms may change. Material changes will be announced on this page with a new date, and by email to paying customers at least 30 days in advance.</p>
 
-      <h2>7. Who we are, contact and governing law</h2>
+      <h2>8. Who we are, contact and governing law</h2>
       <OperatorDetails legal={legal} />
       <p>These terms are governed by the laws of {legal.jurisdiction ?? "[jurisdiction — to be added before publication]"}.</p>
     </DocPage>

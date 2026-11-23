@@ -1,5 +1,6 @@
 import { cronTickRoute, eventsRoute, healthRoute } from "@repo/ops/next";
 import { getPlatform } from "./platform";
+import { ALL_EVENT_NAMES, EVENT_ALLOWED_PROPS } from "./events";
 
 export async function cronTickHandler(req: Request): Promise<Response> {
   const p = await getPlatform();
@@ -23,6 +24,8 @@ export async function eventsHandler(req: Request): Promise<Response> {
     clientIp: p.clientIp,
     rateLimit: { limit: 60, windowMs: 60_000 },
     allowedOrigins: [p.env.APP_URL],
+    allowedNames: ALL_EVENT_NAMES,
+    allowedProps: EVENT_ALLOWED_PROPS,
     getUserId: async (r) => (await p.auth.getSession(r.headers))?.user.id ?? null,
     now: p.now,
   })(req);

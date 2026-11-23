@@ -37,6 +37,9 @@ We count page views and feature use with our own first-party counter, without co
 - Workflows you save "in this browser", in local storage
 - A random identifier for the usage counter
 - A session cookie if you sign in
+- The number of free downloads made today, in local storage
+- If you buy a one-time pass: a cookie with a signed reference to the purchase, until the pass ends
+- While you are at pass checkout: your cleaning steps and loaded file, in this browser's own storage (never uploaded), deleted when you come back
 
 You can clear all of it from your browser's site data settings.
 

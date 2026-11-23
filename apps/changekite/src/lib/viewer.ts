@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { Entitlements } from "@repo/billing";
 import type { OrgRole } from "@repo/auth";
 import { getPlatform, type Platform } from "./platform";
+import { orgEntitlements } from "./access";
 
 export interface Viewer {
   p: Platform;
@@ -19,7 +20,8 @@ export async function getViewer(): Promise<Viewer | null> {
   const h = await headers();
   try {
     const r = await p.auth.requireOrg(h);
-    const ents = await p.billing.getEntitlements(r.org.id);
+    // Plan + any one-time pass (bought by the org, or carried by this browser's pass cookie).
+    const ents = await orgEntitlements(p, h, r.org.id);
     return {
       p,
       user: r.user as Viewer["user"],

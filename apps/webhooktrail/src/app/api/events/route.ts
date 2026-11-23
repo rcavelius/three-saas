@@ -1,4 +1,5 @@
 import { eventsRoute } from "@repo/ops/next";
+import { EVENT_NAMES } from "@/lib/analytics-events";
 import { getPlatform } from "@/lib/platform";
 
 export const runtime = "nodejs";
@@ -12,6 +13,7 @@ export async function POST(req: Request): Promise<Response> {
     clientIp: p.clientIp,
     rateLimit: { limit: 60, windowMs: 60_000 },
     allowedOrigins: [p.appUrl],
+    allowedNames: EVENT_NAMES,
     getUserId: async (r) => (await p.auth.getSession(r.headers))?.user.id ?? null,
   })(req);
 }

@@ -12,7 +12,7 @@ export function generateMetadata(): Metadata {
 export default function Terms() {
   const legal = legalInfo();
   return (
-    <LegalDraft title="Terms of use" updated="2026-11-12" legal={legal}>
+    <LegalDraft title="Terms of use" updated="2026-11-23" legal={legal}>
       <h2>1. The service</h2>
       <p>
         GridRinse is a web page that cleans CSV and spreadsheet files in your browser. The free plan is provided without an account, within the limits shown on the
@@ -40,9 +40,17 @@ export default function Terms() {
         charged in error, or the service did not work for you in your first 14 days of a paid plan, email {legal.supportEmail} within 14 days of the charge and a
         person will refund it in full. Other refund requests are reviewed individually. Refunds go back to the original payment method through Stripe.
       </p>
-      <h2>7. Changes</h2>
+      <h2>7. One-time passes</h2>
+      <p>
+        A pass (for example the 24-hour pass) is a single payment through Stripe, charged once; it never renews and is not a subscription. It gives the limits
+        described on the pricing page from the moment the payment is confirmed, and access ends at the time stated when you buy it. It works in the browser that
+        bought it, in another browser through the private unlock link shown while it is active, and for your workspace if you were signed in when you bought it.
+        Your files are still processed in your browser and never uploaded. If a pass did not unlock what this page describes, email {legal.supportEmail} within 7
+        days of purchase for a full refund; a refunded pass stops working.
+      </p>
+      <h2>8. Changes</h2>
       <p>These terms may change. Material changes will be announced on this page with a new date, and by email to paying customers at least 30 days in advance.</p>
-      <h2>8. Who we are, contact and governing law</h2>
+      <h2>9. Who we are, contact and governing law</h2>
       <OperatorDetails legal={legal} />
       <p>These terms are governed by the laws of {legal.jurisdiction ?? "[jurisdiction — to be added before publication]"}.</p>
     </LegalDraft>

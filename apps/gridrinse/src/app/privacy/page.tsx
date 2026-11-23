@@ -55,7 +55,10 @@ export default function Privacy() {
       <h2>What is stored on your device</h2>
       <p>
         Workflows you save &ldquo;in this browser&rdquo; live in your browser&rsquo;s local storage, together with a random identifier for the usage counter. If you sign in,
-        a session cookie keeps you signed in. You can clear all of it from your browser&rsquo;s site data settings.
+        a session cookie keeps you signed in. The number of free downloads made today is counted in local storage. If you buy a one-time pass, a cookie holds a signed
+        reference to that purchase until the pass ends. When you leave for pass checkout, your cleaning steps and the loaded file are kept in this browser&rsquo;s own
+        storage (session storage and IndexedDB) so they are there when you come back; they are deleted when you return, and never uploaded. You can clear all of it
+        from your browser&rsquo;s site data settings.
       </p>
       <h2>What our servers see</h2>
       <p>

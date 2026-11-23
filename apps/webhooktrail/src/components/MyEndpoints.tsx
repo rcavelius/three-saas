@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/client";
 import { timeUntil } from "@/lib/format";
-import type { EndpointDTO } from "@/lib/types";
+import type { EndpointDTO, PassStatusDTO } from "@/lib/types";
+import { PassActiveNote } from "./pass/PassStatus";
 
 function Row({ e }: { e: EndpointDTO }) {
   return (
@@ -26,7 +27,9 @@ function Row({ e }: { e: EndpointDTO }) {
  * "claim" action after sign-in. Renders nothing when there are none.
  */
 export function MyEndpoints({ title }: { title?: string }) {
-  const [data, setData] = useState<{ endpoints: EndpointDTO[]; anonymous: EndpointDTO[]; signedIn: boolean } | null>(null);
+  const [data, setData] = useState<{ endpoints: EndpointDTO[]; anonymous: EndpointDTO[]; signedIn: boolean; pass?: PassStatusDTO | null } | null>(
+    null,
+  );
   const [msg, setMsg] = useState<string | null>(null);
 
   const load = useCallback(async (signal?: AbortSignal) => {
@@ -57,9 +60,10 @@ export function MyEndpoints({ title }: { title?: string }) {
     }
   }
 
-  if (!data || (data.endpoints.length === 0 && data.anonymous.length === 0 && !msg)) return null;
+  if (!data || (data.endpoints.length === 0 && data.anonymous.length === 0 && !msg && !data.pass)) return null;
   return (
     <div className="grid gap-4">
+      {data.pass && <PassActiveNote pass={data.pass} />}
       {/* Outside the anonymous section: after a successful claim that section disappears. */}
       {msg && (
         <p role="status" className="text-[12.5px] text-fg-muted">

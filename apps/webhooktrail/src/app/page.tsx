@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CreateEndpointButton } from "@/components/CreateEndpointButton";
 import { MyEndpoints } from "@/components/MyEndpoints";
 import { JsonLd } from "@/components/JsonLd";
+import { weekPass } from "@/lib/pass";
 import { CATALOG, FREE_LIMITS, formatBytesShort } from "@/lib/plans";
 
 const free = FREE_LIMITS;
@@ -29,12 +30,15 @@ export default function Home() {
           applicationCategory: "DeveloperApplication",
           operatingSystem: "Web",
           description: "Webhook endpoint generation, live request inspection and replay to verified destinations.",
-          offers: CATALOG.plans.map((p) => ({
-            "@type": "Offer",
-            name: p.name,
-            price: (p.priceMonthlyCents / 100).toFixed(2),
-            priceCurrency: "USD",
-          })),
+          offers: [
+            ...CATALOG.plans.map((p) => ({
+              "@type": "Offer",
+              name: p.name,
+              price: (p.priceMonthlyCents / 100).toFixed(2),
+              priceCurrency: "USD",
+            })),
+            { "@type": "Offer", name: weekPass().name, price: (weekPass().priceCents / 100).toFixed(2), priceCurrency: "USD" },
+          ],
         }}
       />
       <section className="pt-14 pb-12 md:pt-20 grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-start">

@@ -44,6 +44,10 @@ Scan history follows the history period of your current plan, so after moving to
 
 If a payment fails, Plan & billing shows a warning and, where available, the date until which your plan stays active. Update your payment method on the Stripe billing page to keep your plan.
 
+## One-time passes
+
+The Full-site report pass is bought from a report or the [pricing page](/pricing), with or without an account. It is charged once, never renews and ends by itself after 7 days, so there is nothing to cancel. If a pass did not unlock what the pricing page describes, email support within 7 days of purchase for a full refund; a refunded pass stops working.
+
 ## Refunds and billing questions
 
 If you were charged in error, or ChangeKite did not work for you in your first 14 days on a paid plan, ask within 14 days of the charge and a person will refund it in full, back to the original payment method through Stripe. Other refund requests are reviewed by a person, case by case. To ask, open a support ticket from [Support](/support) and include your workspace name. See [Getting help](/help/getting-help) and the [terms](/terms).

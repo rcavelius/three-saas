@@ -1,6 +1,7 @@
 import type { SqlExecutor } from "@repo/database";
 import { checkUsageCeiling } from "@repo/ops";
 import { orgLimits } from "./org-data";
+import { LINK_GRACE_DAYS, ownerLimits } from "./pass";
 import { FREE_LIMITS } from "./plans";
 import type { Platform } from "./platform";
 
@@ -37,6 +38,8 @@ export async function cleanupExpired(
     endpointsDeleted += n;
     if (n < batchSize) break;
   }
+  // Pass links are kept a while after the pass ended so the hourly job can lock endpoints above the free count.
+  await ex.query(`DELETE FROM hp_pass_links WHERE expires_at < ($1::timestamptz - make_interval(days => $2::int))`, [now, LINK_GRACE_DAYS]);
   const { rows: rl } = await ex.query<{ n: number }>(
     `WITH d AS (DELETE FROM rate_limits WHERE key LIKE 'hp:%' AND window_start < ($1::timestamptz - interval '1 day') RETURNING 1)
      SELECT count(*)::int AS n FROM d`,
@@ -74,25 +77,44 @@ export interface RetentionResult extends CleanupResult {
 
 /**
  * Scheduled retention (job "webhooktrail.retention"): expired endpoints, then captured requests older
- * than each owner's plan `historyDays` (anonymous = free plan), in batches; finally a usage ceiling
+ * than each owner's plan `historyDays` (anonymous = free plan, or the pass history while a pass linked to
+ * that owner is active), in batches; finally a usage ceiling
  * incident (`usage:captured_requests`) on the total number of stored rows.
  */
 export async function runRetention(
-  p: Pick<Platform, "ex" | "billing" | "storedRowsCeiling">,
+  p: Pick<Platform, "ex" | "billing" | "handle" | "storedRowsCeiling">,
   opts: { now?: Date; batchSize?: number; maxBatches?: number } = {},
 ): Promise<RetentionResult> {
   const now = opts.now ?? new Date();
   const batchSize = opts.batchSize ?? 1000;
   const maxBatches = opts.maxBatches ?? 50;
   const base = await cleanupExpired(p.ex, { now, maxBatches });
+  // Anonymous owners with a pass link that has not run out are handled one by one below (billing decides
+  // whether the pass is still active); every other anonymous endpoint gets the free history.
+  const { rows: passHolders } = await p.ex.query<{ hash: string }>(
+    `SELECT DISTINCT substr(owner_key, 6) AS hash FROM hp_pass_links WHERE owner_key LIKE 'anon:%' AND expires_at > $1`,
+    [now.toISOString()],
+  );
   let requestsDeleted = await deleteOlderThan(
     p.ex,
-    `e.org_id IS NULL AND ($3::text IS NULL OR true)`,
-    null,
+    `e.org_id IS NULL AND NOT EXISTS (
+       SELECT 1 FROM hp_pass_links l WHERE l.owner_key = 'anon:' || e.anon_owner_hash AND l.expires_at > $3::timestamptz)`,
+    now.toISOString(),
     new Date(now.getTime() - FREE_LIMITS.historyDays * DAY),
     batchSize,
     maxBatches,
   );
+  for (const { hash } of passHolders) {
+    const lim = await ownerLimits(p, { anonHash: hash });
+    requestsDeleted += await deleteOlderThan(
+      p.ex,
+      `e.org_id IS NULL AND e.anon_owner_hash = $3`,
+      hash,
+      new Date(now.getTime() - lim.historyDays * DAY),
+      batchSize,
+      maxBatches,
+    );
+  }
   const { rows: orgs } = await p.ex.query<{ org_id: string }>(
     `SELECT DISTINCT org_id FROM endpoints WHERE org_id IS NOT NULL AND deleted_at IS NULL`,
   );

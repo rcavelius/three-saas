@@ -45,8 +45,33 @@ export interface EndpointDTO {
   permissions: {
     canDelete: boolean;
     canReplay: boolean;
+    /** The owner's plan or an active pass includes replay (replay itself still needs a workspace). */
+    replayIncluded: boolean;
     canManageDestinations: boolean;
   };
+}
+
+/** The one-time pass as shown on paywalls and the pricing page (values from the billing catalog). */
+export interface PassOffer {
+  passId: string;
+  name: string;
+  /** e.g. "$5" */
+  price: string;
+  /** e.g. "7 days" */
+  durationLabel: string;
+  endpoints: string;
+  lifetimeDays: number;
+  historyDays: number;
+  requestsStored: string;
+  developerName: string;
+  developerPrice: string;
+}
+
+/** The viewer's active pass (API responses). unlockPath is the reusable unlock link, only for its holder. */
+export interface PassStatusDTO {
+  name: string;
+  expiresAt: string;
+  unlockPath: string | null;
 }
 
 export interface DestinationDTO {

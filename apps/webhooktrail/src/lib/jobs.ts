@@ -2,7 +2,7 @@
 import type { JobHandler, ScheduleDef } from "@repo/ops";
 import { runRetention } from "./cleanup";
 import { appLogger } from "./log";
-import { enforcePlanLimits } from "./org-data";
+import { enforceOwnerLimits, enforcePlanLimits } from "./org-data";
 import type { Platform } from "./platform";
 import { REPLAY_QUEUE, runScheduledReplay } from "./replay";
 
@@ -26,6 +26,12 @@ export function appJobs(p: Platform): Record<string, JobHandler> {
         `SELECT DISTINCT org_id FROM endpoints WHERE org_id IS NOT NULL AND deleted_at IS NULL`,
       );
       for (const { org_id } of rows) await enforcePlanLimits(p, org_id, ctx.now);
+      // Anonymous owners that used a one-time pass: after it ends, endpoints above the free count are locked
+      // (exactly like a workspace downgrade). Links are deleted a few days after the pass ended.
+      const { rows: anon } = await p.ex.query<{ hash: string }>(
+        `SELECT DISTINCT substr(owner_key, 6) AS hash FROM hp_pass_links WHERE owner_key LIKE 'anon:%'`,
+      );
+      for (const { hash } of anon) await enforceOwnerLimits(p, { anonHash: hash }, ctx.now);
     },
     [APP_QUEUES.replay]: async (payload) => {
       if (typeof payload.replayId !== "string") return;

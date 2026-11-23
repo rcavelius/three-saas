@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CreateEndpointButton } from "@/components/CreateEndpointButton";
 import { JsonLd } from "@/components/JsonLd";
-import { TOOLS, getTool, replayFromPrice, replayPlanNames } from "@/content/tools";
+import { TOOLS, getTool, replayFromPrice, replayPassNote, replayPlanNames } from "@/content/tools";
 import { CATALOG } from "@/lib/plans";
 
 export function generateStaticParams() {
@@ -46,7 +46,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
       <section aria-label="Get started" className="mt-6 border border-line rounded-[6px] bg-surface p-5">
         <p className="font-mono text-[12px] text-fg-dim">
           uses · <span className="text-signal">{t.featureName}</span>
-          {paidOnly ? ` · ${replayPlanNames} plans, from ${replayFromPrice}` : " · free, no account needed"}
+          {paidOnly ? ` · ${replayPlanNames} plans, from ${replayFromPrice}${replayPassNote ? `, or ${replayPassNote}` : ""}` : " · free, no account needed"}
         </p>
         <div className="mt-4 flex flex-wrap items-start gap-3">
           {paidOnly ? (

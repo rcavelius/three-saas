@@ -9,7 +9,8 @@ import { checkTargetUrl } from "@repo/security";
 import { rateLimit, type SqlExecutor } from "@repo/database";
 import type { Logger } from "@repo/monitoring";
 import { getClientIp, rateLimitKeyForIp, type ClientIpConfig } from "@repo/ops";
-import { runScan, type RunScanOptions } from "./scanner/scan";
+import { FREE_LIMITS, runScan, type RunScanOptions } from "./scanner/scan";
+import { DEFAULT_FREE_REPORT_ISSUES, gateReport, type LockedSummary, type ReportEnts } from "./report-gate";
 import type { ScanDeps, ScanReport } from "./scanner/types";
 import { saveScan } from "./scans-repo";
 
@@ -67,6 +68,19 @@ export interface ScanHandlerOptions {
   appUrl: string;
   logger?: Logger;
   scanOptions?: Pick<RunScanOptions, "limits">;
+  /**
+   * The requester's entitlements (signed-in plan + pass cookie). They set the page cap (pagesPerScan, never below
+   * the free cap) and how much of the report the response may contain (fullReport / reportIssues). Default: free.
+   * Must not throw for anonymous visitors.
+   */
+  resolveAccess?: (req: Request) => Promise<ReportEnts>;
+}
+
+const FREE_ACCESS: ReportEnts = { limits: { reportIssues: DEFAULT_FREE_REPORT_ISSUES, pagesPerScan: FREE_LIMITS.maxPages }, features: {} };
+
+/** Crawl time budget grows with the page cap (same rule as monitoring scans). */
+export function scanTimeBudget(pages: number): number {
+  return Math.min(150_000, Math.max(FREE_LIMITS.timeBudgetMs, 45_000 + pages * 100));
 }
 
 function json(status: number, body: unknown, headers: Record<string, string> = {}): Response {
@@ -154,6 +168,21 @@ export function createScanHandler(o: ScanHandlerOptions) {
       const retry = Math.max(1, Math.ceil((hostLimit.resetAt.getTime() - Date.now()) / 1000));
       return json(429, { error: "This website has been scanned many times in the last hour. Please try again later." }, { "retry-after": String(retry) });
     }
+    let access: ReportEnts = FREE_ACCESS;
+    if (o.resolveAccess) {
+      try {
+        access = await o.resolveAccess(req);
+      } catch (err) {
+        o.logger?.warn("access lookup failed; using free limits", { err });
+        access = FREE_ACCESS;
+      }
+    }
+    const pageCap = Math.max(FREE_LIMITS.maxPages, Math.min(1000, access.limits.pagesPerScan ?? FREE_LIMITS.maxPages));
+    const limits: RunScanOptions["limits"] = {
+      ...(pageCap > FREE_LIMITS.maxPages ? { maxPages: pageCap, timeBudgetMs: scanTimeBudget(pageCap) } : {}),
+      ...o.scanOptions?.limits,
+    };
+
     const release = o.slots.tryAcquire();
     if (!release) {
       return json(503, { error: "All scanners are busy right now. Please try again in a minute." }, { "retry-after": "30" });
@@ -163,10 +192,11 @@ export function createScanHandler(o: ScanHandlerOptions) {
     req.signal?.addEventListener("abort", () => abort.abort(), { once: true });
     const log = o.logger?.child({ host: target.hostname });
 
-    const execute = async (onProgress?: RunScanOptions["onProgress"]): Promise<{ id: string; report: ScanReport } | { error: string; status: number }> => {
+    type Done = { id: string; report: ScanReport; locked: LockedSummary | null };
+    const execute = async (onProgress?: RunScanOptions["onProgress"]): Promise<Done | { error: string; status: number }> => {
       const started = Date.now();
       try {
-        const report = await runScan(target.href, o.scanDeps(), { ...o.scanOptions, onProgress, signal: abort.signal });
+        const report = await runScan(target.href, o.scanDeps(), { ...o.scanOptions, limits, onProgress, signal: abort.signal });
         const start = report.pages[0];
         if (report.pages.length === 1 && start?.status === null && /non-public|not publicly routable|not allowed/.test(start.error ?? "")) {
           // DNS pointed at a private network: refuse instead of storing a report about it.
@@ -174,7 +204,9 @@ export function createScanHandler(o: ScanHandlerOptions) {
         }
         const id = await saveScan(ex, report, o.retentionDays);
         log?.info("scan complete", { id, ms: Date.now() - started, pages: report.stats.pagesCrawled, score: report.score });
-        return { id, report };
+        // The full report is stored (a later pass unlocks it); the response carries only what this requester may see.
+        const gated = gateReport(report, access);
+        return { id, report: gated.report, locked: gated.locked };
       } catch (err) {
         log?.error("scan failed", { err });
         return { error: publicError(err), status: 500 };
@@ -186,7 +218,7 @@ export function createScanHandler(o: ScanHandlerOptions) {
     const wantsStream = (req.headers.get("accept") ?? "").includes("application/x-ndjson");
     if (!wantsStream) {
       const r = await execute();
-      return "error" in r ? json(r.status, { error: r.error }) : json(200, { id: r.id, reportUrl: `/report/${r.id}`, report: r.report });
+      return "error" in r ? json(r.status, { error: r.error }) : json(200, { id: r.id, reportUrl: `/report/${r.id}`, report: r.report, locked: r.locked });
     }
 
     const encoder = new TextEncoder();
@@ -201,10 +233,10 @@ export function createScanHandler(o: ScanHandlerOptions) {
             closed = true;
           }
         };
-        send({ type: "accepted", url: target.href });
+        send({ type: "accepted", url: target.href, maxPages: limits?.maxPages ?? FREE_LIMITS.maxPages });
         const r = await execute((p) => send({ type: "progress", event: p }));
         if ("error" in r) send({ type: "error", error: r.error });
-        else send({ type: "result", id: r.id, reportUrl: `/report/${r.id}`, report: r.report });
+        else send({ type: "result", id: r.id, reportUrl: `/report/${r.id}`, report: r.report, locked: r.locked });
         if (!closed) {
           closed = true;
           try {
