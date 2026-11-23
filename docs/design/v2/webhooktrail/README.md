@@ -39,6 +39,17 @@ maximalism, collage, neumorphism, gamification.
    reference requires them, so the owner wins).
 4. Screenshot rounds from the production build in CI (`.github/workflows/design-shots.yml`).
 
+## Screenshot rounds (CI production build, 1440 desktop and 390 phone)
+
+| Round | Seen | Fixed |
+| --- | --- | --- |
+| 1 | Direction works. Pixel face too loosely spaced and short next to the mockup; trace rows stuck highlighted and the cell half empty; robot label hit the plinth; grey filler bars in the Inspect/Reply cells; docs overflowed sideways on phones (API table). | Tighter tracking (-0.04em, built into the width maths), live trace with 8 rows and a real arrival flash, label moved, filler removed, tables scroll in place, mono wordmark. |
+| 2 | Trace runs live. Headline still short against the mockup; detail-page section word too dominant; long inline code still pushed docs 19 px wide. | Hero pixels stretched vertically 1.6x desktop / 1.3x phone (reserved in layout, no shift); breadcrumb word capped; all prose code wraps. |
+| 3 | Hero matches the mockup's weight; phone first screen shows headline, mascot and CTA (CTA ends at ~745 of 844 px). Guide head's black cell was empty; ghost cut-corner outline broke at the corners. | Hook art in guide heads; ghost buttons are plain rectangles. |
+
+Mobile Lighthouse, home page, CI: round 2 93 / 100 / 100 / 100, round 3 88 / 100 / 100 / 100
+(performance / accessibility / best practices / SEO). Round 3 screenshots: `round3-ci/`.
+
 ## Art
 
 `art/<asset>/` holds the concept PNG, the background-removed cutout and a manifest with the Higgsfield
