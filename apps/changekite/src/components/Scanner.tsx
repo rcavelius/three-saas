@@ -45,7 +45,12 @@ function shortPath(url: string): string {
   }
 }
 
-export function Scanner({ offer }: { offer: ReportOffer }) {
+/**
+ * layout="hero": the root uses display:contents so the form and the results become items of the
+ * home hero's grid (form under the headline, results across the full width below).
+ */
+export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer: ReportOffer; layout?: "block" | "hero"; cta?: string }) {
+  const hero = layout === "hero";
   const inputId = useId();
   const hintId = useId();
   const [url, setUrl] = useState("");
@@ -53,6 +58,7 @@ export function Scanner({ offer }: { offer: ReportOffer }) {
   const [announce, setAnnounce] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const abortRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLParagraphElement>(null);
 
@@ -74,7 +80,11 @@ export function Scanner({ offer }: { offer: ReportOffer }) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const value = url.trim();
-    if (!value || running) return;
+    if (!value) {
+      inputRef.current?.focus();
+      return;
+    }
+    if (running) return;
     const controller = new AbortController();
     abortRef.current = controller;
     const started = Date.now();
@@ -169,13 +179,14 @@ export function Scanner({ offer }: { offer: ReportOffer }) {
   const elapsed = state.kind === "running" ? Math.max(0, Math.floor((now - state.started) / 1000)) : 0;
 
   return (
-    <div>
-      <form onSubmit={onSubmit} noValidate className="no-print" aria-describedby={hintId}>
-        <label htmlFor={inputId} className="eyebrow block !text-ink-soft">
+    <div className={hero ? "contents" : undefined}>
+      <form onSubmit={onSubmit} noValidate className={`no-print ${hero ? "ck-in lg:col-start-1 lg:row-start-2" : ""}`} style={hero ? { ["--d" as string]: "160ms" } : undefined} aria-describedby={hintId}>
+        <label htmlFor={inputId} className="block text-sm font-bold text-ink">
           Website address
         </label>
-        <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-2 flex flex-col gap-2.5 sm:flex-row sm:gap-2 sm:rounded-2xl sm:bg-white sm:p-1.5 sm:shadow-[0_0_0_1px_var(--color-rule-strong)] sm:focus-within:shadow-[0_0_0_2px_var(--color-accent)]">
           <input
+            ref={inputRef}
             id={inputId}
             name="url"
             type="text"
@@ -189,29 +200,27 @@ export function Scanner({ offer }: { offer: ReportOffer }) {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             disabled={running}
-            className="num min-h-12 w-full flex-1 rounded-none border border-ink bg-sheet px-4 text-base text-ink placeholder:text-muted/70 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60"
+            className="min-h-[54px] w-full flex-1 rounded-xl border border-[#969eaa] bg-white px-4 text-[1.05rem] font-semibold text-ink placeholder:font-medium placeholder:text-muted/80 focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 disabled:opacity-60 sm:min-h-[52px] sm:border-0 sm:bg-transparent sm:focus-visible:ring-0"
           />
           {running ? (
             <button
               type="button"
               onClick={() => abortRef.current?.abort()}
-              className="min-h-12 border border-ink px-6 font-medium text-ink hover:bg-paper-deep"
+              className="btn-secondary min-h-[52px]"
             >
               Cancel
             </button>
           ) : (
             <button
               type="submit"
-              className="min-h-12 bg-accent px-7 font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-60"
-              disabled={!url.trim()}
+              className="btn-primary min-h-[52px] !px-7 text-[0.95rem]"
             >
-              Inspect site
+              {cta}
             </button>
           )}
         </div>
-        <p id={hintId} className="mt-3 text-sm text-muted">
-          Free, no account: up to {offer.freePages} pages, about a minute. You get the score, a summary of every check and the top{" "}
-          {offer.freeIssues} issues with fixes; the full report is {offer.price}. We follow your robots.txt.
+        <p id={hintId} className="mt-3 text-sm font-medium text-muted">
+          Free · No account · Up to {offer.freePages} pages · Score and top {offer.freeIssues} issues free · Full report {offer.price}
         </p>
       </form>
 
@@ -220,17 +229,17 @@ export function Scanner({ offer }: { offer: ReportOffer }) {
       </p>
 
       {state.kind === "running" && (
-        <div className="mt-8 border border-rule bg-sheet" aria-busy="true">
+        <div className={`card mt-8 overflow-hidden !rounded-[20px] ${hero ? "lg:col-span-2 lg:row-start-3" : ""}`} aria-busy="true">
           <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule px-4 py-3">
             <p className="font-medium">{state.phase}&hellip;</p>
-            <p className="num text-sm text-muted">
+            <p className="num text-sm font-semibold text-muted">
               {state.pages}/{state.maxPages} pages &middot; {elapsed}s
             </p>
           </div>
-          <div className="h-1 bg-paper-deep" aria-hidden="true">
-            <div className="h-1 bg-accent transition-[width] duration-500" style={{ width: `${Math.min(100, (state.pages / state.maxPages) * 100)}%` }} />
+          <div className="h-1.5 bg-paper-deep" aria-hidden="true">
+            <div className="h-1.5 rounded-r-full bg-accent transition-[width] duration-500" style={{ width: `${Math.min(100, (state.pages / state.maxPages) * 100)}%` }} />
           </div>
-          <ol className="num max-h-56 overflow-y-auto px-4 py-3 text-[0.78rem] leading-6 text-ink-soft" aria-label="Scan log">
+          <ol className="num max-h-56 overflow-y-auto px-4 py-3 font-mono text-[0.78rem] leading-6 text-ink-soft" aria-label="Scan log">
             {state.log.map((l, i) => (
               <li key={i} className="flex gap-3">
                 <span className="text-muted">{String(Math.floor((l.t - state.started) / 1000)).padStart(2, "0")}s</span>
@@ -242,13 +251,13 @@ export function Scanner({ offer }: { offer: ReportOffer }) {
       )}
 
       {state.kind === "error" && (
-        <p ref={errorRef} tabIndex={-1} className="mt-6 border-l-2 border-fail bg-fail-wash px-4 py-3 text-ink" role="alert">
+        <p ref={errorRef} tabIndex={-1} className={`mt-6 rounded-xl bg-fail-wash px-4 py-3 font-medium text-fail ${hero ? "lg:col-start-1 lg:row-start-3" : ""}`} role="alert">
           {state.message}
         </p>
       )}
 
       {state.kind === "done" && (
-        <div className="mt-10">
+        <div className={`mt-10 ${hero ? "lg:col-span-2 lg:row-start-3" : ""}`}>
           <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 text-sm">
             <p className="text-muted">
               Saved as a private link:{" "}
@@ -258,7 +267,7 @@ export function Scanner({ offer }: { offer: ReportOffer }) {
             </p>
             <div className="flex gap-2">
               <CopyLink path={state.reportUrl} />
-              <button type="button" onClick={() => window.print()} className="border border-ink px-3 py-1.5 hover:bg-paper-deep">
+              <button type="button" onClick={() => window.print()} className="btn-secondary !min-h-9 !px-3 text-sm">
                 Print / PDF
               </button>
             </div>

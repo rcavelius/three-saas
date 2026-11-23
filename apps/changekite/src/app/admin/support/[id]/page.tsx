@@ -28,7 +28,7 @@ export default async function AdminTicketPage({ params, searchParams }: Props) {
         </Link>{" "}
         / #{t.id.slice(0, 8)}
       </p>
-      <h1 className="mt-3 font-display text-3xl font-semibold">{t.subject}</h1>
+      <h1 className="mt-3 display text-[2rem] sm:text-[2.6rem]">{t.subject}</h1>
       <p className="mt-3 text-sm text-muted">
         <StatusBadge status={t.status} /> {CATEGORY_LABELS[t.category]} · priority {t.priority}
         {t.escalated ? ` · escalated: ${t.escalation_reason ?? ""}` : ""} · {t.email} ({t.org_id ? "signed-in customer" : "anonymous, token link"}) · opened {formatDate(t.created_at)}

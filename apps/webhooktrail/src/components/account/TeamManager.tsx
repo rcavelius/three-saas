@@ -52,7 +52,7 @@ export function TeamManager({ orgId, seats, canManage, myUserId }: { orgId: stri
         {members === null ? (
           <p className="mt-2 font-mono text-[12px] text-fg-dim">Loading…</p>
         ) : (
-          <ul className="mt-3 divide-y divide-line border border-line rounded-[6px]">
+          <ul className="mt-3 divide-y divide-line border border-line rounded-[14px]">
             {members.map((m) => (
               <li key={m.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-[13px]">
                 <span className="font-medium">{m.user.name}</span>
@@ -100,7 +100,7 @@ export function TeamManager({ orgId, seats, canManage, myUserId }: { orgId: stri
           <h2 id="t-invites" className="text-[16px] font-semibold">
             Pending invitations
           </h2>
-          <ul className="mt-3 divide-y divide-line border border-line rounded-[6px]">
+          <ul className="mt-3 divide-y divide-line border border-line rounded-[14px]">
             {invites.map((i) => (
               <li key={i.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-[13px]">
                 <span className="font-mono text-[12px]">{i.email}</span>

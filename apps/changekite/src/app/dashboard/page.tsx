@@ -76,7 +76,7 @@ export default async function DashboardPage() {
               <div className="relative mt-4 overflow-x-auto">
                 <table className="w-full min-w-[46rem] text-left text-[0.95rem]">
                   <caption className="sr-only">Monitored sites with status, score and open issues</caption>
-                  <thead className="border-b border-ink text-sm">
+                  <thead className="border-b border-rule-strong text-sm">
                     <tr>
                       <th scope="col" className="py-2 pr-4 font-semibold">Site</th>
                       <th scope="col" className="py-2 pr-4 font-semibold">Status</th>

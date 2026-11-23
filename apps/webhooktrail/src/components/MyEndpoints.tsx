@@ -71,7 +71,7 @@ export function MyEndpoints({ title }: { title?: string }) {
         </p>
       )}
       {data.endpoints.length > 0 && (
-        <section aria-labelledby="my-endpoints" className="border border-line rounded-[6px] bg-surface">
+        <section aria-labelledby="my-endpoints" className="border border-line rounded-[14px] bg-surface">
           <h2 id="my-endpoints" className="label px-4 pt-3 pb-2">
             {title ?? (data.signedIn ? "Your workspace's endpoints" : "Your endpoints on this browser")}
           </h2>
@@ -83,7 +83,7 @@ export function MyEndpoints({ title }: { title?: string }) {
         </section>
       )}
       {data.anonymous.length > 0 && (
-        <section aria-labelledby="anon-endpoints" className="border border-signal/40 rounded-[6px] bg-surface">
+        <section aria-labelledby="anon-endpoints" className="border border-signal/40 rounded-[14px] bg-surface">
           <div className="px-4 pt-3 pb-2 flex flex-wrap items-center gap-3">
             <h2 id="anon-endpoints" className="label">
               Anonymous endpoints on this browser

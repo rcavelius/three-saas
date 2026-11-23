@@ -13,7 +13,7 @@ export default function DocsPage() {
   return (
     <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
       <p className="eyebrow">Reference</p>
-      <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+      <h1 className="mt-3 max-w-3xl display text-[2.6rem] sm:text-6xl">
         What we check, and how
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">
@@ -41,7 +41,7 @@ export default function DocsPage() {
 
         <div className="min-w-0">
           {CHECK_DOCS.map((c, i) => (
-            <section key={c.id} id={c.id} aria-labelledby={`${c.id}-h`} className="scroll-mt-6 border-t border-ink pb-10 pt-6 first:pt-0 first:border-t-0">
+            <section key={c.id} id={c.id} aria-labelledby={`${c.id}-h`} className="scroll-mt-6 border-t border-rule pb-10 pt-6 first:pt-0 first:border-t-0">
               <h2 id={`${c.id}-h`} className="flex items-baseline gap-3 font-display text-2xl font-semibold sm:text-3xl">
                 <span className="num text-base font-normal text-muted">{String(i + 1).padStart(2, "0")}</span>
                 {c.title}
@@ -72,7 +72,7 @@ export default function DocsPage() {
             </section>
           ))}
 
-          <section id="score" aria-labelledby="score-h" className="scroll-mt-6 border-t border-ink pt-6">
+          <section id="score" aria-labelledby="score-h" className="scroll-mt-6 border-t border-rule pt-6">
             <h2 id="score-h" className="font-display text-2xl font-semibold sm:text-3xl">The score</h2>
             <div className="prose-doc max-w-2xl">
               <p>

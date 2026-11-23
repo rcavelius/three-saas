@@ -13,7 +13,7 @@ export function LegalDraft({ title, updated, legal, children }: { title: string;
         </div>
       )}
       <article className="prose-doc">
-        <h1 className="text-[30px] font-semibold tracking-[-0.02em]">{title}</h1>
+        <h1 className="wt-display text-[36px] md:text-[52px]">{title}</h1>
         <p className="font-mono text-[12px] !text-fg-dim">{published ? `Effective ${legal?.effective ?? updated}` : `Draft dated ${updated}`}</p>
         {children}
       </article>

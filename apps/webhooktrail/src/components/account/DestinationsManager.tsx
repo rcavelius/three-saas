@@ -71,7 +71,7 @@ export function DestinationsManager({ canManage, replayEnabled }: { canManage: b
         ) : list.length === 0 ? (
           <p className="mt-2 text-[13px] text-fg-muted">None yet.</p>
         ) : (
-          <ul className="mt-3 divide-y divide-line border border-line rounded-[6px]">
+          <ul className="mt-3 divide-y divide-line border border-line rounded-[14px]">
             {list.map((d) => (
               <li key={d.id} className="px-3 py-2.5 grid gap-1.5 text-[13px]">
                 <div className="flex flex-wrap items-center gap-3">

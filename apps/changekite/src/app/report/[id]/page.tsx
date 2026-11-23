@@ -54,11 +54,11 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
         )}
         <div className="flex flex-wrap gap-2">
           {!account && <CopyLink path={`/report/${id}`} />}
-          <a href={`/api/report/${id}`} className="border border-ink px-3 py-1.5 hover:bg-paper-deep">
+          <a href={`/api/report/${id}`} className="btn-secondary !min-h-9 !px-3 text-sm">
             JSON
           </a>
           {pdf ? (
-            <a href={`/api/reports/${id}/pdf`} className="border border-ink px-3 py-1.5 hover:bg-paper-deep">
+            <a href={`/api/reports/${id}/pdf`} className="btn-secondary !min-h-9 !px-3 text-sm">
               Download PDF
             </a>
           ) : (

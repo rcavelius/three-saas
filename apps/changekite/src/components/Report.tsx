@@ -6,11 +6,12 @@ import type { ReactNode } from "react";
 import type { CheckStatus, Issue, ScanReport, Severity } from "@/lib/scanner/types";
 import { SCORE_RULES } from "@/lib/scanner/score";
 import type { LockedSummary } from "@/lib/report-gate";
+import { ScoreDial } from "./ScoreDial";
 
 const SEVERITY_META: Record<Severity, { label: string; plural: string; prefix: string; text: string; wash: string; rule: string }> = {
   critical: { label: "Critical", plural: "Critical", prefix: "C", text: "text-fail", wash: "bg-fail-wash", rule: "border-fail" },
   warning: { label: "Warning", plural: "Warnings", prefix: "W", text: "text-warn", wash: "bg-warn-wash", rule: "border-warn" },
-  notice: { label: "Notice", plural: "Notices", prefix: "N", text: "text-ink-soft", wash: "bg-paper-deep", rule: "border-rule-strong" },
+  notice: { label: "Notice", plural: "Notices", prefix: "N", text: "text-notice", wash: "bg-notice-wash", rule: "border-notice" },
 };
 
 const STATUS_META: Record<CheckStatus, { glyph: string; label: string; cls: string }> = {
@@ -22,9 +23,9 @@ const STATUS_META: Record<CheckStatus, { glyph: string; label: string; cls: stri
 };
 
 const GRADE_META = {
-  good: { label: "In good order", cls: "text-pass" },
-  fair: { label: "Needs attention", cls: "text-warn" },
-  poor: { label: "Serious problems", cls: "text-fail" },
+  good: { label: "In good order", cls: "bg-pass-wash text-pass" },
+  fair: { label: "Needs attention", cls: "bg-warn-wash text-warn" },
+  poor: { label: "Serious problems", cls: "bg-fail-wash text-fail" },
 } as const;
 
 function fmtDate(iso: string): string {
@@ -104,14 +105,14 @@ export function Report({ report, id, locked = null, paywall }: { report: ScanRep
   const tls = report.https.tls;
 
   return (
-    <article className="border border-rule bg-sheet text-ink shadow-[0_1px_0_var(--color-rule),0_12px_32px_-24px_rgba(28,26,22,0.35)]" aria-labelledby="report-title">
+    <article className="overflow-hidden rounded-[20px] bg-white text-ink shadow-[0_0_0_1px_var(--color-rule),0_16px_48px_rgba(23,26,37,0.07)] print:shadow-none" aria-labelledby="report-title">
       {/* Masthead */}
-      <header className="border-b-2 border-ink px-5 pb-6 pt-7 sm:px-10 sm:pt-10">
+      <header className="border-b border-rule px-5 pb-6 pt-7 sm:px-10 sm:pt-10">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">Website inspection report</p>
           {id && <p className="eyebrow num">Ref. {id.slice(0, 8)}</p>}
         </div>
-        <h1 id="report-title" className="mt-3 font-display text-3xl font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-5xl">
+        <h1 id="report-title" className="font-display mt-3 text-[2rem] font-semibold [overflow-wrap:anywhere] sm:text-6xl">
           {host(report.finalUrl)}
         </h1>
         <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm sm:grid-cols-4">
@@ -138,20 +139,19 @@ export function Report({ report, id, locked = null, paywall }: { report: ScanRep
 
       {/* Verdict */}
       <section aria-labelledby="verdict" className="grid gap-6 border-b border-rule px-5 py-7 sm:grid-cols-[auto_1fr] sm:items-end sm:gap-12 sm:px-10">
-        <div>
-          <h2 id="verdict" className="eyebrow">Score</h2>
-          <p className="mt-1 flex items-baseline gap-1">
-            <span className="num text-6xl font-medium leading-none tracking-tight sm:text-7xl">{report.score}</span>
-            <span className="num text-xl text-muted">/100</span>
-          </p>
-          <p className={`mt-2 font-display text-lg italic ${grade.cls}`}>{grade.label}</p>
+        <div className="flex items-center gap-5">
+          <ScoreDial score={report.score} grade={report.grade} size={120} label={`Score ${report.score} out of 100`} />
+          <div>
+            <h2 id="verdict" className="eyebrow">Score out of 100</h2>
+            <p className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-bold ${grade.cls}`}>{grade.label}</p>
+          </div>
         </div>
         <div>
-          <dl className="grid grid-cols-3 border-y border-rule text-center">
+          <dl className="grid grid-cols-3 gap-2 text-center">
             {(["critical", "warning", "notice"] as const).map((s) => (
-              <div key={s} className="border-l border-rule py-3 first:border-l-0">
+              <div key={s} className={`rounded-xl py-3 ${report.counts[s] ? SEVERITY_META[s].wash : "bg-paper"}`}>
                 <dt className="eyebrow">{SEVERITY_META[s].plural}</dt>
-                <dd className={`num mt-1 text-3xl ${report.counts[s] ? SEVERITY_META[s].text : "text-muted"}`}>{report.counts[s]}</dd>
+                <dd className={`num mt-1 text-3xl font-extrabold ${report.counts[s] ? SEVERITY_META[s].text : "text-muted"}`}>{report.counts[s]}</dd>
               </div>
             ))}
           </dl>
@@ -171,7 +171,7 @@ export function Report({ report, id, locked = null, paywall }: { report: ScanRep
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[34rem] border-collapse text-left text-[0.94rem]">
             <thead>
-              <tr className="border-b border-ink">
+              <tr className="border-b border-rule-strong">
                 <th scope="col" className="eyebrow py-2 pr-4 font-normal">Check</th>
                 <th scope="col" className="eyebrow py-2 pr-4 font-normal">Result</th>
                 <th scope="col" className="eyebrow py-2 font-normal">Notes</th>
@@ -204,7 +204,7 @@ export function Report({ report, id, locked = null, paywall }: { report: ScanRep
               The {locked.shown === 1 ? "most severe issue" : `${locked.shown} most severe issues`} of {locked.total}, with how to fix{" "}
               {locked.shown === 1 ? "it" : "them"}.
             </p>
-            <ol className="mt-4 list-none border-t border-ink">
+            <ol className="mt-4 list-none border-t border-rule-strong">
               {report.issues.map((issue, i) => (
                 <Finding key={`${issue.id}-${i}`} issue={issue} n={`${SEVERITY_META[issue.severity].prefix}${i + 1}`} />
               ))}
@@ -218,7 +218,7 @@ export function Report({ report, id, locked = null, paywall }: { report: ScanRep
           const meta = SEVERITY_META[s];
           return (
             <section key={s} aria-labelledby={`f-${s}`} className="mt-8">
-              <h3 id={`f-${s}`} className="flex items-baseline gap-3 border-b border-ink pb-2">
+              <h3 id={`f-${s}`} className="flex items-baseline gap-3 border-b border-rule-strong pb-2">
                 <span className="num text-sm text-muted">2.{si + 1}</span>
                 <span className={`font-semibold ${meta.text}`}>{meta.plural}</span>
                 <span className="num text-sm text-muted">({list.length})</span>
@@ -246,7 +246,7 @@ export function Report({ report, id, locked = null, paywall }: { report: ScanRep
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[34rem] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-ink">
+              <tr className="border-b border-rule-strong">
                 <th scope="col" className="eyebrow w-10 py-2 pr-3 font-normal">#</th>
                 <th scope="col" className="eyebrow w-16 py-2 pr-3 font-normal">Status</th>
                 <th scope="col" className="eyebrow w-14 py-2 pr-3 font-normal">Depth</th>

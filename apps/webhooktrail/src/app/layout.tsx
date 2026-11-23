@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { Pageview } from "@/components/Pageview";
 import { PassOfferProvider } from "@/components/pass/PassOfferContext";
 import { PassReturnNotice } from "@/components/pass/PassStatus";
+import { Reveal } from "@/components/Reveal";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getOperator } from "@/lib/admin";
 import { passOffer } from "@/lib/pass";
@@ -11,7 +12,7 @@ import { getPlatform } from "@/lib/platform";
 import "@repo/support/styles.css";
 import "./globals.css";
 
-const grotesk = Inter_Tight({ subsets: ["latin"], variable: "--font-grotesk", display: "swap" });
+const grotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-grotesk", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
 
 // Nonce-based CSP needs per-request rendering of every page.
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0b0c",
+  themeColor: "#090d12",
   colorScheme: "dark",
 };
 
@@ -72,6 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </PassOfferProvider>
         <SiteFooter />
         <Pageview />
+        <Reveal />
       </body>
     </html>
   );

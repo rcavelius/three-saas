@@ -14,7 +14,7 @@ export default async function TicketsPage() {
   return (
     <div className="sup-root mx-auto w-full max-w-[860px] px-4 py-12">
       <p className="label">Support</p>
-      <h1 className="mt-2 text-[26px] font-semibold">Your support requests</h1>
+      <h1 className="mt-2 wt-h2 text-[30px] md:text-[34px]">Your support requests</h1>
       <p className="mt-2 text-fg-muted">
         {viewer.kind === "member" && viewer.seeAll
           ? "Requests opened by anyone in this workspace (you are an owner or admin)."

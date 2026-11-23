@@ -35,12 +35,12 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
   const current = viewer?.ents.planId ?? null;
   const subscribed = viewer ? ["active", "trialing", "past_due", "unpaid", "paused"].includes(viewer.ents.status) : false;
   return (
-    <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
+    <div className="mx-auto max-w-7xl px-5 py-14 md:px-8 lg:px-12 lg:py-20">
       <JsonLd data={softwareApplicationJsonLd(appUrl)} />
       <JsonLd data={faqJsonLd(PRICING_FAQ)} />
       {passStatus && <PassReturnNotice status={passStatus} expiresAt={activePass ? activePass.expiresAt.toISOString() : null} context="page" />}
       <p className="eyebrow">Pricing</p>
-      <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+      <h1 className="display mt-3 max-w-5xl text-[40px] leading-[1.03] tracking-[-0.04em] sm:text-6xl lg:text-[64px]">
         Free to inspect. Pay once for the full report, or monthly to have it watched.
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">
@@ -49,28 +49,28 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
         email you when something meaningful changes.
       </p>
 
-      <div className="mt-12 grid gap-px border border-ink bg-rule md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {CHANGEKITE_CATALOG.plans.map((p) => {
           const free = p.id === CHANGEKITE_CATALOG.freePlanId;
           const card = (
-            <section key={p.id} aria-labelledby={`plan-${p.id}`} className="flex flex-col bg-paper p-6 sm:p-8">
-              <h2 id={`plan-${p.id}`} className="font-display text-2xl font-semibold">
+            <section key={p.id} aria-labelledby={`plan-${p.id}`} className="flex flex-col rounded-[20px] bg-white p-7 shadow-[0_0_0_1px_var(--color-rule)]">
+              <h2 id={`plan-${p.id}`} className="text-[22px] font-extrabold tracking-[-0.03em]">
                 {p.name}
               </h2>
               <p className="mt-4 flex items-baseline gap-1">
-                <span className="num text-4xl">{price(p)}</span>
+                <span className="num text-[42px] font-extrabold tracking-[-0.04em]">{price(p)}</span>
                 <span className="text-muted">{free ? "" : "/month"}</span>
               </p>
               <ul className="mt-6 flex-1 space-y-2 text-[0.95rem] text-ink-soft">
                 {planFeatures(p).map((f) => (
-                  <li key={f} className="border-l border-rule pl-3">
+                  <li key={f} className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-pass">✓</span>
                     {f}
                   </li>
                 ))}
               </ul>
               <div className="mt-8">
                 {free ? (
-                  <Link href="/" className="inline-flex min-h-11 items-center border border-ink px-5 font-medium text-ink hover:bg-paper-deep">
+                  <Link href="/" className="btn-secondary">
                     Run a free scan
                   </Link>
                 ) : (
@@ -88,18 +88,18 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
           // The one-time pass sits right after Free: the step between the free summary and a subscription.
           return [
             card,
-            <section key="pass" aria-labelledby="plan-pass" className="flex flex-col bg-sheet p-6 sm:p-8">
-              <h2 id="plan-pass" className="font-display text-2xl font-semibold">
+            <section key="pass" aria-labelledby="plan-pass" className="flex flex-col rounded-[20px] bg-white p-7 shadow-[0_0_0_2px_var(--color-accent),0_16px_48px_rgba(34,70,210,0.12)]">
+              <h2 id="plan-pass" className="text-[22px] font-extrabold tracking-[-0.03em]">
                 {REPORT_PASS.name}
               </h2>
               <p className="mt-4 flex items-baseline gap-1">
-                <span className="num text-4xl">{passPrice(REPORT_PASS)}</span>
+                <span className="num text-[42px] font-extrabold tracking-[-0.04em]">{passPrice(REPORT_PASS)}</span>
                 <span className="text-muted">once</span>
               </p>
               <p className="mt-2 text-sm font-medium text-ink">One-time, no subscription, no account needed.</p>
               <ul className="mt-6 flex-1 space-y-2 text-[0.95rem] text-ink-soft">
                 {passFeatures(REPORT_PASS).map((f) => (
-                  <li key={f} className="border-l border-rule pl-3">
+                  <li key={f} className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-pass">✓</span>
                     {f}
                   </li>
                 ))}
@@ -119,7 +119,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
                     returnPath="/pricing"
                     from="pricing"
                     label={`Get the full report — ${passPrice(REPORT_PASS)}`}
-                    className="inline-flex min-h-11 items-center bg-accent px-5 font-medium text-white hover:bg-accent-hover disabled:opacity-60"
+                    className="btn-primary w-full disabled:opacity-60"
                   />
                 )}
               </div>
@@ -133,7 +133,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
       </p>
 
       <section aria-labelledby="faq" className="mt-20 max-w-3xl">
-        <h2 id="faq" className="font-display text-3xl font-semibold">
+        <h2 id="faq" className="display text-[34px] tracking-[-0.035em] sm:text-5xl">
           Questions
         </h2>
         <dl className="mt-6 divide-y divide-rule border-y border-rule">

@@ -2,7 +2,7 @@
 
 export function PrintButton() {
   return (
-    <button type="button" onClick={() => window.print()} className="border border-ink px-3 py-1.5 hover:bg-paper-deep">
+    <button type="button" onClick={() => window.print()} className="btn-secondary !min-h-9 !px-3 text-sm">
       Print / PDF
     </button>
   );

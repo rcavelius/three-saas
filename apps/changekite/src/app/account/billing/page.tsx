@@ -77,7 +77,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           </Notice>
         )}
 
-        <section aria-labelledby="current" className="border border-ink bg-sheet p-6">
+        <section aria-labelledby="current" className="card !rounded-[20px] p-6">
           <h2 id="current" className="eyebrow">
             Current plan
           </h2>

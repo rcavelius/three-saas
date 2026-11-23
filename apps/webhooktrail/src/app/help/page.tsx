@@ -17,7 +17,7 @@ export default async function HelpPage({ searchParams }: { searchParams: Promise
   return (
     <div className="sup-root mx-auto w-full max-w-[860px] px-4 py-12">
       <p className="label">Help</p>
-      <h1 className="mt-2 text-[26px] font-semibold">Help center</h1>
+      <h1 className="mt-2 wt-h2 text-[30px] md:text-[34px]">Help center</h1>
       <p className="mt-2 text-fg-muted">Endpoints, inspection, replay, plans and what to do when a request does not show up.</p>
       <div className="mt-6">
         <HelpSearchForm q={q} />

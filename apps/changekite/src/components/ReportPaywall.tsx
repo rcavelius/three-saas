@@ -35,9 +35,9 @@ export function ReportPaywall({
   const headline = lockedHeadline(locked, startUrl);
 
   return (
-    <section aria-labelledby={headingId} className="no-print mt-8 border-2 border-ink bg-paper-deep/60 px-5 py-6 sm:px-8">
+    <section aria-labelledby={headingId} className="no-print mt-8 rounded-[20px] bg-accent-wash/70 px-5 py-7 shadow-[0_0_0_2px_var(--color-accent)] sm:px-8">
       <p className="eyebrow">Full report locked</p>
-      <h3 id={headingId} className="mt-2 font-display text-2xl font-semibold leading-snug [overflow-wrap:anywhere]">
+      <h3 id={headingId} className="display mt-2 text-[28px] leading-[1.1] tracking-[-0.035em] [overflow-wrap:anywhere] sm:text-[34px]">
         {headline ?? "See every check in detail."}
       </h3>
       {locked.hidden > 0 && (
@@ -50,17 +50,17 @@ export function ReportPaywall({
         Unlock the full report with fixes &mdash; <strong className="num">{offer.price}</strong> one-time.
       </p>
       <ul className="mt-3 space-y-1.5 text-[0.95rem] text-ink-soft">
-        <li className="border-l border-rule pl-3">The full issue list with fixes for {offer.duration}, on every report you open</li>
-        <li className="border-l border-rule pl-3">Rescans of up to {offer.pagesPerScan} pages (free scans stop at {offer.freePages})</li>
-        {offer.pdf && <li className="border-l border-rule pl-3">PDF export</li>}
-        <li className="border-l border-rule pl-3">No subscription, no account needed: charged once, ends by itself</li>
+        <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-accent">✓</span>The full issue list with fixes for {offer.duration}, on every report you open</li>
+        <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-accent">✓</span>Rescans of up to {offer.pagesPerScan} pages (free scans stop at {offer.freePages})</li>
+        {offer.pdf && <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-accent">✓</span>PDF export</li>}
+        <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-accent">✓</span>No subscription, no account needed: charged once, ends by itself</li>
       </ul>
       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
         <PassBuyButton passId={offer.passId} returnPath={`/report/${reportId}`} from={where} label={`Unlock the full report — ${offer.price}`} />
         <a
           href="/pricing"
           onClick={() => track("upgrade_clicked", { plan: "solo", from: "report_paywall" })}
-          className="text-accent underline underline-offset-4"
+          className="font-semibold text-accent underline underline-offset-4"
         >
           Or monitor your sites: plans from {offer.soloPrice}/month
         </a>

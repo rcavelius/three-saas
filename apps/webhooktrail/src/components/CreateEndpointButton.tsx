@@ -7,7 +7,7 @@ import { track } from "@/lib/track";
 import type { EndpointDTO } from "@/lib/types";
 import { PassPaywall } from "./pass/PassPaywall";
 
-export function CreateEndpointButton({ size = "lg" }: { size?: "lg" | "sm" }) {
+export function CreateEndpointButton({ size = "lg", full = false }: { size?: "lg" | "sm"; full?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,12 +30,12 @@ export function CreateEndpointButton({ size = "lg" }: { size?: "lg" | "sm" }) {
   }
 
   return (
-    <div className="flex flex-col items-start gap-2">
+    <div className={`flex flex-col gap-2 ${full ? "items-stretch sm:items-start" : "items-start"}`}>
       <button
         type="button"
         onClick={create}
         disabled={busy}
-        className={`btn btn-signal ${size === "lg" ? "h-11 px-5 text-[15px]" : ""}`}
+        className={`btn btn-signal rounded-[10px] ${size === "lg" ? "h-12 px-5 text-[15px] sm:h-11" : ""} ${full ? "justify-center sm:justify-start" : ""}`}
       >
         {busy ? "Creating…" : "Create endpoint"}
         <span aria-hidden className="font-mono">→</span>

@@ -19,7 +19,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   return (
     <div className="sup-root mx-auto w-full max-w-[860px] px-4 py-12">
       <p className="label">Support</p>
-      <h1 className="mt-2 text-[26px] font-semibold">How can we help?</h1>
+      <h1 className="mt-2 wt-h2 text-[30px] md:text-[34px]">How can we help?</h1>
       <p className="mt-2 max-w-[70ch] text-fg-muted">
         The assistant answers from our help articles and cannot see or change your account or your captured requests. Refunds, disputes,
         security reports, legal and data requests are handled by a person.

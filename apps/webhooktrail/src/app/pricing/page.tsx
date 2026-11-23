@@ -78,7 +78,7 @@ export default async function PricingPage() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] px-4 py-14">
+    <div className="mx-auto w-full max-w-[1280px] px-5 py-12 md:px-8 md:py-16">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -112,13 +112,13 @@ export default async function PricingPage() {
         }}
       />
       <p className="label">Pricing</p>
-      <h1 className="mt-3 text-[32px] md:text-[40px] font-semibold tracking-[-0.02em]">Start free. Pay for history, teams and replay.</h1>
-      <p className="mt-3 max-w-[60ch] text-[15px] text-fg-muted">
+      <h1 className="mt-4 wt-display text-[40px] leading-[42px] md:text-[60px] md:leading-none">Start free. Pay for history, teams and replay.</h1>
+      <p className="mt-4 max-w-[62ch] text-[16px] leading-[26px] text-fg-muted">
         The Free plan works without an account. Debugging one integration this week? The {offer.name} is a single {offer.price} payment,
         no subscription. Monthly plans add longer history, larger payloads, replay to verified destinations and, on Pro, team seats.
       </p>
 
-      <div className="mt-10 grid gap-px bg-line border border-line rounded-[6px] overflow-hidden md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {plans.flatMap(({ def, lim }) => {
           const free = def.id === CATALOG.freePlanId;
           const rows: [string, string][] = [
@@ -132,12 +132,12 @@ export default async function PricingPage() {
             ["Team seats", String(lim.teamSeats)],
           ];
           const card = (
-            <section key={def.id} aria-labelledby={`plan-${def.id}`} className="bg-surface p-6 flex flex-col">
+            <section key={def.id} aria-labelledby={`plan-${def.id}`} className={`flex flex-col rounded-[14px] border bg-surface p-[26px] ${def.id === "developer" ? "border-signal" : "border-line"}`}>
               <h2 id={`plan-${def.id}`} className="text-[18px] font-semibold">
                 {def.name}
               </h2>
               <p className="mt-3">
-                <span className="text-[34px] font-semibold tracking-tight tabular-nums">{priceLabel(def)}</span>
+                <span className="text-[40px] font-bold leading-[44px] tracking-[-0.04em] tabular-nums">{priceLabel(def)}</span>
                 <span className="text-fg-dim text-[13px]"> / month</span>
               </p>
               <dl className="mt-5 divide-y divide-line border-y border-line flex-1">
@@ -150,7 +150,7 @@ export default async function PricingPage() {
               </dl>
               <div className="mt-6">
                 {free ? (
-                  <Link href="/" className="btn w-full justify-center h-10">
+                  <Link href="/" className="btn h-11 w-full justify-center rounded-[10px] text-[15px]">
                     Create a free endpoint
                   </Link>
                 ) : viewer.user && isOwner ? (
@@ -158,7 +158,7 @@ export default async function PricingPage() {
                 ) : viewer.user ? (
                   <p className="text-[12.5px] text-fg-muted">Ask your workspace owner to upgrade.</p>
                 ) : (
-                  <Link href={`/signup?plan=${def.id}`} className={`btn w-full justify-center h-10 ${def.id === "developer" ? "btn-signal" : ""}`}>
+                  <Link href={`/signup?plan=${def.id}`} className={`btn h-11 w-full justify-center rounded-[10px] text-[15px] ${def.id === "developer" ? "btn-signal" : ""}`}>
                     Start with {def.name}
                   </Link>
                 )}
@@ -169,12 +169,12 @@ export default async function PricingPage() {
           // The one-time pass sits right after Free: the step up for a single debugging week.
           return [
             card,
-            <section key="pass" aria-labelledby="plan-pass" className="bg-surface p-6 flex flex-col ring-1 ring-inset ring-signal/40">
+            <section key="pass" aria-labelledby="plan-pass" className="flex flex-col rounded-[14px] border border-line-strong bg-surface-2 p-[26px]">
               <h2 id="plan-pass" className="text-[18px] font-semibold">
                 {offer.name}
               </h2>
               <p className="mt-3">
-                <span className="text-[34px] font-semibold tracking-tight tabular-nums">{offer.price}</span>
+                <span className="text-[40px] font-bold leading-[44px] tracking-[-0.04em] tabular-nums">{offer.price}</span>
                 <span className="text-fg-dim text-[13px]"> once, for {offer.durationLabel}</span>
               </p>
               <p className="mt-1 text-[12.5px] text-fg-muted">One-time, no subscription, no account needed.</p>
@@ -199,7 +199,7 @@ export default async function PricingPage() {
       </p>
 
       <section aria-labelledby="faq" className="mt-14 max-w-3xl">
-        <h2 id="faq" className="text-[22px] font-semibold">
+        <h2 id="faq" className="wt-h2 text-[32px] md:text-[44px]">
           Questions
         </h2>
         <dl className="mt-4 divide-y divide-line border-y border-line">

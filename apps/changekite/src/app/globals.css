@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Help center + support UI (@repo/support) in ChangeKite's paper-and-ink palette. */
+/* Help center + support UI (@repo/support) in ChangeKite's palette. */
 .sup-root {
   --sup-accent: var(--color-accent);
   --sup-fg: var(--color-ink);
@@ -8,34 +8,51 @@
   --sup-border: var(--color-rule);
   --sup-surface: var(--color-sheet);
   --sup-soft: var(--color-paper-deep);
-  --sup-radius: 2px;
+  --sup-radius: 10px;
 }
 
-/* ChangeKite: a printed inspection report. Warm paper, near-black ink, one ink-blue accent.
-   Red / amber / green are reserved for status and never used decoratively. */
+/*
+ * ChangeKite 2026: "The Inspector's Report".
+ * Direction "Editorial Signal" (ChatGPT round 1): warm paper, ink-navy, one electric cobalt accent, a pale aqua wash.
+ * Red / amber / green are reserved for status and never used decoratively.
+ * Contrast (WCAG): ink on paper 15.7:1, muted 6.2:1, white on accent 7.3:1,
+ * pass/warn/fail/notice text on their washes all >= 5.7:1.
+ */
 @theme {
-  --color-paper: #f5f1e8;
-  --color-paper-deep: #ebe5d7;
-  --color-sheet: #fbf9f4;
-  --color-ink: #1c1a16;
-  --color-ink-soft: #3d3933;
-  --color-muted: #625d53;
-  --color-rule: #d3cbba;
-  --color-rule-strong: #9f9787;
-  --color-accent: #1d3a66;
-  --color-accent-hover: #142b4d;
-  --color-accent-wash: #e3e8f0;
+  --color-paper: #f7f3ea;
+  --color-paper-deep: #eee8db;
+  --color-sheet: #fffefb;
+  --color-ink: #171a25;
+  --color-ink-soft: #3a4250;
+  --color-muted: #505b68;
+  --color-rule: #e5e1d9;
+  --color-rule-strong: #8f97a3;
+  --color-accent: #2246d2;
+  --color-accent-hover: #1937b3;
+  --color-accent-wash: #e7ecff;
+  --color-sky: #ddf2f5;
+  --color-sky-deep: #b9e3ea;
+  --color-kite: #ff6b3d;
+  --color-notice: #245aa8;
+  --color-notice-wash: #e8f1ff;
 
-  --color-pass: #2c6a37;
-  --color-pass-wash: #e2ecdc;
-  --color-warn: #875600;
-  --color-warn-wash: #f5e8c6;
-  --color-fail: #a3271c;
-  --color-fail-wash: #f6dcd6;
+  --color-pass: #15643b;
+  --color-pass-wash: #e5f5eb;
+  --color-warn: #8a4b00;
+  --color-warn-wash: #fff0ce;
+  --color-fail: #ae232d;
+  --color-fail-wash: #fde7e8;
 
   --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
-  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
+
+}
+
+:root {
+  /* Motion tokens live outside @theme so Tailwind always emits them. */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 
 @layer base {
@@ -44,6 +61,7 @@
     color: var(--color-ink);
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     font-family: var(--font-sans);
@@ -56,41 +74,112 @@
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 3px;
-    border-radius: 2px;
+    border-radius: 4px;
   }
   a {
-    text-underline-offset: 0.18em;
+    text-underline-offset: 0.2em;
     text-decoration-thickness: 1px;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  .font-display {
+    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
+    letter-spacing: -0.03em;
+  }
+  p {
+    text-wrap: pretty;
   }
 }
 
 @layer components {
+  /* Numbers: tabular figures in the text face (no monospace costume). */
   .num {
-    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum", "zero";
+    font-feature-settings: "tnum";
   }
+  /* Small section label: sentence case, the accent colour, no letter-spaced caps. */
   .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--color-muted);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--color-accent);
+  }
+  .display {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
+    font-weight: 650;
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+  .btn-primary {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    background: var(--color-accent);
+    padding: 0 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    transition:
+      background-color 160ms var(--ease-out-quint),
+      transform 160ms var(--ease-out-quint);
+  }
+  .btn-primary:hover {
+    background: var(--color-accent-hover);
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+  .btn-secondary {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    background: var(--color-paper-deep);
+    padding: 0 1.5rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    transition:
+      background-color 160ms var(--ease-out-quint),
+      transform 160ms var(--ease-out-quint);
+  }
+  .btn-secondary:hover {
+    background: var(--color-rule);
+  }
+  .btn-secondary:active {
+    transform: scale(0.97);
+  }
+  .card {
+    border-radius: 1.25rem;
+    background: var(--color-sheet);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-ink) 7%, transparent),
+      0 1px 2px color-mix(in oklab, var(--color-ink) 6%, transparent);
   }
   .prose-doc p {
-    margin-top: 0.85em;
-    line-height: 1.65;
+    margin-top: 0.9em;
+    line-height: 1.7;
     color: var(--color-ink-soft);
   }
   .prose-doc h2 {
     font-family: var(--font-display);
-    font-size: 1.5rem;
-    line-height: 1.2;
-    margin-top: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin-top: 2.5rem;
     color: var(--color-ink);
   }
   .prose-doc h3 {
-    font-weight: 600;
+    font-weight: 700;
     margin-top: 1.5rem;
     color: var(--color-ink);
   }
@@ -100,16 +189,22 @@
     margin-top: 0.75em;
     color: var(--color-ink-soft);
   }
+  .prose-doc ol {
+    list-style: decimal;
+    padding-left: 1.25rem;
+    margin-top: 0.75em;
+    color: var(--color-ink-soft);
+  }
   .prose-doc li {
-    margin-top: 0.35em;
-    line-height: 1.6;
+    margin-top: 0.4em;
+    line-height: 1.65;
   }
   .prose-doc code {
     font-family: var(--font-mono);
-    font-size: 0.88em;
+    font-size: 0.86em;
     background: var(--color-paper-deep);
-    padding: 0.08em 0.3em;
-    border-radius: 2px;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
   }
   .prose-doc a {
     color: var(--color-accent);
@@ -117,12 +212,87 @@
   }
 }
 
+/* ---------- Motion (transform + opacity only; all of it is dropped under reduced motion) ---------- */
+
+@keyframes ck-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ck-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ck-sweep {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(1100%);
+  }
+}
+@keyframes ck-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-5deg);
+  }
+}
+
+/* Load-time entrance, staggered with --d. Content is visible without it (no JS needed). */
+.ck-in {
+  animation: ck-rise 700ms var(--ease-out-quint) both;
+  animation-delay: var(--d, 0ms);
+}
+.ck-pop {
+  animation: ck-pop 420ms var(--ease-spring) both;
+  animation-delay: var(--d, 0ms);
+}
+.ck-float {
+  animation: ck-float 7s ease-in-out infinite;
+}
+.ck-sweep {
+  animation: ck-sweep 2.6s cubic-bezier(0.45, 0, 0.55, 1) 600ms 2 both;
+}
+
+/* Once-only section reveals (components/Reveal.tsx). Hidden only when the script is running. */
+.ck-js .ck-reveal:not(.is-in) {
+  opacity: 0;
+  transform: translateY(14px);
+}
+.ck-js .ck-reveal {
+  transition:
+    opacity 450ms var(--ease-out-quint),
+    transform 450ms var(--ease-out-quint);
+}
+
+@media (hover: hover) {
+  .ck-lift {
+    transition: transform 220ms var(--ease-out-quint);
+  }
+  .ck-lift:hover {
+    transform: translateY(-3px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
+    animation: none !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
@@ -138,6 +308,9 @@
   }
   .print-break {
     break-before: page;
+  }
+  .card {
+    box-shadow: none;
   }
   a {
     color: inherit;

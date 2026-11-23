@@ -21,7 +21,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
     <div className="mx-auto w-full max-w-[1100px] px-4 py-10">
       <AccountNav current="billing" />
       <p className="label">{org.name}</p>
-      <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.02em]">Billing</h1>
+      <h1 className="mt-2 wt-h2 text-[30px] md:text-[34px]">Billing</h1>
 
       {sp.checkout === "success" && (
         <p role="status" className="mt-4 border border-ok/40 bg-ok/5 rounded-[4px] px-3 py-2 text-[13px] text-ok">
@@ -54,12 +54,12 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
       )}
 
       {ent.pass && (
-        <p role="status" className="mt-4 border border-ok/40 bg-ok/5 rounded-[4px] px-3 py-2 text-[13px] text-ok">
+        <p role="status" className="mt-4 border border-ok/40 bg-ok/5 rounded-[10px] px-3 py-2 text-[13px] text-ok">
           {ent.pass.name} active until {dateFmt(ent.pass.expiresAt)} (UTC). It is a one-time payment and does not renew.
         </p>
       )}
 
-      <section aria-labelledby="b-current" className="mt-6 border border-line rounded-[6px] bg-surface p-5 grid gap-4">
+      <section aria-labelledby="b-current" className="mt-6 border border-line rounded-[14px] bg-surface p-5 grid gap-4">
         <div className="flex flex-wrap items-baseline gap-3">
           <h2 id="b-current" className="text-[18px] font-semibold">
             {ent.planName} plan

@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Fraunces, Public_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Fraunces, Manrope } from "next/font/google";
 import "@repo/support/styles.css";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Analytics } from "@/components/Analytics";
+import { Reveal } from "@/components/Reveal";
 import { env } from "@/lib/env";
 import { CHANGEKITE_CATALOG, getPass, paidPlans } from "@repo/billing";
 import { price } from "@/lib/marketing";
@@ -15,8 +16,7 @@ const PASS_PRICE = `$${(reportPass.priceCents / 100).toFixed(reportPass.priceCen
 const FROM_PRICE = `${price(paidPlans(CHANGEKITE_CATALOG).sort((a, b) => a.priceMonthlyCents - b.priceMonthlyCents)[0]!)}/month`;
 
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap", axes: ["opsz"] });
-const publicSans = Public_Sans({ subsets: ["latin"], variable: "--font-public-sans", display: "swap" });
-const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono", display: "swap" });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const base = new URL(env().APP_URL);
@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#f5f1e8",
+  themeColor: "#f7f3ea",
   width: "device-width",
   initialScale: 1,
 };
@@ -47,7 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // (Next adds the nonce from the CSP request header to its own scripts).
   await headers();
   return (
-    <html lang="en" className={`${fraunces.variable} ${publicSans.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${manrope.variable}`}>
       <body className="min-h-dvh flex flex-col bg-paper text-ink antialiased">
         <a
           href="#main"
@@ -61,6 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </main>
         <SiteFooter />
         <Analytics />
+        <Reveal />
       </body>
     </html>
   );
