@@ -8,9 +8,11 @@ import { appUrl } from "@/lib/site";
 import "@repo/support/styles.css";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700", "800"], variable: "--font-jakarta", display: "swap" });
-const anton = Anton({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--font-anton", display: "swap" });
-const plexMono = IBM_Plex_Mono({ subsets: ["latin", "latin-ext"], weight: ["400", "500"], variable: "--font-plex-mono", display: "swap" });
+// Fonts: Latin only (Latin-1 accents included), one variable file for the text face, and only the two faces seen on
+// the first screen are preloaded. The monospace face appears only inside data tables and code, so it loads on use.
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
+const anton = Anton({ subsets: ["latin"], weight: "400", variable: "--font-anton", display: "swap" });
+const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: "400", variable: "--font-plex-mono", display: "swap", preload: false });
 
 export async function generateMetadata(): Promise<Metadata> {
   return {

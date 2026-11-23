@@ -23,7 +23,7 @@ export function PageHero({
       <div className={`relative mx-auto px-4 pb-12 pt-8 sm:px-8 sm:pb-16 sm:pt-12 ${narrow ? "max-w-[900px]" : "max-w-[1400px]"}`}>
         <div className={art && !narrow ? "lg:pr-[300px]" : ""}>
           <p className="chip rise">{eyebrow}</p>
-          <h1 className="display display-out rise mt-5 max-w-[20ch] text-[clamp(2.9rem,11vw,6.2rem)] leading-[0.92] [animation-delay:60ms]">{title}</h1>
+          <h1 className="display display-out mt-5 max-w-[20ch] text-[clamp(2.9rem,11vw,6.2rem)] leading-[0.92] [animation-delay:60ms]">{title}</h1>
           {children && <div className="rise mt-5 max-w-[44rem] text-[18px] font-semibold leading-snug [animation-delay:120ms] sm:text-[21px]">{children}</div>}
         </div>
         {art && !narrow && (

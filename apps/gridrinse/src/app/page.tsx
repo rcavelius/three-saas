@@ -57,7 +57,7 @@ export default function Home() {
       <section className="mint-grid overflow-hidden">
         <div className="mx-auto grid max-w-[1400px] items-end gap-x-12 gap-y-8 px-4 pb-14 pt-6 sm:px-8 sm:pt-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-y-12 lg:pb-20">
           <div className="min-w-0">
-            <h1 className="display display-out rise text-[clamp(4.1rem,18vw,8.6rem)] leading-[0.9] lg:text-[clamp(5rem,7.6vw,8rem)]">
+            <h1 className="display display-out text-[clamp(4.1rem,18vw,8.6rem)] leading-[0.9] lg:text-[clamp(5rem,7.6vw,8rem)]">
               Messy in.
               <br />
               Clean out.

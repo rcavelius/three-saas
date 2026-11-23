@@ -16,7 +16,7 @@ export function HowHero() {
   return (
     <section className="mint-grid">
       <div className="mx-auto max-w-[1400px] px-4 pb-10 pt-10 text-center sm:px-8 sm:pt-14">
-        <h1 className="display display-out rise text-[clamp(3rem,12vw,6.4rem)] leading-[0.92]">Let&rsquo;s rinse your spreadsheet.</h1>
+        <h1 className="display display-out text-[clamp(3rem,12vw,6.4rem)] leading-[0.92]">Let&rsquo;s rinse your spreadsheet.</h1>
         <p className="rise mx-auto mt-4 max-w-[44rem] text-[18px] font-semibold [animation-delay:80ms] sm:text-[22px]">Choose your file. Review the changes. Download cleaner data.</p>
         <StageSteps />
       </div>
