@@ -53,11 +53,24 @@ jobs:
           export STRIPE_SECRET_KEY="$(node -e 'process.stdout.write(JSON.parse(process.env.WORKER_SECRETS_WEBHOOKTRAIL).STRIPE_SECRET_KEY||"")')"
           echo "::add-mask::$STRIPE_SECRET_KEY"
           npx tsx scripts/growth-metrics.mts webhooktrail
+      # The traffic boss (docs/growth/BOSS.md) runs in a cloud sandbox that cannot reach the live sites, so the
+      # read-only technical SEO check and the IndexNow sitemap submission run here and are committed for it to read.
+      - name: Site check and IndexNow
+        continue-on-error: true  # never block the metrics commit
+        run: |
+          mkdir -p docs/growth/site-check
+          : > docs/growth/site-check/indexnow.txt
+          for app in gridrinse changekite webhooktrail; do
+            node scripts/site-check.mjs "$app" > "docs/growth/site-check/$app.json" || echo "{\"site\":\"$app.com\",\"error\":\"site-check failed\"}" > "docs/growth/site-check/$app.json"
+            echo "$(date -u +%Y-%m-%dT%H:%MZ) $(node scripts/indexnow.mjs "$app" 2>&1 | tail -1)" >> docs/growth/site-check/indexnow.txt
+          done
+          cat docs/growth/site-check/indexnow.txt
       - name: Commit
         run: |
           git config user.name "growth-metrics[bot]"
           git config user.email "growth-metrics@users.noreply.github.com"
           git add docs/growth/metrics.json docs/growth/changekite/metrics.json docs/growth/webhooktrail/metrics.json
+          git add docs/growth/site-check 2>/dev/null || true
           git diff --cached --quiet && exit 0
           git commit -m "growth: daily metrics [skip ci]"
           for i in 1 2 3; do git pull --rebase -q && git push -q && exit 0; sleep 5; done
