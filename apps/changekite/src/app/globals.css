@@ -8,51 +8,61 @@
   --sup-border: var(--color-rule);
   --sup-surface: var(--color-sheet);
   --sup-soft: var(--color-paper-deep);
-  --sup-radius: 10px;
+  --sup-radius: 14px;
 }
 
 /*
- * ChangeKite 2026: "The Inspector's Report".
- * Direction "Editorial Signal" (ChatGPT round 1): warm paper, ink-navy, one electric cobalt accent, a pale aqua wash.
- * Red / amber / green are reserved for status and never used decoratively.
- * Contrast (WCAG): ink on paper 15.7:1, muted 6.2:1, white on accent 7.3:1,
- * pass/warn/fail/notice text on their washes all >= 5.7:1.
+ * ChangeKite v2: "High Wind" (docs/design/v2/concepts.md).
+ * A whole field of sky, one vermilion kite, ink type. Archivo is the only typeface (width axis for display).
+ * Red / amber / green are reserved for check results and never used decoratively.
+ * Contrast (WCAG): ink on paper 17.4:1, muted on paper 6.6:1, white on sky 5.3:1, white on ink 19:1,
+ * sky-ink link (#1546d9) on paper 6.4:1, status text on its wash >= 5.7:1.
  */
 @theme {
-  --color-paper: #f7f3ea;
-  --color-paper-deep: #eee8db;
-  --color-sheet: #fffefb;
-  --color-ink: #171a25;
-  --color-ink-soft: #3a4250;
-  --color-muted: #505b68;
-  --color-rule: #e5e1d9;
-  --color-rule-strong: #8f97a3;
-  --color-accent: #2246d2;
-  --color-accent-hover: #1937b3;
-  --color-accent-wash: #e7ecff;
-  --color-sky: #ddf2f5;
-  --color-sky-deep: #b9e3ea;
-  --color-kite: #ff6b3d;
+  --color-paper: #f4f6fa;
+  --color-paper-deep: #e8ecf4;
+  --color-sheet: #ffffff;
+  --color-ink: #0b1230;
+  --color-ink-soft: #283150;
+  --color-muted: #4b5470;
+  --color-rule: #dfe4ee;
+  --color-rule-strong: #8a93aa;
+  --color-accent: #1546d9;
+  --color-accent-hover: #0f37b3;
+  --color-accent-wash: #e4ebff;
+  --color-sky: #1f5bff;
+  --color-sky-deep: #1449e6;
+  --color-sky-pale: #dfe8ff;
+  --color-cloud: #b9ccff;
+  --color-kite: #ff5a1f;
+  --color-kite-deep: #e2410a;
+  --color-night: #070c22;
   --color-notice: #245aa8;
   --color-notice-wash: #e8f1ff;
 
   --color-pass: #15643b;
-  --color-pass-wash: #e5f5eb;
+  --color-pass-wash: #e3f6ea;
   --color-warn: #8a4b00;
   --color-warn-wash: #fff0ce;
   --color-fail: #ae232d;
   --color-fail-wash: #fde7e8;
 
-  --font-display: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
+  /* Bow colours: brighter status hues for graphics on sky or white (never for text). */
+  --color-bow-pass: #2fd47a;
+  --color-bow-warn: #ffc21a;
+  --color-bow-fail: #ff3b4a;
+  --color-bow-notice: #8fb3ff;
 
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
 }
 
 :root {
   /* Motion tokens live outside @theme so Tailwind always emits them. */
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-wind: cubic-bezier(0.45, 0, 0.55, 1);
 }
 
 @layer base {
@@ -66,86 +76,109 @@
   body {
     font-family: var(--font-sans);
     font-feature-settings: "kern", "liga";
+    font-variation-settings: "wdth" 100;
   }
   ::selection {
-    background: var(--color-accent);
+    background: var(--color-kite);
     color: #fff;
   }
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 3px solid var(--color-kite);
     outline-offset: 3px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
   a {
     text-underline-offset: 0.2em;
-    text-decoration-thickness: 1px;
+    text-decoration-thickness: 1.5px;
   }
   h1,
   h2,
   h3 {
     text-wrap: balance;
   }
-  .font-display {
-    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
-    letter-spacing: -0.03em;
-  }
   p {
     text-wrap: pretty;
+  }
+  /* Legacy utility used by report, docs and account pages: the wide display cut of Archivo. */
+  .font-display {
+    font-variation-settings: "wdth" 112;
+    font-weight: 800;
+    letter-spacing: -0.015em;
   }
 }
 
 @layer components {
-  /* Numbers: tabular figures in the text face (no monospace costume). */
   .num {
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
   }
-  /* Small section label: sentence case, the accent colour, no letter-spaced caps. */
+  /* Small section label: sentence case, readable, never letter-spaced caps. */
   .eyebrow {
-    font-family: var(--font-sans);
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0;
     color: var(--color-accent);
   }
+  /* Display type: wide, heavy, normal tracking (words must never touch). */
   .display {
     font-family: var(--font-display);
-    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
-    font-weight: 650;
-    letter-spacing: -0.045em;
-    line-height: 1;
+    font-variation-settings: "wdth" 118;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 0.96;
   }
   .btn-primary {
     display: inline-flex;
-    min-height: 3rem;
+    min-height: 3.25rem;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 0.75rem;
-    background: var(--color-accent);
-    padding: 0 1.5rem;
-    font-weight: 600;
+    border-radius: 999px;
+    background: var(--color-ink);
+    padding: 0 1.75rem;
+    font-weight: 700;
     color: #fff;
     transition:
       background-color 160ms var(--ease-out-quint),
       transform 160ms var(--ease-out-quint);
   }
   .btn-primary:hover {
-    background: var(--color-accent-hover);
+    background: #1d2752;
   }
   .btn-primary:active {
     transform: scale(0.97);
   }
-  .btn-secondary {
+  .btn-kite {
     display: inline-flex;
-    min-height: 3rem;
+    min-height: 3.25rem;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 0.75rem;
+    border-radius: 999px;
+    background: var(--color-kite);
+    padding: 0 1.75rem;
+    font-weight: 800;
+    color: var(--color-night);
+    transition:
+      background-color 160ms var(--ease-out-quint),
+      transform 160ms var(--ease-out-quint);
+  }
+  .btn-kite:hover {
+    background: #ff7a45;
+  }
+  .btn-kite:active {
+    transform: scale(0.97);
+  }
+  .btn-secondary {
+    display: inline-flex;
+    min-height: 3.25rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
     background: var(--color-paper-deep);
     padding: 0 1.5rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--color-ink);
     transition:
       background-color 160ms var(--ease-out-quint),
@@ -158,28 +191,36 @@
     transform: scale(0.97);
   }
   .card {
-    border-radius: 1.25rem;
+    border-radius: 1.5rem;
     background: var(--color-sheet);
-    box-shadow:
-      0 0 0 1px color-mix(in oklab, var(--color-ink) 7%, transparent),
-      0 1px 2px color-mix(in oklab, var(--color-ink) 6%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-ink) 8%, transparent);
+  }
+  /* A full-bleed band of sky that opens inner pages. */
+  .sky-band {
+    background: var(--color-sky);
+    color: #fff;
+  }
+  .sky-band a:not([class*="btn"]) {
+    color: #fff;
   }
   .prose-doc p {
     margin-top: 0.9em;
-    line-height: 1.7;
+    line-height: 1.65;
     color: var(--color-ink-soft);
+    font-size: 1.0625rem;
   }
   .prose-doc h2 {
     font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-variation-settings: "wdth" 112;
+    font-weight: 800;
+    letter-spacing: -0.015em;
     font-size: 1.75rem;
-    line-height: 1.15;
-    margin-top: 2.5rem;
+    line-height: 1.1;
+    margin-top: 2.75rem;
     color: var(--color-ink);
   }
   .prose-doc h3 {
-    font-weight: 700;
+    font-weight: 800;
     margin-top: 1.5rem;
     color: var(--color-ink);
   }
@@ -197,7 +238,7 @@
   }
   .prose-doc li {
     margin-top: 0.4em;
-    line-height: 1.65;
+    line-height: 1.6;
   }
   .prose-doc code {
     font-family: var(--font-mono);
@@ -212,12 +253,17 @@
   }
 }
 
+/* The widest display cut; a utility so it takes breakpoint variants (sm:display-xl). */
+@utility display-xl {
+  font-variation-settings: "wdth" 125;
+}
+
 /* ---------- Motion (transform + opacity only; all of it is dropped under reduced motion) ---------- */
 
 @keyframes ck-rise {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(22px);
   }
   to {
     opacity: 1;
@@ -227,64 +273,137 @@
 @keyframes ck-pop {
   from {
     opacity: 0;
-    transform: scale(0.6);
+    transform: scale(0.4);
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
-@keyframes ck-sweep {
-  from {
-    transform: translateY(-100%);
-  }
-  to {
-    transform: translateY(1100%);
-  }
-}
-@keyframes ck-float {
+
+/* The kite rides the wind: a slow sway around the bridle point. */
+@keyframes kite-sway {
   0%,
   100% {
-    transform: translateY(0) rotate(-8deg);
+    transform: translate(0, 0) rotate(-2deg);
+  }
+  35% {
+    transform: translate(6px, -10px) rotate(1.5deg);
+  }
+  70% {
+    transform: translate(-4px, -4px) rotate(-0.5deg);
+  }
+}
+/* Each bow on the tail flutters a little behind the one before it. */
+@keyframes bow-flutter {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
   }
   50% {
-    transform: translateY(-10px) rotate(-5deg);
+    transform: translateY(-5px) rotate(8deg);
+  }
+}
+/* Scan: page nodes light up in order. */
+@keyframes node-lit {
+  0% {
+    fill: var(--node-idle, #ffd2c2);
+  }
+  40% {
+    fill: #fff;
+    transform: scale(1.35);
+  }
+  100% {
+    fill: #fff;
+    transform: none;
+  }
+}
+@keyframes bow-in {
+  from {
+    fill: rgba(255, 255, 255, 0.28);
+  }
+  to {
+    fill: var(--bow);
+  }
+}
+@keyframes spar-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
   }
 }
 
-/* Load-time entrance, staggered with --d. Content is visible without it (no JS needed). */
+@keyframes kite-sweep {
+  from {
+    transform: translateY(-60px);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(580px);
+    opacity: 1;
+  }
+}
+.kite-sweep {
+  opacity: 0;
+  animation: kite-sweep 1.5s var(--ease-wind) 500ms 2 both;
+}
+
 .ck-in {
-  animation: ck-rise 700ms var(--ease-out-quint) both;
+  animation: ck-rise 800ms var(--ease-out-quint) both;
   animation-delay: var(--d, 0ms);
 }
 .ck-pop {
-  animation: ck-pop 420ms var(--ease-spring) both;
+  animation: ck-pop 480ms var(--ease-spring) both;
   animation-delay: var(--d, 0ms);
 }
-.ck-float {
-  animation: ck-float 7s ease-in-out infinite;
+
+.kite-body {
+  transform-box: view-box;
+  transform-origin: 50% 70%;
+  animation: kite-sway 9s var(--ease-wind) infinite;
 }
-.ck-sweep {
-  animation: ck-sweep 2.6s cubic-bezier(0.45, 0, 0.55, 1) 600ms 2 both;
+.kite-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: node-lit 520ms var(--ease-out-quint) both;
+  animation-delay: var(--d, 0ms);
+}
+.kite-bow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bow-flutter 3.2s var(--ease-wind) infinite;
+  animation-delay: var(--f, 0ms);
+}
+.kite-bow-fill {
+  animation: bow-in 420ms var(--ease-out-quint) both;
+  animation-delay: var(--d, 0ms);
+}
+.kite-spar {
+  stroke-dasharray: 1 1;
+  animation: spar-draw 900ms var(--ease-out-quint) both;
+  animation-delay: var(--d, 0ms);
 }
 
 /* Once-only section reveals (components/Reveal.tsx). Hidden only when the script is running. */
 .ck-js .ck-reveal:not(.is-in) {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(24px);
 }
 .ck-js .ck-reveal {
   transition:
-    opacity 450ms var(--ease-out-quint),
-    transform 450ms var(--ease-out-quint);
+    opacity 600ms var(--ease-out-quint),
+    transform 600ms var(--ease-out-quint);
+  transition-delay: var(--d, 0ms);
 }
 
 @media (hover: hover) {
   .ck-lift {
-    transition: transform 220ms var(--ease-out-quint);
+    transition: transform 240ms var(--ease-out-quint);
   }
   .ck-lift:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
   }
 }
 
@@ -295,6 +414,16 @@
     animation: none !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  /* Without the animation the final state must still show. */
+  .kite-node {
+    fill: #fff;
+  }
+  .kite-bow-fill {
+    fill: var(--bow);
+  }
+  .kite-sweep {
+    display: none;
   }
 }
 

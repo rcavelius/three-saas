@@ -41,14 +41,11 @@ export function ExampleReport() {
   const g = GRADE_TEXT[grade];
   return (
     <figure
-      className="card ck-in relative overflow-hidden !rounded-[20px] bg-white shadow-[0_16px_48px_rgba(23,26,37,0.07),0_0_0_1px_var(--color-rule)]"
+      className="ck-in relative overflow-hidden rounded-[28px] bg-white"
       style={{ ["--d" as string]: "120ms" }}
       aria-label={`Example report for ${EXAMPLE_HOST} (illustrative data): score ${score} out of 100, ${g.label}`}
     >
       {/* One slow scan-line pass over the card on load: the report being read. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[10%] overflow-hidden">
-        <div className="ck-sweep h-full w-full bg-accent/[0.06]" />
-      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-[18px] py-3.5 sm:px-7 sm:py-4">
         <div className="min-w-0">

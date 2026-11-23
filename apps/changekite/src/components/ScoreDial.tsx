@@ -48,7 +48,7 @@ export function ScoreDial({
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={label ?? `Score ${score} out of 100`}>
       <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="-rotate-90" aria-hidden="true">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#eee9df" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-paper-deep)" strokeWidth={stroke} />
         <circle
           cx={size / 2}
           cy={size / 2}

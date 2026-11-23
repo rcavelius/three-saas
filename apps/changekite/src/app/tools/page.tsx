@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PageTitle } from "@/components/ui";
+import { SkyHero } from "@/components/ui";
 import { TOOLS } from "@/content/tools";
 
 export const metadata: Metadata = {
@@ -10,49 +10,64 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tools" },
 };
 
+function ToolRow({ slug, h1, description, i }: { slug: string; h1: string; description: string; i: number }) {
+  return (
+    <li className="ck-reveal" style={{ ["--d" as string]: `${(i % 6) * 50}ms` }}>
+      <Link href={`/tools/${slug}`} className="group -mx-4 grid gap-x-10 gap-y-1.5 rounded-2xl px-4 py-5 transition-colors hover:bg-sky-pale md:grid-cols-[1fr_1fr_auto] md:items-center">
+        <h3 className="font-display text-[1.5rem] leading-tight sm:text-[1.875rem]">{h1}</h3>
+        <p className="text-[1.0625rem] leading-relaxed text-ink-soft">{description}</p>
+        <span aria-hidden="true" className="hidden h-11 w-11 place-items-center rounded-full bg-paper text-xl transition-transform group-hover:translate-x-1 group-hover:bg-white md:grid">
+          →
+        </span>
+      </Link>
+    </li>
+  );
+}
+
 export default function ToolsIndex() {
   const free = TOOLS.filter((t) => !t.paid);
   const paid = TOOLS.filter((t) => t.paid);
   return (
-    <div className="mx-auto max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
-      <PageTitle
-        eyebrow="Tools"
+    <>
+      <SkyHero
         title="Website checkers"
-        lede="Each checker is the same free ChangeKite scan, explained for one job. One scan runs every check, so you only need to scan once."
+        lede="Each checker is the same free scan, explained for one job. One scan runs every check, so you only need to scan once."
       />
-      <h2 className="mt-12 font-display text-2xl font-semibold">Free checks</h2>
-      <ul className="mt-4 divide-y divide-rule border-y border-rule">
-        {free.map((t) => (
-          <li key={t.slug} className="py-6">
-            <h3 className="font-display text-xl font-semibold">
-              <Link href={`/tools/${t.slug}`} className="hover:underline">
-                {t.h1}
-              </Link>
-            </h3>
-            <p className="mt-2 text-ink-soft">{t.description}</p>
-          </li>
-        ))}
-      </ul>
-      <h2 className="mt-12 font-display text-2xl font-semibold">Monitoring (paid plans)</h2>
-      <ul className="mt-4 divide-y divide-rule border-y border-rule">
-        {paid.map((t) => (
-          <li key={t.slug} className="py-6">
-            <h3 className="font-display text-xl font-semibold">
-              <Link href={`/tools/${t.slug}`} className="hover:underline">
-                {t.h1}
-              </Link>
-            </h3>
-            <p className="mt-2 text-ink-soft">{t.description}</p>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-8 text-ink-soft">
-        For exactly how each check works and how the score is calculated, see{" "}
-        <Link className="text-accent underline" href="/docs">
-          what we check
-        </Link>
-        .
-      </p>
-    </div>
+      <div className="mx-auto max-w-[1360px] px-5 md:px-8 lg:px-12">
+        <section aria-labelledby="free" className="pt-20 lg:pt-28">
+          <h2 id="free" className="display text-[2.25rem] sm:text-[3rem]">
+            Free checks
+          </h2>
+          <ul className="mt-8">
+            {free.map((t, i) => (
+              <ToolRow key={t.slug} {...t} i={i} />
+            ))}
+          </ul>
+        </section>
+        <section aria-labelledby="paid" className="mt-20 rounded-[32px] bg-ink px-5 py-12 text-white sm:px-10 lg:mt-28 lg:py-16">
+          <h2 id="paid" className="display text-[2.25rem] sm:text-[3rem]">
+            Monitoring
+          </h2>
+          <p className="mt-3 text-lg text-white/85">On the paid plans: scheduled re-scans and an email when something changes.</p>
+          <ul className="mt-8 grid gap-3 md:grid-cols-2">
+            {paid.map((t) => (
+              <li key={t.slug}>
+                <Link href={`/tools/${t.slug}`} className="ck-lift flex h-full flex-col gap-3 rounded-[22px] bg-white/10 p-6 transition-colors hover:bg-white/15">
+                  <h3 className="font-display text-[1.5rem] leading-tight">{t.h1}</h3>
+                  <p className="text-[1.0625rem] leading-relaxed text-white/85">{t.description}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <p className="mt-12 text-lg text-ink-soft">
+          Exactly how each check works and how the score is calculated:{" "}
+          <Link className="font-bold text-accent underline" href="/docs">
+            what we check
+          </Link>
+          .
+        </p>
+      </div>
+    </>
   );
 }

@@ -30,19 +30,25 @@ const COLS: { title: string; links: [string, string][] }[] = [
 
 export function SiteFooter() {
   return (
-    <footer className="no-print mt-24 overflow-hidden border-t-2 border-ink">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 pb-6 pt-12 md:px-8 lg:grid-cols-[1.2fr_2fr] lg:px-12">
-        <p className="max-w-sm text-[0.95rem] leading-relaxed text-ink-soft">
-          ChangeKite reads your public pages the way a careful crawler would, and writes down what it finds. Nothing is changed on your site.
-        </p>
-        <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+    <footer className="no-print mt-28 bg-night text-white">
+      <div className="mx-auto grid max-w-[1360px] gap-12 px-5 pb-12 pt-16 md:px-8 lg:grid-cols-[1.1fr_1.6fr] lg:px-12 lg:pb-16 lg:pt-24">
+        <div>
+          <Link href="/" className="inline-flex items-center gap-3 no-underline" aria-label="ChangeKite home">
+            <KiteMark className="h-11 w-11" />
+            <span className="display text-[2rem] !leading-none">ChangeKite</span>
+          </Link>
+          <p className="mt-6 max-w-sm text-[1.0625rem] leading-relaxed text-white/80">
+            Reads your public pages the way a careful crawler would and tells you what it found. Nothing on your site is changed.
+          </p>
+        </div>
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-10 sm:grid-cols-3">
           {COLS.map((c) => (
             <div key={c.title}>
-              <p className="text-sm font-extrabold text-ink">{c.title}</p>
-              <ul className="mt-3 space-y-2 text-[0.95rem]">
+              <p className="text-[0.95rem] font-extrabold text-white">{c.title}</p>
+              <ul className="mt-4 space-y-3 text-[1rem]">
                 {c.links.map(([href, label]) => (
                   <li key={href}>
-                    <Link className="text-ink-soft hover:text-accent" href={href}>
+                    <Link className="text-white/75 transition-colors hover:text-white" href={href}>
                       {label}
                     </Link>
                   </li>
@@ -51,10 +57,6 @@ export function SiteFooter() {
             </div>
           ))}
         </nav>
-      </div>
-      <div className="mx-auto flex max-w-7xl items-end gap-3 px-5 md:px-8 lg:px-12" aria-hidden="true">
-        <KiteMark className="mb-[3vw] h-[8vw] w-[8vw] max-h-20 max-w-20 shrink-0 lg:mb-12" />
-        <p className="display select-none pb-10 text-[15vw] leading-[0.95] text-ink lg:text-[112px]">ChangeKite</p>
       </div>
     </footer>
   );

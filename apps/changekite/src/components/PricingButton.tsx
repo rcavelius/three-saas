@@ -10,17 +10,30 @@ const cls = "inline-flex min-h-11 items-center bg-accent px-5 font-medium text-w
  * checkout: owner on the free plan -> Stripe Checkout
  * manage: already subscribed -> plan & billing page (portal)
  */
-export function PricingButton({ planId, label, mode, disabled }: { planId: string; label: string; mode: "signup" | "checkout" | "manage" | "owner-only"; disabled?: boolean }) {
+export function PricingButton({
+  planId,
+  label,
+  mode,
+  disabled,
+  className = cls,
+}: {
+  planId: string;
+  label: string;
+  mode: "signup" | "checkout" | "manage" | "owner-only";
+  disabled?: boolean;
+  /** Styling only. */
+  className?: string;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   if (mode === "signup" || mode === "manage" || mode === "owner-only") {
     const href = mode === "signup" ? `/signup?plan=${planId}` : "/account/billing";
     return (
       <>
-        <a href={href} className={cls} onClick={() => track("upgrade_clicked", { plan: planId, from: "pricing" })} aria-disabled={disabled || undefined}>
+        <a href={href} className={className} onClick={() => track("upgrade_clicked", { plan: planId, from: "pricing" })} aria-disabled={disabled || undefined}>
           {mode === "manage" && !disabled ? `Switch to this plan` : label}
         </a>
-        {mode === "owner-only" && <p className="mt-2 text-xs text-muted">Only the workspace owner can change the plan.</p>}
+        {mode === "owner-only" && <p className="mt-2 text-sm opacity-90">Only the workspace owner can change the plan.</p>}
       </>
     );
   }
@@ -28,7 +41,7 @@ export function PricingButton({ planId, label, mode, disabled }: { planId: strin
     <>
       <button
         type="button"
-        className={cls}
+        className={className}
         disabled={disabled || busy}
         onClick={async () => {
           setBusy(true);
@@ -50,7 +63,7 @@ export function PricingButton({ planId, label, mode, disabled }: { planId: strin
         {busy ? "Opening checkout…" : label}
       </button>
       {error && (
-        <p role="alert" className="mt-2 text-sm text-fail">
+        <p role="alert" className="mt-2 rounded-lg bg-fail-wash px-3 py-2 text-sm text-fail">
           {error}
         </p>
       )}

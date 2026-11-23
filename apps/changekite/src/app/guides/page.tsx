@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDES } from "@/lib/guides";
-import { PageTitle } from "@/components/ui";
+import { SkyHero } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Guides",
@@ -9,25 +9,33 @@ export const metadata: Metadata = {
   alternates: { canonical: "/guides" },
 };
 
+const TONES = ["bg-kite text-night", "bg-ink text-white", "bg-sky-pale text-ink"];
+
 export default function GuidesPage() {
   return (
-    <div className="mx-auto max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
-      <PageTitle eyebrow="Guides" title="Fixing what the report finds" lede="Short, practical write-ups of the problems that hurt sites most often." />
-      <ul className="mt-10 divide-y divide-rule border-y border-rule">
-        {GUIDES.map((g) => (
-          <li key={g.slug} className="py-6">
-            <h2 className="font-display text-2xl font-semibold">
-              <Link href={`/guides/${g.slug}`} className="hover:underline">
-                {g.title}
+    <>
+      <SkyHero title="Fixing what the report finds" lede="Short, practical write-ups of the problems that hurt sites most often." wide />
+      <div className="mx-auto max-w-[1360px] px-5 pt-20 md:px-8 lg:px-12 lg:pt-28">
+        <h2 className="sr-only">All guides</h2>
+        <ul className="grid gap-4 lg:grid-cols-3">
+          {GUIDES.map((g, i) => (
+            <li key={g.slug} className="ck-reveal" style={{ ["--d" as string]: `${i * 80}ms` }}>
+              <Link href={`/guides/${g.slug}`} className={`ck-lift group flex h-full min-h-[340px] flex-col justify-between gap-8 rounded-[28px] p-7 sm:p-9 ${TONES[i % 3]}`}>
+                <h3 className="font-display text-[1.875rem] leading-[1.08] sm:text-[2.25rem]">{g.title}</h3>
+                <div>
+                  <p className="text-[1.0625rem] leading-relaxed">{g.description}</p>
+                  <p className="mt-5 font-bold">
+                    Read the guide <span aria-hidden="true" className="inline-block transition-transform group-hover:translate-x-1">→</span>
+                  </p>
+                </div>
               </Link>
-            </h2>
-            <p className="mt-2 text-ink-soft">{g.description}</p>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-8 text-ink-soft">
-        For what each check measures and how the score works, see <Link className="text-accent underline" href="/docs">what we check</Link>.
-      </p>
-    </div>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-12 text-lg text-ink-soft">
+          What each check measures and how the score works: <Link className="font-bold text-accent underline" href="/docs">what we check</Link>.
+        </p>
+      </div>
+    </>
   );
 }

@@ -35,37 +35,43 @@ export function ReportPaywall({
   const headline = lockedHeadline(locked, startUrl);
 
   return (
-    <section aria-labelledby={headingId} className="no-print mt-8 rounded-[20px] bg-accent-wash/70 px-5 py-7 shadow-[0_0_0_2px_var(--color-accent)] sm:px-8">
-      <p className="eyebrow">Full report locked</p>
-      <h3 id={headingId} className="display mt-2 text-[28px] leading-[1.1] tracking-[-0.035em] [overflow-wrap:anywhere] sm:text-[34px]">
+    <section aria-labelledby={headingId} className="no-print mt-8 rounded-[28px] bg-sky px-6 py-8 text-white sm:px-10 sm:py-10">
+      <p className="text-[0.95rem] font-bold text-white">Full report locked</p>
+      <h3 id={headingId} className="display mt-2 text-[28px] leading-[1.05] [overflow-wrap:anywhere] sm:text-[40px]">
         {headline ?? "See every check in detail."}
       </h3>
       {locked.hidden > 0 && (
-        <p className="mt-2 text-ink-soft">
+        <p className="mt-3 text-white">
           Not shown in the free report: {lockedBreakdown(locked)}.
           {locked.pagesHidden > 0 ? ` Also the page-by-page list of the ${locked.pagesHidden} pages read.` : ""}
         </p>
       )}
-      <p className="mt-4 text-ink">
+      <p className="mt-5 text-lg text-white">
         Unlock the full report with fixes &mdash; <strong className="num">{offer.price}</strong> one-time.
       </p>
-      <ul className="mt-3 space-y-1.5 text-[0.95rem] text-ink-soft">
-        <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-accent">✓</span>The full issue list with fixes for {offer.duration}, on every report you open</li>
-        <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-accent">✓</span>Rescans of up to {offer.pagesPerScan} pages (free scans stop at {offer.freePages})</li>
-        {offer.pdf && <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-accent">✓</span>PDF export</li>}
-        <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-accent">✓</span>No subscription, no account needed: charged once, ends by itself</li>
+      <ul className="mt-3 space-y-2 text-[1rem] text-white">
+        <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-white">✓</span>The full issue list with fixes for {offer.duration}, on every report you open</li>
+        <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-white">✓</span>Rescans of up to {offer.pagesPerScan} pages (free scans stop at {offer.freePages})</li>
+        {offer.pdf && <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-white">✓</span>PDF export</li>}
+        <li className="flex gap-2.5"><span aria-hidden="true" className="font-bold text-white">✓</span>No subscription, no account needed: charged once, ends by itself</li>
       </ul>
       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-        <PassBuyButton passId={offer.passId} returnPath={`/report/${reportId}`} from={where} label={`Unlock the full report — ${offer.price}`} />
+        <PassBuyButton
+          passId={offer.passId}
+          returnPath={`/report/${reportId}`}
+          from={where}
+          label={`Unlock the full report — ${offer.price}`}
+          className="inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-white px-7 font-bold text-ink transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+        />
         <a
           href="/pricing"
           onClick={() => track("upgrade_clicked", { plan: "solo", from: "report_paywall" })}
-          className="font-semibold text-accent underline underline-offset-4"
+          className="font-bold text-white underline underline-offset-4"
         >
           Or monitor your sites: plans from {offer.soloPrice}/month
         </a>
       </div>
-      <p className="mt-3 text-xs text-muted">Secure payment by Stripe. You come back to this report, unlocked.</p>
+      <p className="mt-4 text-sm text-white">Secure payment by Stripe. You come back to this report, unlocked.</p>
     </section>
   );
 }

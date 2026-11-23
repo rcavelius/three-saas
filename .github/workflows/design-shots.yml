@@ -5,7 +5,7 @@ name: Design screenshots
 # Used for design review rounds without running browsers on a developer machine.
 on:
   push:
-    branches: ["claude/ck-wt-redesign-**"]
+    branches: ["claude/ck-wt-redesign-**", "claude/ck-redesign-v2-**"]
     paths: ["apps/changekite/**", "apps/webhooktrail/**", "scripts/design-shots.mjs", ".github/workflows/design-shots.yml"]
   workflow_dispatch:
 
@@ -45,10 +45,11 @@ jobs:
         run: |
           node scripts/design-shots.mjs shots \
             ck-home=http://localhost:3001/ ck-pricing=http://localhost:3001/pricing ck-tools=http://localhost:3001/tools \
-            ck-tool=http://localhost:3001/tools/broken-link-checker ck-docs=http://localhost:3001/docs ck-guide=http://localhost:3001/guides/find-and-fix-broken-links \
+            ck-tool=http://localhost:3001/tools/broken-link-checker ck-docs=http://localhost:3001/docs ck-guide=http://localhost:3001/guides/find-and-fix-broken-links ck-guides=http://localhost:3001/guides \
             ck-login=http://localhost:3001/login ck-signup=http://localhost:3001/signup \
             wt-home=http://localhost:3003/ wt-pricing=http://localhost:3003/pricing wt-tools=http://localhost:3003/tools \
             wt-docs=http://localhost:3003/docs wt-guides=http://localhost:3003/guides wt-login=http://localhost:3003/login wt-signup=http://localhost:3003/signup
+          SHOTS_VIEWPORT_ONLY=1 node scripts/design-shots.mjs shots/fold ck-home=http://localhost:3001/ ck-pricing=http://localhost:3001/pricing ck-tool=http://localhost:3001/tools/broken-link-checker
           SHOTS_VIEWPORT_ONLY=1 SHOTS_REDUCED=1 node scripts/design-shots.mjs shots/reduced ck-home=http://localhost:3001/ wt-home=http://localhost:3003/
       - name: Mobile Lighthouse (home pages)
         continue-on-error: true
