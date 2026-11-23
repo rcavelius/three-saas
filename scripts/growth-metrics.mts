@@ -161,7 +161,37 @@ if (stripeKey) {
       firstPaidDates.push(new Date(s.created * 1000).toISOString().slice(0, 10));
     }
   }
-  stripeStats = { available: true, mode: live ? "live" : "test", active_paid_subscriptions: active, mrr_usd: mrrCents / 100, subscriptions_ever: everPaid, canceled, subscription_start_dates: firstPaidDates.sort() };
+  // One-time passes (Checkout mode "payment"): the PaymentIntent carries metadata { app, kind: "pass", passId }.
+  const now = Date.now();
+  const pass = { sales_ever: 0, revenue_usd_ever: 0, sales_1d: 0, sales_7d: 0, sales_30d: 0, revenue_usd_30d: 0, refunded: 0, by_pass: {} as Record<string, number>, sale_dates: [] as string[] };
+  for await (const pi of stripe.paymentIntents.list({ limit: 100, created: { gte: 1_763_000_000 }, expand: ["data.latest_charge"] })) {
+    if (pi.metadata?.app !== app || pi.metadata?.kind !== "pass" || pi.status !== "succeeded") continue;
+    const ageDays = (now - pi.created * 1000) / 86_400_000;
+    const net = (pi.amount_received ?? 0) - (typeof pi.latest_charge === "object" && pi.latest_charge ? pi.latest_charge.amount_refunded : 0);
+    if (net <= 0) { pass.refunded++; continue; }
+    pass.sales_ever++;
+    pass.revenue_usd_ever += net / 100;
+    if (ageDays <= 1) pass.sales_1d++;
+    if (ageDays <= 7) pass.sales_7d++;
+    if (ageDays <= 30) { pass.sales_30d++; pass.revenue_usd_30d += net / 100; }
+    const id = pi.metadata.passId ?? "unknown";
+    pass.by_pass[id] = (pass.by_pass[id] ?? 0) + 1;
+    pass.sale_dates.push(new Date(pi.created * 1000).toISOString().slice(0, 10));
+  }
+  pass.sale_dates.sort();
+  stripeStats = {
+    available: true,
+    mode: live ? "live" : "test",
+    active_paid_subscriptions: active,
+    mrr_usd: mrrCents / 100,
+    subscriptions_ever: everPaid,
+    canceled,
+    subscription_start_dates: firstPaidDates.sort(),
+    one_time_passes: pass,
+    // The one question that matters: has this product ever been paid (subscription or pass), and is it earning now?
+    paying_customers_ever: everPaid + pass.sales_ever,
+    making_money_now: active > 0 || pass.sales_30d > 0,
+  };
 }
 
 const out = {
