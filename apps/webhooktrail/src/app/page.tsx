@@ -7,6 +7,7 @@ import { ExampleInspector } from "@/components/home/ExampleInspector";
 import { Art } from "@/components/grid/Art";
 import { PixelTitle } from "@/components/grid/PixelTitle";
 import { TraceCell } from "@/components/grid/TraceCell";
+import { FlowDiagram } from "@/components/grid/FlowDiagram";
 import { CATALOG, FREE_LIMITS, formatCount, limitsFromPlan, priceLabel } from "@/lib/plans";
 import { TOOLS } from "@/content/tools";
 import { GUIDES } from "./guides/guides";
@@ -16,13 +17,6 @@ import { GUIDES } from "./guides/guides";
  * typography, 3D elements, experimental navigation, motion). Very little copy, all of it mono.
  * Senders are plain text labels that link to the matching tester page; they are not customers.
  */
-const SENDERS: [string, string][] = [
-  ["Stripe", "/tools/stripe-webhook-tester"],
-  ["GitHub", "/tools/github-webhook-tester"],
-  ["Shopify", "/tools/shopify-webhook-tester"],
-  ["CI", "/tools/send-test-webhook"],
-  ["Your app", "/tools/webhook-tester"],
-];
 
 function Dot({ at }: { at: "tl" | "tr" | "bl" | "br" }) {
   const pos = { tl: "-left-[4px] -top-[4px]", tr: "-right-[4px] -top-[4px]", bl: "-left-[4px] -bottom-[4px]", br: "-right-[4px] -bottom-[4px]" }[at];
@@ -111,22 +105,14 @@ export default function Home() {
             </div>
 
             {/* The black cell: a live-looking (example) trace. */}
-            <div className="g-x relative p-4 md:p-5 lg:order-3 lg:p-6">
+            <div className="g-x relative hidden p-4 md:p-5 lg:order-3 lg:block lg:p-6">
               <Dot at="br" />
               <TraceCell className="aspect-square max-h-[420px] w-full lg:aspect-auto lg:h-full" />
             </div>
           </div>
 
-          {/* Senders: text labels, each to its tester page. */}
-          <div className="g-row grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-            <p className="g-cap col-span-2 flex min-h-14 items-center px-4 text-fg-dim sm:col-span-3 md:px-5 lg:col-span-1">Point any sender at it</p>
-            {SENDERS.map(([name, href], i) => (
-              <Link key={name} href={href} className={`g-link group flex min-h-14 items-center justify-between px-4 text-[15px] font-bold uppercase tracking-[0.08em] md:min-h-[72px] md:px-5 md:text-[17px] ${i === 0 ? "g-x" : ""}`}>
-                {name}
-                <span aria-hidden="true" className="arr text-[13px] text-fg-faint group-hover:text-current">→</span>
-              </Link>
-            ))}
-          </div>
+          {/* One-glance explainer: sender -> your URL -> inspector -> replay. */}
+          <FlowDiagram replayNote={`Replay to a URL you verified. Paid plans or the ${offer.name}.`} />
         </section>
 
         <div className="empty:hidden [&>*]:border-b [&>*]:border-line [&>*]:p-4 md:[&>*]:p-5">
