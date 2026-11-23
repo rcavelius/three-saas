@@ -65,6 +65,15 @@ describe("analytics events route", () => {
     expect(unknown.status).toBe(400);
   });
 
+  it("keeps the landing source (referrer host, utm, landing flag) through GridRinse's prop filter", async () => {
+    const r = await app.call((p, req) => app.routes.eventsRouteHandler(p, req), "/api/events", {
+      body: { name: "pageview", anonymousId: "anon_source01", path: "/tools/x", referrer: "https://www.google.com", utm: { source: "Reddit", campaign: "launch" }, landing: true },
+    });
+    expect(r.status).toBe(204);
+    const { rows } = await app.p.handle.executor.query<Record<string, unknown>>(`SELECT * FROM analytics_events WHERE anonymous_id = 'anon_source01'`);
+    expect(rows[0]).toMatchObject({ referrer_host: "google.com", utm_source: "reddit", utm_campaign: "launch", is_landing: true });
+  });
+
   it("stores GridRinse's own funnel events, not only the shared default names", async () => {
     for (const [name, props] of [
       ["signup_submitted", { plan: "pro", outcome: "sent" }],

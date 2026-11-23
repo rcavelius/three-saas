@@ -8,6 +8,12 @@ Ronald (the owner) is hands-off. Nobody will answer questions during a run. Deci
 
 ## 1. Start of every run
 
+0. **Read `docs/growth/gridrinse/FOCUS.md` first.** The traffic boss (`docs/growth/BOSS.md`, 14:00 UTC daily) writes it from the latest
+   metrics: where visitors come from, where they land and drop off, and what your role (`pages`, `guides`,
+   `convert`) should work on today. Pick today's unit from your section of FOCUS.md when it gives one; it never
+   overrides the hard rules below (if a task would break one, skip that task and say so in your log). If the file
+   is missing or older than 2 days, ignore it and choose from the metrics as usual. Never edit FOCUS.md,
+   `docs/growth/DAILY-REPORT.md` or `docs/growth/boss-state.json`; add `"focus_followed": true|false` to your log entry.
 1. Read `docs/growth/agent-state.json` (your life) and `docs/growth/metrics.json` (yesterday's real numbers,
    refreshed daily at 13:30 UTC by the Growth metrics workflow; never edit that file).
 2. **If `alive` is false: stop immediately.** Do nothing else, change nothing, end the run.
