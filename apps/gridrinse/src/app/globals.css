@@ -141,15 +141,6 @@
     background-position: -1px -1px;
     color: #fff;
   }
-  .mint-grid :where(.text-ink-2, .text-ink-3, .text-ink):not(:where(.card-pop, .card-pop *, .btn-pop, .btn-pop *, .ink-zone, .ink-zone *)) {
-    color: rgb(255 255 255 / 0.92);
-  }
-  .mint-grid :focus-visible:not(:where(.card-pop *, .ink-zone *)) {
-    outline-color: var(--color-mint);
-  }
-  .mint-grid :where(a):not(:where(.card-pop *, .btn-pop, .ink-zone *)) {
-    color: #fff;
-  }
   /* Outlined card with a hard offset shadow. */
   .card-pop {
     border: 3px solid var(--color-ink);
@@ -366,6 +357,20 @@
     text-decoration: underline;
     text-underline-offset: 2px;
   }
+}
+
+/*
+ * Text set straight on the cobalt field is white. Unlayered on purpose: Tailwind's text-ink-* utilities live in a
+ * cascade layer and would otherwise win over this.
+ */
+.mint-grid :where(.text-ink-2, .text-ink-3, .text-ink):not(:where(.card-pop, .card-pop *, .btn-pop, .btn-pop *, .ink-zone, .ink-zone *)) {
+  color: rgb(255 255 255 / 0.92);
+}
+.mint-grid :focus-visible:not(:where(.card-pop *, .ink-zone *)) {
+  outline-color: var(--color-mint);
+}
+.mint-grid :where(a):not(:where(.card-pop *, .btn-pop, .ink-zone *)) {
+  color: #fff;
 }
 
 /* Hero rinse: the squeegee sweeps left to right once, the clean table is revealed behind it, the meter fills. */

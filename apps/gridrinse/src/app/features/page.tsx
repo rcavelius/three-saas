@@ -87,7 +87,7 @@ export default function Features() {
         <div className="mx-auto grid max-w-[1400px] items-center gap-10 px-4 pb-14 pt-8 sm:px-8 sm:pt-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12">
           <div>
             <p className="chip rise">Features</p>
-            <h1 className="display display-out rise mt-5 text-[clamp(3rem,12vw,6.2rem)] leading-[0.92] [animation-delay:60ms]">
+            <h1 className="display display-out rise mt-5 text-[clamp(3rem,12vw,6.2rem)] leading-[0.92] [animation-delay:60ms] lg:text-[clamp(3.4rem,5.4vw,5.4rem)]">
               A cleaner sheet. <br />
               No manual work.
             </h1>

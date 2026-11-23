@@ -52,15 +52,18 @@ jobs:
           curl -s -o shots/og-default.png $B/og/default.png
       - name: Cleaner after loading the sample (phone and desktop)
         run: node scripts/design-shots-cleaner.mjs http://localhost:3002/ shots/cleaner
-      - name: Mobile Lighthouse (home and a tool page)
+      - name: Mobile Lighthouse (home, a tool page, pricing)
         continue-on-error: true
         run: |
           mkdir -p shots/lighthouse
           for p in home:/ tool:/tools/remove-duplicates-csv pricing:/pricing; do
             name=${p%%:*}; path=${p#*:}
-            npx --yes lighthouse@12 http://localhost:3002$path --quiet --chrome-flags="--headless=new --no-sandbox" \
-              --only-categories=performance,accessibility,best-practices,seo --output=json --output=html \
-              --output-path=shots/lighthouse/gr-$name
+            # Lighthouse sometimes fails to record a trace (NO_NAVSTART) on a cold runner: try up to three times.
+            for try in 1 2 3; do
+              npx --yes lighthouse@12 http://localhost:3002$path --quiet --chrome-flags="--headless=new --no-sandbox" \
+                --only-categories=performance,accessibility,best-practices,seo --output=json --output=html \
+                --output-path=shots/lighthouse/gr-$name && break
+            done
             node -e "const r=require('./shots/lighthouse/gr-$name.report.json');console.log('gr-$name', Object.values(r.categories).map(c=>c.id+'='+Math.round(c.score*100)).join(' '), 'LCP='+Math.round(r.audits['largest-contentful-paint'].numericValue)+'ms', 'CLS='+r.audits['cumulative-layout-shift'].numericValue.toFixed(3))" | tee -a shots/lighthouse/summary.txt
           done
       - name: App log

@@ -20,10 +20,10 @@ export function StageSteps() {
         const state = n < stage ? "done" : n === stage ? "current" : "todo";
         return (
           <li key={label} className="flex min-w-0 items-center gap-2 sm:gap-4" aria-current={state === "current" ? "step" : undefined}>
-            {i > 0 && <span className={`hidden h-0.5 w-10 sm:block md:w-24 ${n <= stage ? "bg-accent" : "bg-rule-strong"}`} aria-hidden="true" />}
+            {i > 0 && <span className={`hidden h-1 w-10 sm:block md:w-24 ${n <= stage ? "bg-mint" : "bg-white/40"}`} aria-hidden="true" />}
             <span
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[16px] font-extrabold sm:h-11 sm:w-11 sm:text-[18px] ${
-                state === "todo" ? "bg-rule text-ink-3" : "bg-accent text-white"
+              className={`ink-zone flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[3px] border-ink text-[16px] font-extrabold sm:h-11 sm:w-11 sm:text-[18px] ${
+                state === "todo" ? "bg-surface" : "bg-mint shadow-[3px_3px_0_#0a0a0a]"
               }`}
             >
               {state === "done" ? (
@@ -34,7 +34,7 @@ export function StageSteps() {
                 n
               )}
             </span>
-            <span className={`text-[14px] font-extrabold sm:text-[20px] ${state === "todo" ? "font-semibold text-ink-3" : ""}`}>{label}</span>
+            <span className={`text-[14px] font-extrabold sm:text-[20px] ${state === "todo" ? "font-semibold opacity-80" : ""}`}>{label}</span>
           </li>
         );
       })}
