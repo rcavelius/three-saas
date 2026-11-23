@@ -11,6 +11,7 @@ import { price, softwareApplicationJsonLd } from "@/lib/marketing";
 import { env } from "@/lib/env";
 import { EXAMPLE_HOST, exampleScore } from "@/lib/example-report";
 import { TOOLS } from "@/content/tools";
+import { Explainer } from "@/components/home/Explainer";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
@@ -80,6 +81,9 @@ export default function HomePage() {
 
         {/* Scan progress and the report land here (empty until a scan starts). */}
         <div id="scan-results" className="col-span-2 scroll-mt-4 empty:hidden lg:col-span-12" />
+
+        {/* What it does, in one picture. */}
+        <Explainer />
 
         {/* The score: gamified, from the real scoring rules. */}
         <Link
