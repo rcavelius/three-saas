@@ -2,7 +2,7 @@
   "name": "Traffic boss",
   "born": "2026-11-23",
   "rulebook": "docs/growth/BOSS.md",
-  "last_run": "2026-11-23T09:05:00Z",
+  "last_run": "2026-11-23T14:10:00Z",
   "log": [
     {
       "date": "2026-11-23",
@@ -62,6 +62,37 @@
         "changekite": "accepted (HTTP 200, 37 URLs)",
         "webhooktrail": "accepted (HTTP 200, 35 URLs)"
       }
+    },
+    {
+      "date": "2026-11-23",
+      "run": "14:10 UTC",
+      "visitors_24h": {
+        "gridrinse": 6,
+        "changekite": 5,
+        "webhooktrail": 4
+      },
+      "visits_7d": {
+        "gridrinse": null,
+        "changekite": null,
+        "webhooktrail": null
+      },
+      "paid": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "focus": {
+        "gridrinse": "Homepage/guides to tool pages; neighbours of rename-columns, split-column, remove-duplicates",
+        "changekite": "Homepage to first scan; narrow long-tail pages",
+        "webhooktrail": "Homepage to first capture; narrow long-tail pages"
+      },
+      "fixed": [],
+      "indexnow": {
+        "gridrinse": "accepted",
+        "changekite": "accepted",
+        "webhooktrail": "accepted"
+      },
+      "note": "metrics unchanged since 09:05 run; focus carried over; nothing to fix"
     }
   ]
 }

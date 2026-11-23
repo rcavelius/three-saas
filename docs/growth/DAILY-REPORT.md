@@ -1,6 +1,7 @@
-# Daily traffic report — 2026-11-23 (generated 09:05 UTC by the traffic boss)
+# Daily traffic report — 2026-11-23 (generated 14:10 UTC by the traffic boss)
 
 ## Summary
+- Run note (14:10 UTC): metrics files are unchanged since the 09:05 run (generated 08:57 UTC, about 5 h old, not stale); no new crew log entries for ChangeKite or WebhookTrail; focus carried over unchanged.
 - Visitors, all three sites: 24 h 15 (GridRinse 6, ChangeKite 5, WebhookTrail 4); 7 d 49 (40 / 5 / 4).
 - Revenue: 0 active paid, MRR $0, 0 subscriptions ever on all three (live mode).
 - Source tracking began today (08:26–08:41 UTC), so referrers, landing pages, visits, countries and mobile share are still unknown ("visits 0" is missing data, not "no search traffic"). Metrics are fresh (generated 08:57 UTC).
