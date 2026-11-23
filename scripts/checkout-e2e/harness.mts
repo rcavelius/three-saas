@@ -269,7 +269,10 @@ async function dumpStripe(ctx: Ctx, page: Page, shot: string): Promise<void> {
  */
 export async function holdClaimUntilWebhook(ctx: Ctx, page: Page, flow: Flow): Promise<{ sessionId: () => string }> {
   let sessionId = "";
+  let held = false;
   await page.route("**/api/billing/pass/claim**", async (route) => {
+    if (held) return route.continue();
+    held = true;
     const u = new URL(route.request().url());
     sessionId = u.searchParams.get("session_id") ?? "";
     try {
@@ -286,8 +289,7 @@ export async function holdClaimUntilWebhook(ctx: Ctx, page: Page, flow: Flow): P
     } catch (e) {
       flow.check("webhook checkout.session.completed delivered and recorded the pass", false, (e as Error).message);
     }
-    await page.unroute("**/api/billing/pass/claim**");
-    await route.continue();
+    await route.continue().catch(() => undefined);
   });
   return { sessionId: () => sessionId };
 }
