@@ -21,9 +21,6 @@ function anonymousId(): string | null {
   }
 }
 
-<<<<<<< HEAD
-export type TrackName = EventName;
-=======
 let landingSent = false;
 
 /** Referrer origin (never its path or query) and utm_* values, sent once per page load with the first pageview. */
@@ -47,8 +44,7 @@ function landingSource(): { referrer?: string; utm?: Record<string, string>; lan
   return out;
 }
 
-export type TrackName = "pageview" | "signup_started" | "signup_completed" | "checkout_started" | "tool_used" | "upgrade_clicked" | "pricing_viewed" | "cta_clicked";
->>>>>>> origin/main
+export type TrackName = EventName;
 
 export function track(name: TrackName, props?: Record<string, string | number | boolean | null>): void {
   try {
