@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { preload } from "react-dom";
 import { CHANGEKITE_CATALOG, paidPlans } from "@repo/billing";
 import { Scanner } from "@/components/Scanner";
 import { ScoreDial } from "@/components/ScoreDial";
@@ -13,6 +14,10 @@ import { TOOLS } from "@/content/tools";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
+// The kite is the phone's largest paint: a small file for phones, preloaded with the page.
+const KITE_SRCSET = "/art/kite-sm.webp 259w, /art/kite.webp 406w";
+const KITE_SIZES = "(min-width: 1024px) 265px, (min-width: 640px) 180px, 124px";
+
 const GRADE_LABEL = { good: "In good order", fair: "Needs attention", poor: "Serious problems" } as const;
 
 // The twelve checks in four groups of three. Each tile links to the first check of its group in /docs.
@@ -25,6 +30,7 @@ const GROUPS = [
 
 
 export default function HomePage() {
+  preload("/art/kite.webp", { as: "image", fetchPriority: "high", imageSrcSet: KITE_SRCSET, imageSizes: KITE_SIZES });
   const plans = paidPlans(CHANGEKITE_CATALOG).sort((a, b) => a.priceMonthlyCents - b.priceMonthlyCents);
   const example = exampleScore();
   const offer = reportOffer();
@@ -54,6 +60,8 @@ export default function HomePage() {
         <section aria-labelledby="kite-title" className="tile col-span-2 flex min-h-[250px] items-end bg-cyan bg-[repeating-linear-gradient(-45deg,transparent_0_28px,rgba(255,255,255,0.22)_28px_56px)] p-6 sm:min-h-[360px] sm:p-10 lg:col-span-5 lg:min-h-[600px]">
           <img
             src="/art/kite.webp"
+            srcSet={KITE_SRCSET}
+            sizes={KITE_SIZES}
             alt="ChangeKite's mascot: a glossy orange and pink kite with a smiling face and a tail of bows"
             width={406}
             height={720}
@@ -128,7 +136,7 @@ export default function HomePage() {
         <Link
           href="/pricing"
           aria-labelledby="watch-title"
-          className="tile ck-reveal ck-lift col-span-2 flex min-h-[300px] flex-col justify-between gap-8 bg-yellow p-7 sm:p-9 lg:col-span-7"
+          className="tile ck-reveal ck-lift col-span-2 flex min-h-[300px] flex-col justify-between gap-8 bg-cyan p-7 sm:p-9 lg:col-span-7"
         >
           <img src="/art/bell.webp" alt="" width={319} height={360} loading="lazy" className="ck-art ck-float pointer-events-none absolute right-6 top-6 h-32 w-auto sm:right-12 sm:h-44" style={{ ["--r" as string]: "12deg" }} />
           <span className="chip self-start">From {price(plans[0]!)}/month</span>
@@ -204,7 +212,7 @@ function CheckTile({ g, i }: { g: (typeof GROUPS)[number]; i: number }) {
         width={g.w}
         height={g.h}
         loading="lazy"
-        className="ck-art ck-float pointer-events-none absolute right-3 top-3 h-20 w-auto sm:h-28"
+        className="ck-art ck-float pointer-events-none absolute right-4 top-5 h-[72px] w-auto sm:h-24"
         style={{ ["--r" as string]: g.r, ["--d" as string]: `${i * 400}ms` }}
       />
       <span className="chip mb-3 self-start !px-2.5 !py-1 !text-[0.8rem]">3 checks</span>
