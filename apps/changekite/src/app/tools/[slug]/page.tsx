@@ -6,7 +6,6 @@ import { Scanner } from "@/components/Scanner";
 import { reportOffer } from "@/lib/offer";
 import { ExampleReport } from "@/components/home/ExampleReport";
 import { ExampleLinkCheck } from "@/components/home/ExampleLinkCheck";
-import { primaryButton, secondaryButton } from "@/components/ui";
 import { FROM_PRICE, PLAN_SUMMARY, TOOLS, getTool } from "@/content/tools";
 import { CHECK_DOCS } from "@/lib/check-docs";
 import { env } from "@/lib/env";
@@ -100,38 +99,42 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         }}
       />
 
-      <section aria-labelledby="tool-title" className="relative overflow-hidden">
-        <div className="relative mx-auto grid max-w-[1180px] gap-x-16 gap-y-7 px-5 pb-16 pt-10 md:px-8 lg:grid-cols-[minmax(0,580px)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:pb-[88px] lg:pt-16">
+      <section aria-labelledby="tool-title" className="bg-ink px-2 pb-2">
+        <div className="tile relative mx-auto grid max-w-[1400px] gap-x-16 bg-yellow px-6 pb-12 pt-9 text-ink sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-14 lg:pb-16 lg:pt-14">
           <div className="lg:col-start-1 lg:row-start-1">
-            <nav aria-label="Breadcrumb" className="eyebrow">
+            <nav aria-label="Breadcrumb" className="chip">
               <Link href="/tools" className="hover:underline">
                 Tools
               </Link>{" "}
-              <span className="text-muted">/ {t.paid ? "Monitoring" : "Free scan"}</span>
+              <span className="text-white/80">/ {t.paid ? "Monitoring" : "Free scan"}</span>
             </nav>
-            <h1 id="tool-title" className="display ck-in mt-3.5 text-[40px] leading-[1.02] tracking-[-0.045em] sm:text-[60px]">
+            <h1 id="tool-title" className="display sticker ck-in mt-5 text-[2.4rem] sm:text-[3.5rem] lg:text-[4.25rem]">
               {t.h1}
             </h1>
-            <p className="ck-in mt-[18px] max-w-[540px] text-[17px] leading-[1.5] text-ink-soft" style={{ ["--d" as string]: "60ms" }}>
-              {t.intro}
-            </p>
           </div>
-          <div className="order-last lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start lg:pt-10">
+          {/* The form comes before the explanation, so it is on a phone's first screen. */}
+          <div className="lg:col-start-1 lg:row-start-2">
+            <Scanner layout="tile" cta={TOOL_CTA[t.slug]} offer={offer} resultsId="scan-results" />
+          </div>
+          <p className="ck-in mt-8 max-w-[46ch] text-lg font-semibold leading-[1.5] lg:col-start-1 lg:row-start-3" style={{ ["--d" as string]: "60ms" }}>
+            {t.intro}
+          </p>
+          <div className="mt-8 text-ink lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:mt-0 lg:self-center">
             {LINK_TOOLS.has(t.slug) ? <ExampleLinkCheck /> : <ExampleReport />}
           </div>
-          <Scanner layout="hero" cta={TOOL_CTA[t.slug]} offer={offer} />
         </div>
+        <div id="scan-results" className="mx-auto mt-2 max-w-[1400px] scroll-mt-4 empty:hidden" />
       </section>
 
       <div className="mx-auto max-w-3xl px-5 sm:px-8">
-        <section aria-labelledby="howto" className="border-t border-rule pt-12">
-          <h2 id="howto" className="display text-[30px] tracking-[-0.035em] sm:text-[40px]">
+        <section aria-labelledby="howto" className="pt-16 lg:pt-24">
+          <h2 id="howto" className="display text-[2rem] sm:text-[2.75rem]">
             How to do it
           </h2>
           <ol className="mt-6 space-y-4">
             {t.howTo.map((s, i) => (
               <li key={s} className="grid grid-cols-[2.25rem_1fr] gap-3 leading-relaxed text-ink-soft">
-                <span aria-hidden="true" className="num grid h-8 w-8 place-items-center rounded-full bg-accent-wash text-sm font-extrabold text-accent">
+                <span aria-hidden="true" className="num grid h-8 w-8 place-items-center rounded-full bg-yellow text-sm font-extrabold text-ink">
                   {i + 1}
                 </span>
                 <span className="pt-1">{s}</span>
@@ -142,13 +145,13 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
         {t.alertKinds && (
           <section aria-labelledby="alerts" className="mt-14">
-            <h2 id="alerts" className="display text-[30px] tracking-[-0.035em] sm:text-[40px]">
+            <h2 id="alerts" className="display text-[2rem] sm:text-[2.75rem]">
               When you get an email
             </h2>
             <p className="mt-3 leading-relaxed text-ink-soft">The first scan of a site is the baseline. After that, ChangeKite emails you when:</p>
             <ul className="mt-4 space-y-2 text-ink-soft">
               {t.alertKinds.map((k) => (
-                <li key={k} className="rounded-xl bg-white px-4 py-3 shadow-[0_0_0_1px_var(--color-rule)]">
+                <li key={k} className="rounded-2xl bg-white px-5 py-3.5 text-ink">
                   {ALERT_LABELS[k]}
                 </li>
               ))}
@@ -157,12 +160,12 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         )}
 
         <section aria-labelledby="checks" className="mt-14">
-          <h2 id="checks" className="display text-[30px] tracking-[-0.035em] sm:text-[40px]">
+          <h2 id="checks" className="display text-[2rem] sm:text-[2.75rem]">
             What the {docs.length === 1 ? "check looks" : "checks look"} at
           </h2>
-          <div className="mt-5 divide-y divide-rule border-y border-rule">
+          <div className="mt-6 grid gap-3">
             {docs.map((d) => (
-              <div key={d.id} className="py-6">
+              <div key={d.id} className="rounded-[24px] bg-white p-6 sm:p-8">
                 <h3 className="text-lg font-extrabold tracking-[-0.02em]">
                   <Link href={`/docs#${d.id}`} className="hover:text-accent">
                     {d.title}
@@ -174,14 +177,14 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                     <li key={s}>{s}</li>
                   ))}
                 </ul>
-                <details className="group mt-4 rounded-xl bg-white shadow-[0_0_0_1px_var(--color-rule)]">
+                <details className="group mt-4 rounded-2xl bg-paper">
                   <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-bold text-ink [&::-webkit-details-marker]:hidden">
                     Technical details
                     <span aria-hidden="true" className="text-accent transition-transform duration-200 group-open:rotate-45">
                       +
                     </span>
                   </summary>
-                  <ul className="space-y-2 border-t border-rule px-4 py-4 text-[0.95rem] leading-relaxed text-ink-soft">
+                  <ul className="space-y-2 px-4 pb-4 pt-1 text-[0.95rem] leading-relaxed text-ink-soft">
                     {d.how.map((h) => (
                       <li key={h}>{h}</li>
                     ))}
@@ -192,7 +195,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           </div>
         </section>
 
-        <section aria-labelledby="watch" className="mt-14 card !rounded-[20px] p-6 sm:p-8">
+        <section aria-labelledby="watch" className="tile mt-14 bg-cyan p-7 text-ink sm:p-10">
           <h2 id="watch" className="text-2xl font-extrabold tracking-[-0.025em]">
             {t.paid ? "Start monitoring" : "Want to know when it breaks again?"}
           </h2>
@@ -200,22 +203,22 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             Paid plans re-scan the sites you look after on a schedule and email you only when something changes. {PLAN_SUMMARY}. Cancel any time.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link href="/signup" className={primaryButton}>
+            <Link href="/signup" className="btn-primary">
               Create an account
             </Link>
-            <Link href="/pricing" className={secondaryButton}>
+            <Link href="/pricing" className="btn-secondary">
               See plans from {FROM_PRICE}
             </Link>
           </div>
         </section>
 
         <section aria-labelledby="faq" className="mt-14">
-          <h2 id="faq" className="display text-[30px] tracking-[-0.035em] sm:text-[40px]">
+          <h2 id="faq" className="display text-[2rem] sm:text-[2.75rem]">
             Questions
           </h2>
-          <dl className="mt-5 divide-y divide-rule border-y border-rule">
+          <dl className="mt-6 grid gap-2">
             {t.faq.map((f) => (
-              <div key={f.q} className="py-5">
+              <div key={f.q} className="rounded-[20px] bg-white px-6 py-5">
                 <dt className="font-semibold">{f.q}</dt>
                 <dd className="mt-2 leading-relaxed text-ink-soft">{f.a}</dd>
               </div>

@@ -105,7 +105,7 @@ export function Report({ report, id, locked = null, paywall }: { report: ScanRep
   const tls = report.https.tls;
 
   return (
-    <article className="overflow-hidden rounded-[20px] bg-white text-ink shadow-[0_0_0_1px_var(--color-rule),0_16px_48px_rgba(23,26,37,0.07)] print:shadow-none" aria-labelledby="report-title">
+    <article className="overflow-hidden rounded-[28px] bg-white text-ink print:rounded-none" aria-labelledby="report-title">
       {/* Masthead */}
       <header className="border-b border-rule px-5 pb-6 pt-7 sm:px-10 sm:pt-10">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
