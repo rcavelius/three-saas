@@ -173,18 +173,25 @@ export async function payOnStripe(ctx: Ctx, page: Page, flow: Flow, o: { amountT
   flow.must("redirects to Stripe hosted Checkout (test mode)", page.url().includes("cs_test_"), new URL(page.url()).host);
   await page.locator("body").getByText(o.amountText).first().waitFor({ timeout: 30_000 });
   flow.check(`Stripe shows the price ${o.amountText}`, true);
+  // Anonymous pass buyers type their email on Stripe's page; signed-in buyers arrive with it prefilled.
   const email = page.locator("#email");
-  if (o.email && (await email.isVisible().catch(() => false)) && (await email.isEditable().catch(() => false))) await email.fill(o.email);
-  const card = page.locator("#cardNumber");
-  if (!(await card.isVisible().catch(() => false))) {
-    const radio = page.getByRole("radio", { name: /^Card/ });
-    if (await radio.count()) await radio.first().check({ force: true }).catch(() => undefined);
-    if (!(await card.isVisible().catch(() => false))) {
-      const choice = page.locator('[data-testid="card-accordion-item-button"], #payment-method-accordion-item-title-card').first();
-      if (await choice.count()) await choice.click({ force: true }).catch(() => undefined);
-    }
-    if (!(await card.isVisible().catch(() => false))) await page.getByText("Card", { exact: true }).first().click({ force: true }).catch(() => undefined);
+  if ((await email.isVisible().catch(() => false)) && (await email.isEditable().catch(() => false)) && !(await email.inputValue().catch(() => ""))) {
+    await email.fill(o.email ?? `checkout-e2e-buyer-${Date.now()}@example.com`);
   }
+  // Payment methods are an accordion (Card, Cash App Pay, Klarna, Bank…): open "Card".
+  const card = page.locator("#cardNumber");
+  const tries: (() => Promise<unknown>)[] = [
+    () => page.locator('[data-testid="card-accordion-item-button"], #payment-method-accordion-item-title-card').filter({ visible: true }).first().click({ timeout: 3000 }),
+    () => page.getByRole("radio", { name: /^Card/ }).first().check({ force: true, timeout: 3000 }),
+    () => page.getByText("Card", { exact: true }).filter({ visible: true }).first().click({ timeout: 3000 }),
+    () => page.getByRole("button", { name: /^Card/ }).filter({ visible: true }).first().click({ timeout: 3000 }),
+  ];
+  for (const t of tries) {
+    if (await card.isVisible().catch(() => false)) break;
+    await t().catch(() => undefined);
+    await card.waitFor({ state: "visible", timeout: 4000 }).catch(() => undefined);
+  }
+  await page.screenshot({ path: join(ctx.outDir, `${o.shot}-stripe-form.png`) });
   await card.waitFor({ timeout: 30_000 });
   await card.fill("4242424242424242");
   await page.locator("#cardExpiry").fill("12 / 34");
