@@ -2,279 +2,208 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CHANGEKITE_CATALOG, paidPlans } from "@repo/billing";
 import { Scanner } from "@/components/Scanner";
+import { ScoreDial } from "@/components/ScoreDial";
+import { Burst, Star, Whoosh } from "@/components/KiteMark";
 import { reportOffer } from "@/lib/offer";
 import { JsonLd } from "@/components/JsonLd";
-import { KiteScan } from "@/components/home/KiteScan";
-import { Tail } from "@/components/home/Tail";
-import { ScoreLab } from "@/components/home/ScoreLab";
-import { Altitudes } from "@/components/Altitudes";
-import { KiteMark } from "@/components/SiteHeader";
-import { softwareApplicationJsonLd } from "@/lib/marketing";
+import { price, softwareApplicationJsonLd } from "@/lib/marketing";
 import { env } from "@/lib/env";
-import { EXAMPLE_HOST, EXAMPLE_ISSUES, EXAMPLE_PAGES, exampleScore } from "@/lib/example-report";
-import { TAIL, exampleBowStates } from "@/components/home/checks";
+import { EXAMPLE_HOST, exampleScore } from "@/lib/example-report";
 import { TOOLS } from "@/content/tools";
-import { GUIDES } from "@/lib/guides";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
-const SEV = {
-  critical: { word: "Critical", cls: "bg-fail-wash text-fail" },
-  warning: { word: "Warning", cls: "bg-warn-wash text-warn" },
-  notice: { word: "Notice", cls: "bg-notice-wash text-notice" },
-} as const;
+const GRADE_LABEL = { good: "In good order", fair: "Needs attention", poor: "Serious problems" } as const;
 
-const GUIDE_TONES = ["bg-kite text-night", "bg-ink text-white", "bg-sky-pale text-ink"];
+// The twelve checks in four groups of three. Each tile links to the first check of its group in /docs.
+const GROUPS = [
+  { title: "Pages & links", href: "/docs#internal-links", art: "/art/link.webp", w: 354, h: 360, bg: "bg-green", r: "-14deg" },
+  { title: "Titles & descriptions", href: "/docs#titles", art: "/art/tag.webp", w: 360, h: 354, bg: "bg-pink", r: "10deg" },
+  { title: "Search discovery", href: "/docs#sitemap", art: "/art/search.webp", w: 303, h: 360, bg: "bg-cyan", r: "-8deg" },
+  { title: "HTTPS & security", href: "/docs#https", art: "/art/lock.webp", w: 262, h: 360, bg: "bg-orange", r: "8deg" },
+];
+
 
 export default function HomePage() {
   const plans = paidPlans(CHANGEKITE_CATALOG).sort((a, b) => a.priceMonthlyCents - b.priceMonthlyCents);
   const example = exampleScore();
   const offer = reportOffer();
-  const tools = TOOLS.filter((t) => !t.paid).slice(0, 6);
-  const states = exampleBowStates();
-  const passed = TAIL.filter((c) => states[c.id] === "pass").length;
-  const solo = plans[0]!;
+  const free = TOOLS.filter((t) => !t.paid);
+  const toPerfect = 100 - example.score;
+  const promises = ["No account needed", "Obeys robots.txt", "Never logs in", "Never submits forms", `Up to ${offer.freePages} pages free`, "12 checks per scan", "Results in about a minute"];
 
   return (
-    <>
+    <div className="ck-home bg-ink px-3 pb-3 lg:px-4 lg:pb-4">
       <JsonLd data={softwareApplicationJsonLd(new URL(env().APP_URL).origin)} />
 
-      {/* Hero: a field of sky, the headline and the real scan form, and the kite (example scan). */}
-      <section aria-labelledby="hero-title" className="relative -mt-px overflow-hidden bg-sky text-white">
-        <div className="relative mx-auto grid max-w-[1360px] gap-x-10 px-5 pb-12 pt-6 md:px-8 lg:grid-cols-[1fr_1fr] lg:grid-rows-[auto_1fr] lg:px-12 lg:pb-24 lg:pt-14">
-          <div className="lg:col-start-1 lg:row-start-1 lg:pt-10">
-            <h1 id="hero-title" className="display ck-in text-[2.6rem] sm:display-xl sm:text-[4.6rem] lg:text-[5.4rem] xl:text-[6.4rem]">
-              Keep your site flying.
-            </h1>
-            <p className="ck-in mt-4 max-w-[34ch] text-[1.0625rem] leading-[1.45] text-white sm:mt-7 sm:text-xl" style={{ ["--d" as string]: "80ms" }}>
-              A free health check of up to {offer.freePages} pages: broken links, titles, sitemap, HTTPS and more, in about a minute.
-            </p>
-          </div>
-          <div className="-mx-2 mt-2 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:mt-0 lg:self-center">
-            <div className="mx-auto max-w-[300px] sm:max-w-[420px] lg:max-w-none">
-              <KiteScan host={EXAMPLE_HOST} pages={EXAMPLE_PAGES} score={example.score} />
-            </div>
-            <p className="ck-in mt-1 text-center text-[0.9rem] font-medium text-white lg:-mt-4 lg:text-right" style={{ ["--d" as string]: "1400ms" }}>
-              Example scan of {EXAMPLE_HOST}: {EXAMPLE_PAGES} pages, {passed} of 12 checks passed, score {example.score}.
-            </p>
-          </div>
-          <Scanner layout="hero" offer={offer} />
-        </div>
-      </section>
-
-      {/* The tail: twelve checks, each bow showing the example's result. */}
-      <section aria-labelledby="checks" className="bg-white">
-        <div className="mx-auto max-w-[1360px] px-5 py-24 md:px-8 lg:px-12 lg:py-36">
-          <div className="ck-reveal flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
-            <h2 id="checks" className="display max-w-[14ch] text-[2.6rem] sm:text-[4rem] lg:text-[4.75rem]">
-              Twelve checks on one tail.
-            </h2>
-            <p className="max-w-[36ch] text-lg leading-relaxed text-ink-soft lg:pb-2">
-              One scan runs every check. These bows show how the example site did: {passed} passed, three need work.
-            </p>
-          </div>
-          <div className="mt-14 lg:mt-20">
-            <Tail />
-          </div>
-          <p className="ck-reveal mt-14 max-w-3xl text-[1.0625rem] leading-relaxed text-ink-soft lg:mt-20">
-            It reads the HTML your server sends, obeys robots.txt and never logs in or submits forms.{" "}
-            <Link href="/docs" className="font-bold text-accent underline">
-              How each check works
-            </Link>
-            {" · "}
-            <Link href="/bot" className="font-bold text-accent underline">
-              About the crawler
-            </Link>
+      <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-3 lg:grid-cols-12">
+        {/* Hero: the headline and the real scan form. */}
+        <section aria-labelledby="hero-title" className="tile col-span-2 bg-yellow px-6 pb-8 pt-7 sm:px-10 sm:pb-12 sm:pt-10 lg:col-span-7 lg:min-h-[600px] lg:px-14 lg:pb-14 lg:pt-14">
+          <Star className="ck-twinkle absolute right-5 top-5 h-11 w-11 sm:right-8 sm:top-8 sm:h-16 sm:w-16" fill="var(--color-pink)" />
+          <Star className="ck-twinkle absolute bottom-10 right-10 hidden h-10 w-10 lg:block" fill="var(--color-cyan)" />
+          <p className="ck-in">
+            <span className="chip">Free website health scan</span>
           </p>
-        </div>
-      </section>
+          <h1 id="hero-title" className="display sticker ck-in mt-5 max-w-[11ch] text-[2.8rem] sm:text-[4.5rem] lg:text-[5.4rem] xl:text-[6rem]" style={{ ["--d" as string]: "60ms" }}>
+            Find what&rsquo;s broken on your site.
+          </h1>
+          <Scanner layout="tile" offer={offer} resultsId="scan-results" />
+        </section>
 
-      {/* The score: the live thing on the left, what the free scan hands you on the right. */}
-      <section aria-labelledby="score">
-        <div className="mx-auto grid max-w-[1360px] gap-x-16 gap-y-16 px-5 py-24 md:px-8 lg:grid-cols-[1.05fr_1fr] lg:px-12 lg:py-36">
-          <div>
-            <h2 id="score" className="display ck-reveal text-[2.6rem] sm:text-[4rem] lg:text-[4.75rem]">
-              One number. Fixes first.
+        {/* The mascot: the kite that reads your pages. */}
+        <section aria-labelledby="kite-title" className="tile col-span-2 flex min-h-[250px] items-end bg-cyan p-6 sm:min-h-[360px] sm:p-10 lg:col-span-5 lg:min-h-[600px]">
+          <img
+            src="/art/kite.webp"
+            alt="ChangeKite's mascot: a glossy orange and pink kite with a smiling face and a tail of bows"
+            width={406}
+            height={720}
+            fetchPriority="high"
+            className="ck-float absolute right-[8%] top-4 h-[220px] w-auto sm:h-[320px] lg:right-[16%] lg:top-10 lg:h-[470px]"
+            style={{ ["--r" as string]: "-8deg" }}
+          />
+          <Whoosh className="ck-pop absolute right-[48%] top-8 h-12 w-12 sm:right-[46%] lg:right-[52%] lg:top-16 lg:h-16 lg:w-16" />
+          <div className="relative max-w-[55%] lg:max-w-[48%]">
+            <h2 id="kite-title" className="display text-[1.6rem] leading-[1.05] sm:text-[2.25rem]">
+              Reads up to {offer.freePages} pages.
             </h2>
-            <p className="ck-reveal mt-5 max-w-[40ch] text-lg leading-relaxed text-ink-soft">
-              Every site starts at 100 and loses points for what we find. Try it: change the example&rsquo;s issues.
-            </p>
-            <div className="ck-reveal mt-10">
-              <ScoreLab initial={example.counts} />
-            </div>
+            <p className="mt-2 text-[1.0625rem] font-bold">12 checks in about a minute.</p>
           </div>
+        </section>
 
-          <div className="ck-reveal lg:pt-6" style={{ ["--d" as string]: "120ms" }}>
-            <div className="rounded-[28px] bg-white p-6 sm:p-9">
-              <p className="text-[0.95rem] font-bold text-muted">Example report · {EXAMPLE_HOST}</p>
-              <h3 className="mt-2 text-2xl font-extrabold">Your top {offer.freeIssues} issues, free</h3>
-              <ol className="mt-6 grid gap-3">
-                {EXAMPLE_ISSUES.map((i) => (
-                  <li key={i.id} className="rounded-2xl bg-paper p-5">
-                    <p className={`inline-flex rounded-full px-2.5 py-0.5 text-[0.85rem] font-bold ${SEV[i.severity].cls}`}>{SEV[i.severity].word}</p>
-                    <p className="mt-2 text-[1.125rem] font-extrabold leading-snug">{i.message}</p>
-                    <p className="mt-1.5 text-[1rem] leading-relaxed text-ink-soft">
-                      <span className="font-bold text-ink">Fix: </span>
-                      {i.howToFix}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-sky p-5 text-white">
-                <p className="max-w-[30ch] text-[1.0625rem] font-semibold">Every other issue, with its fix, is in the full report.</p>
-                <Link href="/pricing" className="inline-flex min-h-11 items-center rounded-full bg-white px-5 font-bold text-ink transition-transform hover:scale-[1.03] active:scale-95">
-                  {offer.price} once
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        {/* Scan progress and the report land here (empty until a scan starts). */}
+        <div id="scan-results" className="col-span-2 scroll-mt-4 empty:hidden lg:col-span-12" />
 
-      {/* Monitoring: a week of example scans; the string only tugs when something changes. */}
-      <section aria-labelledby="monitoring" className="bg-ink text-white">
-        <div className="mx-auto max-w-[1360px] px-5 py-24 md:px-8 lg:px-12 lg:py-36">
-          <div className="ck-reveal flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
-            <h2 id="monitoring" className="display max-w-[16ch] text-[2.6rem] sm:text-[4rem] lg:text-[4.75rem]">
-              The wind changes. You hear about it.
-            </h2>
-            <p className="max-w-[36ch] text-lg leading-relaxed text-white/85 lg:pb-2">
-              Plans re-scan your sites every {solo.limits.scanFrequencyHours} hours (Agency: every {plans[1]!.limits.scanFrequencyHours}) and email you only when something new goes wrong.
-            </p>
-          </div>
-          <ol className="mt-14 grid grid-cols-7 gap-1.5 sm:gap-3 lg:mt-20" aria-label="An example week of scheduled scans">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => {
-              const alert = i === 2 ? "fail" : i === 5 ? "warn" : null;
-              return (
-                <li key={d} className="ck-reveal flex flex-col items-center" style={{ ["--d" as string]: `${i * 60}ms` }}>
-                  <span
-                    className={`grid h-16 w-full place-items-center rounded-2xl sm:h-24 ${alert === "fail" ? "bg-bow-fail" : alert === "warn" ? "bg-bow-warn" : "bg-white/10"}`}
-                  >
-                    <KiteMark className="h-7 w-7 sm:h-10 sm:w-10" tail={alert ? "var(--color-ink)" : "#fff"} />
-                  </span>
-                  <span className="mt-2 text-[0.9rem] font-bold text-white/85">{d}</span>
-                  <span className="sr-only">{alert === "fail" ? ": alert sent" : alert === "warn" ? ": alert sent" : ": no change, no email"}</span>
-                </li>
-              );
-            })}
-          </ol>
-          <div className="mt-8 grid gap-3 md:grid-cols-2">
-            {[
-              { day: "Wednesday", tone: "bg-bow-fail", title: "A new broken link appeared", body: "/menu links to /order-now, which now answers 404." },
-              { day: "Saturday", tone: "bg-bow-warn", title: "Your certificate expires in 21 days", body: "Renew it before visitors see a full-page warning." },
-            ].map((a, i) => (
-              <div key={a.day} className="ck-reveal flex gap-4 rounded-[22px] bg-white p-6 text-ink" style={{ ["--d" as string]: `${200 + i * 90}ms` }}>
-                <span aria-hidden="true" className={`mt-1 h-3.5 w-3.5 shrink-0 rounded-full ${a.tone}`} />
-                <div>
-                  <p className="text-[0.95rem] font-bold text-muted">Example alert · {a.day}</p>
-                  <p className="mt-1 text-xl font-extrabold">{a.title}</p>
-                  <p className="mt-1 text-[1.0625rem] text-ink-soft">{a.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="ck-reveal mt-6 text-[1rem] text-white/85">The other five days: scans ran, nothing changed, no email.</p>
-        </div>
-      </section>
-
-      {/* Pricing: three altitudes. */}
-      <section aria-labelledby="plans">
-        <div className="mx-auto max-w-[1360px] px-5 py-24 md:px-8 lg:px-12 lg:py-36">
-          <div className="ck-reveal flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
-            <h2 id="plans" className="display text-[2.6rem] sm:text-[4rem] lg:text-[4.75rem]">
-              Pick your altitude.
-            </h2>
-            <Link href="/pricing" className="text-lg font-bold text-accent underline lg:pb-2">
-              Compare everything on the pricing page
-            </Link>
-          </div>
-          <div className="mt-14 lg:mt-20">
-            <Altitudes
-              offer={offer}
-              plans={plans}
-              actions={{
-                free: (
-                  <a href="#scan" className="btn-primary w-full">
-                    Scan free
-                  </a>
-                ),
-                pass: (
-                  <Link href="/pricing" className="btn-primary w-full">
-                    Get the full report
-                  </Link>
-                ),
-                plan: (p) => (
-                  <Link href="/pricing" className="inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-full bg-white px-6 font-bold text-ink transition-transform hover:scale-[1.02] active:scale-95">
-                    Choose {p.name}
-                  </Link>
-                ),
-              }}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Tools and guides: single jobs and short reads. */}
-      <section aria-labelledby="resources" className="bg-white">
-        <div className="mx-auto max-w-[1360px] px-5 py-24 md:px-8 lg:px-12 lg:py-36">
-          <h2 id="resources" className="display ck-reveal text-[2.6rem] sm:text-[4rem] lg:text-[4.75rem]">
-            One job at a time.
+        {/* The score: gamified, from the real scoring rules. */}
+        <Link
+          href="/docs#score"
+          aria-labelledby="score-title"
+          className="tile ck-reveal ck-lift col-span-2 flex flex-col items-center justify-center bg-white px-6 py-10 text-center lg:col-span-4 lg:row-span-2"
+        >
+          <span className="chip absolute left-5 top-5">Example score</span>
+          <Star className="ck-twinkle absolute right-6 top-6 h-10 w-10" fill="var(--color-yellow)" />
+          <h2 id="score-title" className="sr-only">
+            Example score: {example.score} out of 100, {GRADE_LABEL[example.grade]}
           </h2>
-          <div className="mt-12 grid gap-x-16 gap-y-14 lg:mt-16 lg:grid-cols-[1.2fr_1fr]">
-            <div>
-              <h3 className="ck-reveal text-xl font-extrabold">Free checkers</h3>
-              <ul className="mt-4">
-                {tools.map((t, i) => (
-                  <li key={t.slug} className="ck-reveal" style={{ ["--d" as string]: `${i * 50}ms` }}>
-                    <Link
-                      href={`/tools/${t.slug}`}
-                      className="group -mx-4 flex items-center justify-between gap-6 rounded-2xl px-4 py-4 transition-colors hover:bg-sky-pale"
-                    >
-                      <span className="font-display text-[1.375rem] leading-tight sm:text-[1.75rem]">{t.h1}</span>
-                      <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-paper text-xl transition-transform group-hover:translate-x-1 group-hover:bg-white">
-                        →
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/tools" className="mt-4 inline-block text-lg font-bold text-accent underline">
-                All {TOOLS.length} tools
-              </Link>
-            </div>
-            <div>
-              <h3 className="ck-reveal text-xl font-extrabold">Guides</h3>
-              <ul className="mt-4 grid gap-3">
-                {GUIDES.map((g, i) => (
-                  <li key={g.slug} className="ck-reveal" style={{ ["--d" as string]: `${i * 80}ms` }}>
-                    <Link href={`/guides/${g.slug}`} className={`ck-lift group flex min-h-[150px] flex-col justify-between gap-6 rounded-[26px] p-6 sm:p-7 ${GUIDE_TONES[i % 3]}`}>
-                      <span className="font-display text-[1.5rem] leading-[1.1] sm:text-[1.75rem]">{g.title}</span>
-                      <span className="font-bold">
-                        Read the guide <span aria-hidden="true" className="inline-block transition-transform group-hover:translate-x-1">→</span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="mt-6">
+            <ScoreDial score={example.score} grade={example.grade} size={230} label={`Example score ${example.score} out of 100`} />
           </div>
-        </div>
-      </section>
+          <Burst className="-mt-6 -rotate-6 text-[1.35rem]" fill="var(--color-yellow)">
+            <span className="display leading-tight">{GRADE_LABEL[example.grade]}</span>
+          </Burst>
+          <p className="mt-4 text-[1.0625rem] font-extrabold">{toPerfect} points to a perfect 100</p>
+          <p className="text-[0.95rem] font-semibold text-muted">{EXAMPLE_HOST} · illustrative</p>
+        </Link>
 
-      {/* Close: back to the one form. */}
-      <section aria-labelledby="cta" className="px-5 pt-24 md:px-8 lg:px-12 lg:pt-32">
-        <div className="ck-reveal relative mx-auto flex max-w-[1360px] flex-col items-start gap-8 overflow-hidden rounded-[32px] bg-sky px-7 py-14 text-white sm:px-12 lg:flex-row lg:items-center lg:justify-between lg:py-20">
-          <div className="flex items-center gap-6">
-            <KiteMark className="h-20 w-20 shrink-0 -rotate-6 sm:h-28 sm:w-28" />
-            <h2 id="cta" className="display text-[2.4rem] sm:text-[3.6rem]">
-              Ready for a look?
+        {/* The twelve checks, three per tile. */}
+        {GROUPS.slice(0, 2).map((g, i) => (
+          <CheckTile key={g.title} g={g} i={i} />
+        ))}
+
+        {/* The one-time full report: the gradient tile. */}
+        <Link
+          href="/pricing"
+          aria-labelledby="price-title"
+          className="tile ck-reveal ck-lift col-span-2 flex flex-col justify-between gap-6 bg-[linear-gradient(150deg,var(--color-pink),var(--color-orange))] p-7 sm:p-9 lg:col-span-4 lg:row-span-2"
+          style={{ ["--d" as string]: "120ms" }}
+        >
+          <Star className="ck-twinkle absolute right-6 top-6 h-12 w-12" fill="var(--color-cyan)" />
+          <span className="chip self-start">No subscription</span>
+          <div>
+            <p className="display num sticker-white text-[7rem] leading-none sm:text-[9rem]">{offer.price}</p>
+            <h2 id="price-title" className="display mt-3 text-[2rem] leading-none sm:text-[2.5rem]">
+              Full report. Once.
             </h2>
+            <p className="mt-2 text-[1.0625rem] font-bold">Every issue and its fix.</p>
           </div>
-          <a href="#scan" className="btn-primary min-h-[3.75rem] !px-9 text-lg">
-            Scan your site free <span aria-hidden="true">↑</span>
-          </a>
+          <span className="btn-primary self-start">
+            See pricing <span aria-hidden="true">→</span>
+          </span>
+        </Link>
+
+        {GROUPS.slice(2).map((g, i) => (
+          <CheckTile key={g.title} g={g} i={i + 2} />
+        ))}
+
+        {/* Monitoring. */}
+        <Link
+          href="/pricing"
+          aria-labelledby="watch-title"
+          className="tile ck-reveal ck-lift col-span-2 flex min-h-[300px] flex-col justify-between gap-8 bg-yellow p-7 sm:p-9 lg:col-span-7"
+        >
+          <img src="/art/bell.webp" alt="" width={319} height={360} loading="lazy" className="ck-art ck-float pointer-events-none absolute right-6 top-6 h-32 w-auto sm:right-12 sm:h-44" style={{ ["--r" as string]: "12deg" }} />
+          <span className="chip self-start">From {price(plans[0]!)}/month</span>
+          <div className="max-w-[62%]">
+            <h2 id="watch-title" className="display text-[2.25rem] leading-none sm:text-[3.25rem]">
+              We&rsquo;ll keep watching.
+            </h2>
+            <p className="mt-3 text-[1.0625rem] font-bold">Scheduled re-scans. An email only when something breaks.</p>
+          </div>
+        </Link>
+
+        {/* Free tools. */}
+        <section aria-labelledby="tools-title" className="tile ck-reveal col-span-2 flex flex-col justify-between gap-6 bg-white p-7 sm:p-9 lg:col-span-5" style={{ ["--d" as string]: "90ms" }}>
+          <img src="/art/wrench.webp" alt="" width={338} height={360} loading="lazy" className="ck-float pointer-events-none absolute right-6 top-6 h-24 w-auto sm:h-32" style={{ ["--r" as string]: "-18deg" }} />
+          <div className="max-w-[70%]">
+            <h2 id="tools-title" className="display text-[2.25rem] leading-none sm:text-[3rem]">
+              {free.length} free checkers.
+            </h2>
+            <p className="mt-2 text-[1.0625rem] font-bold">One job each.</p>
+          </div>
+          <ul className="flex flex-wrap gap-2">
+            {free.slice(0, 4).map((t) => (
+              <li key={t.slug}>
+                <Link href={`/tools/${t.slug}`} className="inline-flex min-h-11 items-center rounded-full bg-paper-deep px-4 font-extrabold transition-colors hover:bg-yellow">
+                  {t.h1}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link href="/tools" className="inline-flex min-h-11 items-center rounded-full bg-ink px-4 font-extrabold text-white">
+                All tools →
+              </Link>
+            </li>
+            <li>
+              <Link href="/guides" className="inline-flex min-h-11 items-center rounded-full bg-ink px-4 font-extrabold text-white">
+                Guides →
+              </Link>
+            </li>
+          </ul>
+        </section>
+
+        {/* A ticker of plain promises. */}
+        <div className="tile col-span-2 bg-pink py-5 lg:col-span-12" aria-label="What a scan does and doesn't do">
+          <ul className="ck-marquee flex w-max gap-3">
+            {[...promises, ...promises].map((p, i) => (
+              <li key={i} aria-hidden={i >= promises.length} className="flex items-center gap-3">
+                <span className="display whitespace-nowrap text-[1.6rem] sm:text-[2rem]">{p}</span>
+                <Star className="h-7 w-7" fill="var(--color-yellow)" />
+              </li>
+            ))}
+          </ul>
         </div>
-      </section>
-    </>
+      </div>
+    </div>
+  );
+}
+
+function CheckTile({ g, i }: { g: (typeof GROUPS)[number]; i: number }) {
+  return (
+    <Link
+      href={g.href}
+      className={`tile ck-reveal ck-lift col-span-1 flex min-h-[200px] flex-col justify-end p-5 sm:min-h-[240px] sm:p-7 lg:col-span-2 ${g.bg}`}
+      style={{ ["--d" as string]: `${i * 70}ms` }}
+    >
+      <img
+        src={g.art}
+        alt=""
+        width={g.w}
+        height={g.h}
+        loading="lazy"
+        className="ck-art ck-float pointer-events-none absolute right-3 top-3 h-20 w-auto sm:h-28"
+        style={{ ["--r" as string]: g.r, ["--d" as string]: `${i * 400}ms` }}
+      />
+      <span className="chip mb-3 self-start !px-2.5 !py-1 !text-[0.8rem]">3 checks</span>
+      <h2 className="display text-[1.35rem] leading-[1.05] sm:text-[1.75rem]">{g.title}</h2>
+    </Link>
   );
 }

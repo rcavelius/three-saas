@@ -1,4 +1,4 @@
-import { SkyHero } from "./ui";
+import { PageHero } from "./ui";
 
 export function DocPage({
   eyebrow,
@@ -16,7 +16,7 @@ export function DocPage({
 }) {
   return (
     <>
-      <SkyHero title={title} lede={lede} crumb={eyebrow} wide />
+      <PageHero title={title} lede={lede} crumb={eyebrow} wide />
       <div className="mx-auto max-w-3xl px-5 pt-14 sm:px-8 sm:pt-20">
       {draft && (
         <p role="note" className="mt-6 rounded-xl border-l-4 border-warn bg-warn-wash px-4 py-3 font-medium text-ink">

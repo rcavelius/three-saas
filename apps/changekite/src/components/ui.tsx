@@ -1,6 +1,6 @@
 /** Small shared form/UI pieces in the report's visual language (paper, ink, one accent). */
 import type { InputHTMLAttributes, ReactNode } from "react";
-import { KiteMark } from "./SiteHeader";
+import { Star } from "./KiteMark";
 
 export const inputClass =
   "min-h-12 w-full rounded-2xl border border-rule-strong bg-white px-4 text-base text-ink placeholder:text-muted/70 focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 disabled:opacity-60";
@@ -56,24 +56,60 @@ export function fmtDate(iso: string | null | undefined): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(iso)) + " UTC";
 }
 
+export type Tone = "yellow" | "green" | "pink" | "cyan" | "orange";
+
+const TONE_BG: Record<Tone, string> = {
+  yellow: "bg-yellow",
+  green: "bg-green",
+  pink: "bg-pink",
+  cyan: "bg-cyan",
+  orange: "bg-orange",
+};
+
 /**
- * The sky band that opens marketing pages (tools, guides, docs, pricing): the same field of colour as the home hero.
- * `children` sit under the lede (a form, a note).
+ * Opens marketing pages (tools, guides, docs, pricing): one big colour tile in the black frame, the same language as the
+ * home bento. `art` is an optional 3D picture from /public/art; `children` sit under the lede.
  */
-export function SkyHero({ title, lede, crumb, children, wide = false }: { title: string; lede?: ReactNode; crumb?: ReactNode; children?: ReactNode; wide?: boolean }) {
+export function PageHero({
+  title,
+  lede,
+  crumb,
+  children,
+  tone = "yellow",
+  art,
+  wide = false,
+}: {
+  title: string;
+  lede?: ReactNode;
+  crumb?: ReactNode;
+  children?: ReactNode;
+  tone?: Tone;
+  art?: string;
+  wide?: boolean;
+}) {
   return (
-    <section aria-labelledby="page-title" className="sky-band relative overflow-hidden">
-      <div className="relative mx-auto max-w-[1360px] px-5 pb-16 pt-10 md:px-8 lg:px-12 lg:pb-24 lg:pt-16">
-        <KiteMark className="ck-in pointer-events-none absolute right-8 top-10 hidden h-40 w-40 rotate-6 lg:block xl:right-16" />
-        {crumb && <div className="mb-5 text-[0.95rem] font-bold text-white">{crumb}</div>}
-        <h1 id="page-title" className={`display ck-in text-[2.4rem] ${wide ? "max-w-[22ch] sm:text-[3.25rem] lg:text-[4rem]" : "max-w-[14ch] sm:text-[4rem] lg:text-[4.75rem]"}`}>
+    <section aria-labelledby="page-title" className="bg-ink px-3 pb-3 lg:px-4 lg:pb-4">
+      <div className={`tile ck-in mx-auto max-w-[1400px] px-6 pb-12 pt-9 text-ink sm:px-10 lg:px-14 lg:pb-16 lg:pt-14 ${TONE_BG[tone]}`}>
+        {art && (
+          <img
+            src={art}
+            alt=""
+            width={360}
+            height={360}
+            className="ck-float pointer-events-none absolute -right-6 top-1/2 hidden h-64 w-auto -translate-y-1/2 lg:block xl:right-10 xl:h-72"
+            style={{ ["--r" as string]: "-10deg" }}
+          />
+        )}
+        <Star className="ck-twinkle absolute right-6 top-6 h-10 w-10 lg:hidden" fill="#fff" />
+        {crumb && <div className="mb-4"><span className="chip">{crumb}</span></div>}
+        <h1
+          id="page-title"
+          className={`display sticker text-[2.6rem] ${wide ? "max-w-[20ch] sm:text-[3.5rem] lg:text-[4.25rem]" : "max-w-[14ch] sm:text-[4.25rem] lg:text-[5.25rem]"}`}
+          style={tone === "pink" ? { ["--sticker" as string]: "#fff" } : undefined}
+        >
           {title}
         </h1>
-        {lede && (
-          <p className="ck-in mt-6 max-w-[48ch] text-lg leading-relaxed text-white sm:text-xl" style={{ ["--d" as string]: "80ms" }}>
-            {lede}
-          </p>
-        )}
+        {lede && <p className="mt-5 max-w-[46ch] text-lg font-semibold leading-relaxed sm:text-xl">{lede}</p>}
         {children}
       </div>
     </section>

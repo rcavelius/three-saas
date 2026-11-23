@@ -6,7 +6,7 @@ import { PricingButton } from "@/components/PricingButton";
 import { PassBuyButton } from "@/components/PassBuyButton";
 import { PassReturnNotice, type PassReturnStatus } from "@/components/PassNotices";
 import { Altitudes } from "@/components/Altitudes";
-import { SkyHero } from "@/components/ui";
+import { PageHero } from "@/components/ui";
 import { reportOffer } from "@/lib/offer";
 import { PRICING_FAQ, REPORT_PASS, faqJsonLd, passDuration, passFeatures, passPrice, planFeatures, price, softwareApplicationJsonLd } from "@/lib/marketing";
 import { visitorAccess } from "@/lib/access";
@@ -39,14 +39,15 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
   const subscribed = viewer ? ["active", "trialing", "past_due", "unpaid", "paused"].includes(viewer.ents.status) : false;
   const offer = reportOffer();
   const plans = paidPlans(CHANGEKITE_CATALOG).sort((a, b) => a.priceMonthlyCents - b.priceMonthlyCents);
-  const white =
-    "inline-flex min-h-[3.25rem] w-full items-center justify-center rounded-full bg-white px-6 font-bold text-ink transition-transform hover:scale-[1.02] active:scale-95 aria-disabled:opacity-70 disabled:opacity-70";
+  const white = "btn-primary w-full aria-disabled:opacity-60 disabled:opacity-60";
   return (
     <>
       <JsonLd data={softwareApplicationJsonLd(appUrl)} />
       <JsonLd data={faqJsonLd(PRICING_FAQ)} />
-      <SkyHero
-        title="Pick your altitude."
+      <PageHero
+        tone="cyan"
+        art="/art/tag.webp"
+        title="Free to scan. $9 to see it all."
         lede={`Scans are free and need no account. Pay ${passPrice(REPORT_PASS)} once for the full report, or monthly to have your sites watched.`}
       />
       <div className="mx-auto max-w-[1360px] px-5 pt-14 md:px-8 lg:px-12 lg:pt-20">

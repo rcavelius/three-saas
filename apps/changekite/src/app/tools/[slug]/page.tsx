@@ -99,19 +99,19 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         }}
       />
 
-      <section aria-labelledby="tool-title" className="relative overflow-hidden bg-sky text-white">
-        <div className="relative mx-auto grid max-w-[1360px] gap-x-16 gap-y-7 px-5 pb-16 pt-10 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:px-12 lg:pb-24 lg:pt-16">
+      <section aria-labelledby="tool-title" className="bg-ink px-3 pb-3 lg:px-4 lg:pb-4">
+        <div className="tile relative mx-auto grid max-w-[1400px] gap-x-16 gap-y-7 bg-yellow px-6 pb-12 pt-9 text-ink sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:px-14 lg:pb-16 lg:pt-14">
           <div className="lg:col-start-1 lg:row-start-1">
-            <nav aria-label="Breadcrumb" className="text-[0.95rem] font-bold text-white">
+            <nav aria-label="Breadcrumb" className="chip">
               <Link href="/tools" className="hover:underline">
                 Tools
               </Link>{" "}
-              <span>/ {t.paid ? "Monitoring" : "Free scan"}</span>
+              <span className="text-white/80">/ {t.paid ? "Monitoring" : "Free scan"}</span>
             </nav>
-            <h1 id="tool-title" className="display ck-in mt-4 text-[2.4rem] sm:text-[3.5rem] lg:text-[4.25rem]">
+            <h1 id="tool-title" className="display sticker ck-in mt-5 text-[2.4rem] sm:text-[3.5rem] lg:text-[4.25rem]">
               {t.h1}
             </h1>
-            <p className="ck-in mt-5 max-w-[46ch] text-lg leading-[1.5] text-white" style={{ ["--d" as string]: "60ms" }}>
+            <p className="ck-in mt-5 max-w-[46ch] text-lg font-semibold leading-[1.5]" style={{ ["--d" as string]: "60ms" }}>
               {t.intro}
             </p>
           </div>
@@ -130,7 +130,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           <ol className="mt-6 space-y-4">
             {t.howTo.map((s, i) => (
               <li key={s} className="grid grid-cols-[2.25rem_1fr] gap-3 leading-relaxed text-ink-soft">
-                <span aria-hidden="true" className="num grid h-8 w-8 place-items-center rounded-full bg-kite text-sm font-extrabold text-night">
+                <span aria-hidden="true" className="num grid h-8 w-8 place-items-center rounded-full bg-yellow text-sm font-extrabold text-ink">
                   {i + 1}
                 </span>
                 <span className="pt-1">{s}</span>
@@ -191,7 +191,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           </div>
         </section>
 
-        <section aria-labelledby="watch" className="mt-14 rounded-[28px] bg-ink p-7 text-white sm:p-10 [&_p]:!text-white">
+        <section aria-labelledby="watch" className="tile mt-14 bg-cyan p-7 text-ink sm:p-10">
           <h2 id="watch" className="text-2xl font-extrabold tracking-[-0.025em]">
             {t.paid ? "Start monitoring" : "Want to know when it breaks again?"}
           </h2>
@@ -199,10 +199,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             Paid plans re-scan the sites you look after on a schedule and email you only when something changes. {PLAN_SUMMARY}. Cancel any time.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link href="/signup" className="btn-kite">
+            <Link href="/signup" className="btn-primary">
               Create an account
             </Link>
-            <Link href="/pricing" className="btn-secondary !bg-white">
+            <Link href="/pricing" className="btn-secondary">
               See plans from {FROM_PRICE}
             </Link>
           </div>

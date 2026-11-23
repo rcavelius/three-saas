@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CHECK_DOCS } from "@/lib/check-docs";
 import { SCORE_RULES } from "@/lib/scanner/score";
-import { SkyHero } from "@/components/ui";
+import { PageHero } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "What we check",
@@ -13,7 +13,9 @@ export const metadata: Metadata = {
 export default function DocsPage() {
   return (
     <>
-    <SkyHero
+    <PageHero
+      tone="green"
+      art="/art/search.webp"
       title="What we check, and how"
       lede="Every finding comes from one of these twelve checks, graded critical (fix now), warning (should fix) or notice (worth knowing)."
     />
@@ -38,7 +40,7 @@ export default function DocsPage() {
 
         <div className="min-w-0">
           {CHECK_DOCS.map((c) => (
-            <section key={c.id} id={c.id} aria-labelledby={`${c.id}-h`} className="mb-4 scroll-mt-6 rounded-[28px] bg-white p-6 sm:p-9">
+            <section key={c.id} id={c.id} aria-labelledby={`${c.id}-h`} className="mb-4 scroll-mt-6 rounded-[32px] bg-white p-6 sm:p-9">
               <h2 id={`${c.id}-h`} className="font-display text-[1.75rem] leading-tight sm:text-[2.25rem]">
                 {c.title}
               </h2>
@@ -68,7 +70,7 @@ export default function DocsPage() {
             </section>
           ))}
 
-          <section id="score" aria-labelledby="score-h" className="scroll-mt-6 rounded-[28px] bg-sky p-6 text-white sm:p-9 [&_.prose-doc_p]:text-white [&_.prose-doc_a]:text-white">
+          <section id="score" aria-labelledby="score-h" className="scroll-mt-6 tile bg-yellow p-6 sm:p-9 [&_.prose-doc_p]:text-ink [&_.prose-doc_a]:text-ink">
             <h2 id="score-h" className="font-display text-[1.75rem] leading-tight sm:text-[2.25rem]">The score</h2>
             <div className="prose-doc max-w-2xl">
               <p>

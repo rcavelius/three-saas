@@ -66,7 +66,7 @@ export function ScoreDial({
       </svg>
       <span
         aria-hidden="true"
-        className="num absolute inset-0 grid place-items-center font-extrabold leading-none tracking-[-0.06em] text-ink"
+        className="num font-display absolute inset-0 grid place-items-center leading-none tracking-[-0.02em] text-ink"
         style={{ fontSize: Math.round(size * (size < 100 ? 0.5 : 0.42)) }}
       >
         {score}

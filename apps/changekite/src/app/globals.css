@@ -8,38 +8,38 @@
   --sup-border: var(--color-rule);
   --sup-surface: var(--color-sheet);
   --sup-soft: var(--color-paper-deep);
-  --sup-radius: 14px;
+  --sup-radius: 18px;
 }
 
 /*
- * ChangeKite v2: "High Wind" (docs/design/v2/concepts.md).
- * A whole field of sky, one vermilion kite, ink type. Archivo is the only typeface (width axis for display).
- * Red / amber / green are reserved for check results and never used decoratively.
- * Contrast (WCAG): ink on paper 17.4:1, muted on paper 6.6:1, white on sky 5.3:1, white on ink 19:1,
- * sky-ink link (#1546d9) on paper 6.4:1, status text on its wash >= 5.7:1.
+ * ChangeKite v2: "Sticker Bento" (docs/design/v2/README.md).
+ * Figma 2026 trends: vibrant colour, bold typography, 3D elements, gamified design, maximalist bento.
+ * Big tiles of saturated colour in black gutters, chunky rounded type, glossy 3D toy art, star stickers, black chips.
+ * Red / amber / green stay reserved for check results.
+ * Contrast (WCAG): ink on every tile colour >= 6.9:1 (yellow 15.9, green 11.2, cyan 11.6, pink 6.9, orange 8.0),
+ * ink on paper 18:1, muted on paper 7.1:1, link pink (#b8126a) on paper 5.9:1, white on ink 19:1.
  */
 @theme {
-  --color-paper: #f4f6fa;
-  --color-paper-deep: #e8ecf4;
+  --color-paper: #f6f5f0;
+  --color-paper-deep: #ebe9e1;
   --color-sheet: #ffffff;
-  --color-ink: #0b1230;
-  --color-ink-soft: #283150;
-  --color-muted: #4b5470;
-  --color-rule: #dfe4ee;
-  --color-rule-strong: #8a93aa;
-  --color-accent: #1546d9;
-  --color-accent-hover: #0f37b3;
-  --color-accent-wash: #e4ebff;
-  --color-sky: #1f5bff;
-  --color-sky-deep: #1449e6;
-  --color-sky-pale: #dfe8ff;
-  --color-cloud: #b9ccff;
-  --color-kite: #ff5a1f;
-  --color-kite-deep: #e2410a;
-  --color-night: #070c22;
+  --color-ink: #0d0d12;
+  --color-ink-soft: #2b2b33;
+  --color-muted: #4d4d58;
+  --color-rule: #e2e0d8;
+  --color-rule-strong: #8b8a93;
+  --color-accent: #b8126a;
+  --color-accent-hover: #900d52;
+  --color-accent-wash: #ffe3f1;
+
+  --color-yellow: #ffe53b;
+  --color-green: #57e35a;
+  --color-pink: #ff4fa8;
+  --color-cyan: #2fd8ff;
+  --color-orange: #ff7a1a;
+
   --color-notice: #245aa8;
   --color-notice-wash: #e8f1ff;
-
   --color-pass: #15643b;
   --color-pass-wash: #e3f6ea;
   --color-warn: #8a4b00;
@@ -47,27 +47,20 @@
   --color-fail: #ae232d;
   --color-fail-wash: #fde7e8;
 
-  /* Bow colours: brighter status hues for graphics on sky or white (never for text). */
-  --color-bow-pass: #2fd47a;
-  --color-bow-warn: #ffc21a;
-  --color-bow-fail: #ff3b4a;
-  --color-bow-notice: #8fb3ff;
-
-  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fredoka), ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-sans: var(--font-nunito), ui-rounded, system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
 }
 
 :root {
-  /* Motion tokens live outside @theme so Tailwind always emits them. */
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
-  --ease-wind: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-float: cubic-bezier(0.45, 0, 0.55, 1);
 }
 
 @layer base {
   html {
-    background: var(--color-paper);
+    background: var(--color-ink);
     color: var(--color-ink);
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
@@ -76,20 +69,19 @@
   body {
     font-family: var(--font-sans);
     font-feature-settings: "kern", "liga";
-    font-variation-settings: "wdth" 100;
   }
   ::selection {
-    background: var(--color-kite);
-    color: #fff;
+    background: var(--color-yellow);
+    color: var(--color-ink);
   }
   :focus-visible {
-    outline: 3px solid var(--color-kite);
+    outline: 3px solid var(--color-pink);
     outline-offset: 3px;
-    border-radius: 6px;
+    border-radius: 8px;
   }
   a {
     text-underline-offset: 0.2em;
-    text-decoration-thickness: 1.5px;
+    text-decoration-thickness: 2px;
   }
   h1,
   h2,
@@ -99,11 +91,11 @@
   p {
     text-wrap: pretty;
   }
-  /* Legacy utility used by report, docs and account pages: the wide display cut of Archivo. */
+  /* Used by report, docs and account pages: the chunky rounded display face. */
   .font-display {
-    font-variation-settings: "wdth" 112;
-    font-weight: 800;
-    letter-spacing: -0.015em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.005em;
   }
 }
 
@@ -112,20 +104,48 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
   }
-  /* Small section label: sentence case, readable, never letter-spaced caps. */
   .eyebrow {
     font-size: 0.875rem;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 0;
     color: var(--color-accent);
   }
-  /* Display type: wide, heavy, normal tracking (words must never touch). */
+  /* Chunky rounded display type. Normal tracking: letters never touch. */
   .display {
     font-family: var(--font-display);
-    font-variation-settings: "wdth" 118;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 0.98;
+  }
+  /* Sticker headline: an offset colour layer behind the letters. */
+  .sticker {
+    text-shadow: 0.055em 0.055em 0 var(--sticker, var(--color-pink));
+  }
+  /* White sticker letters with an ink outline and an ink drop layer (prices, short words). */
+  .sticker-white {
+    color: #fff;
+    -webkit-text-stroke: 0.06em var(--color-ink);
+    paint-order: stroke fill;
+    text-shadow: 0.07em 0.07em 0 var(--color-ink);
+  }
+  /* Black label chip. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    background: var(--color-ink);
+    color: #fff;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.9rem;
     font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 0.96;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+  .tile {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2rem;
   }
   .btn-primary {
     display: inline-flex;
@@ -136,38 +156,38 @@
     border-radius: 999px;
     background: var(--color-ink);
     padding: 0 1.75rem;
-    font-weight: 700;
+    font-weight: 800;
     color: #fff;
     transition:
       background-color 160ms var(--ease-out-quint),
-      transform 160ms var(--ease-out-quint);
+      transform 220ms var(--ease-spring);
   }
   .btn-primary:hover {
-    background: #1d2752;
+    background: #26262e;
+    transform: translateY(-2px) rotate(-1deg);
   }
   .btn-primary:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
   }
-  .btn-kite {
+  .btn-pop {
     display: inline-flex;
     min-height: 3.25rem;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     border-radius: 999px;
-    background: var(--color-kite);
+    background: var(--color-yellow);
     padding: 0 1.75rem;
     font-weight: 800;
-    color: var(--color-night);
-    transition:
-      background-color 160ms var(--ease-out-quint),
-      transform 160ms var(--ease-out-quint);
+    color: var(--color-ink);
+    box-shadow: inset 0 0 0 2.5px var(--color-ink);
+    transition: transform 220ms var(--ease-spring);
   }
-  .btn-kite:hover {
-    background: #ff7a45;
+  .btn-pop:hover {
+    transform: translateY(-2px) rotate(-1deg);
   }
-  .btn-kite:active {
-    transform: scale(0.97);
+  .btn-pop:active {
+    transform: scale(0.96);
   }
   .btn-secondary {
     display: inline-flex;
@@ -176,32 +196,25 @@
     justify-content: center;
     gap: 0.5rem;
     border-radius: 999px;
-    background: var(--color-paper-deep);
+    background: #fff;
     padding: 0 1.5rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--color-ink);
+    box-shadow: inset 0 0 0 2.5px var(--color-ink);
     transition:
       background-color 160ms var(--ease-out-quint),
-      transform 160ms var(--ease-out-quint);
+      transform 220ms var(--ease-spring);
   }
   .btn-secondary:hover {
-    background: var(--color-rule);
+    background: var(--color-yellow);
   }
   .btn-secondary:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
   }
   .card {
-    border-radius: 1.5rem;
+    border-radius: 1.75rem;
     background: var(--color-sheet);
     box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-ink) 8%, transparent);
-  }
-  /* A full-bleed band of sky that opens inner pages. */
-  .sky-band {
-    background: var(--color-sky);
-    color: #fff;
-  }
-  .sky-band a:not([class*="btn"]) {
-    color: #fff;
   }
   .prose-doc p {
     margin-top: 0.9em;
@@ -211,10 +224,8 @@
   }
   .prose-doc h2 {
     font-family: var(--font-display);
-    font-variation-settings: "wdth" 112;
-    font-weight: 800;
-    letter-spacing: -0.015em;
-    font-size: 1.75rem;
+    font-weight: 700;
+    font-size: 1.875rem;
     line-height: 1.1;
     margin-top: 2.75rem;
     color: var(--color-ink);
@@ -253,9 +264,10 @@
   }
 }
 
-/* The widest display cut; a utility so it takes breakpoint variants (sm:display-xl). */
-@utility display-xl {
-  font-variation-settings: "wdth" 125;
+/* Sideways brand name for the left brand bar (reads bottom to top). */
+@utility sideways {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
 }
 
 /* ---------- Motion (transform + opacity only; all of it is dropped under reduced motion) ---------- */
@@ -263,7 +275,7 @@
 @keyframes ck-rise {
   from {
     opacity: 0;
-    transform: translateY(22px);
+    transform: translateY(26px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -271,140 +283,94 @@
   }
 }
 @keyframes ck-pop {
-  from {
+  0% {
     opacity: 0;
-    transform: scale(0.4);
+    transform: scale(0.3) rotate(-20deg);
   }
-  to {
+  100% {
     opacity: 1;
-    transform: none;
+    transform: rotate(var(--r, 0deg));
   }
 }
-
-/* The kite rides the wind: a slow sway around the bridle point. */
-@keyframes kite-sway {
+/* 3D art floats and bobs. */
+@keyframes ck-float {
   0%,
   100% {
-    transform: translate(0, 0) rotate(-2deg);
-  }
-  35% {
-    transform: translate(6px, -10px) rotate(1.5deg);
-  }
-  70% {
-    transform: translate(-4px, -4px) rotate(-0.5deg);
-  }
-}
-/* Each bow on the tail flutters a little behind the one before it. */
-@keyframes bow-flutter {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
+    transform: translateY(0) rotate(var(--r, -6deg));
   }
   50% {
-    transform: translateY(-5px) rotate(8deg);
+    transform: translateY(-14px) rotate(calc(var(--r, -6deg) + 4deg));
   }
 }
-/* Scan: page nodes light up in order. */
-@keyframes node-lit {
-  0% {
-    fill: var(--node-idle, #ffd2c2);
-  }
-  40% {
-    fill: #fff;
-    transform: scale(1.35);
-  }
+/* Stickers twinkle. */
+@keyframes ck-twinkle {
+  0%,
   100% {
-    fill: #fff;
-    transform: none;
+    transform: rotate(var(--r, 0deg)) scale(1);
+  }
+  50% {
+    transform: rotate(calc(var(--r, 0deg) + 14deg)) scale(1.12);
   }
 }
-@keyframes bow-in {
+@keyframes ck-marquee {
   from {
-    fill: rgba(255, 255, 255, 0.28);
+    transform: translateX(0);
   }
   to {
-    fill: var(--bow);
+    transform: translateX(-50%);
   }
-}
-@keyframes spar-draw {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes kite-sweep {
-  from {
-    transform: translateY(-60px);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(580px);
-    opacity: 1;
-  }
-}
-.kite-sweep {
-  opacity: 0;
-  animation: kite-sweep 1.5s var(--ease-wind) 500ms 2 both;
 }
 
 .ck-in {
-  animation: ck-rise 800ms var(--ease-out-quint) both;
+  animation: ck-rise 700ms var(--ease-out-quint) both;
   animation-delay: var(--d, 0ms);
 }
 .ck-pop {
-  animation: ck-pop 480ms var(--ease-spring) both;
+  animation: ck-pop 600ms var(--ease-spring) both;
   animation-delay: var(--d, 0ms);
+}
+.ck-float {
+  transform: rotate(var(--r, -6deg));
+  animation: ck-float 6s var(--ease-float) infinite;
+  animation-delay: var(--d, 0ms);
+}
+.ck-twinkle {
+  transform: rotate(var(--r, 0deg));
+  animation:
+    ck-pop 600ms var(--ease-spring) both,
+    ck-twinkle 4s var(--ease-float) infinite;
+  animation-delay: var(--d, 0ms), calc(var(--d, 0ms) + 700ms);
+}
+.ck-marquee {
+  animation: ck-marquee 30s linear infinite;
 }
 
-.kite-body {
-  transform-box: view-box;
-  transform-origin: 50% 70%;
-  animation: kite-sway 9s var(--ease-wind) infinite;
-}
-.kite-node {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: node-lit 520ms var(--ease-out-quint) both;
-  animation-delay: var(--d, 0ms);
-}
-.kite-bow {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: bow-flutter 3.2s var(--ease-wind) infinite;
-  animation-delay: var(--f, 0ms);
-}
-.kite-bow-fill {
-  animation: bow-in 420ms var(--ease-out-quint) both;
-  animation-delay: var(--d, 0ms);
-}
-.kite-spar {
-  stroke-dasharray: 1 1;
-  animation: spar-draw 900ms var(--ease-out-quint) both;
-  animation-delay: var(--d, 0ms);
+/* Tiles lift and tilt a touch under the pointer; their art bounces. */
+@media (hover: hover) {
+  .ck-lift {
+    transition: transform 300ms var(--ease-spring);
+  }
+  .ck-lift:hover {
+    transform: translateY(-5px) rotate(-0.6deg);
+  }
+  .ck-art {
+    transition: scale 400ms var(--ease-spring);
+  }
+  .ck-lift:hover .ck-art {
+    scale: 1.1;
+  }
 }
 
 /* Once-only section reveals (components/Reveal.tsx). Hidden only when the script is running. */
 .ck-js .ck-reveal:not(.is-in) {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(26px) scale(0.98);
 }
 .ck-js .ck-reveal {
   transition:
     opacity 600ms var(--ease-out-quint),
     transform 600ms var(--ease-out-quint);
   transition-delay: var(--d, 0ms);
-}
-
-@media (hover: hover) {
-  .ck-lift {
-    transition: transform 240ms var(--ease-out-quint);
-  }
-  .ck-lift:hover {
-    transform: translateY(-4px);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -414,16 +380,6 @@
     animation: none !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
-  }
-  /* Without the animation the final state must still show. */
-  .kite-node {
-    fill: #fff;
-  }
-  .kite-bow-fill {
-    fill: var(--bow);
-  }
-  .kite-sweep {
-    display: none;
   }
 }
 

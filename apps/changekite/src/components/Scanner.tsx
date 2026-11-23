@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ScanProgress, ScanReport } from "@/lib/scanner/types";
 import { Report } from "./Report";
 import { ReportPaywall } from "./ReportPaywall";
@@ -49,8 +50,24 @@ function shortPath(url: string): string {
  * layout="hero": the root uses display:contents so the form and the results become items of the
  * home hero's grid (form under the headline, results across the full width below).
  */
-export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer: ReportOffer; layout?: "block" | "hero"; cta?: string }) {
+export function Scanner({
+  offer,
+  layout = "block",
+  cta = "Scan free",
+  resultsId,
+}: {
+  offer: ReportOffer;
+  layout?: "block" | "hero" | "tile";
+  cta?: string;
+  /** When set (and the element exists), progress and results render there instead of under the form. */
+  resultsId?: string;
+}) {
   const hero = layout === "hero";
+  const tile = layout === "tile" || hero;
+  const [portalEl, setPortalEl] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (resultsId) setPortalEl(document.getElementById(resultsId));
+  }, [resultsId]);
   const inputId = useId();
   const hintId = useId();
   const [url, setUrl] = useState("");
@@ -76,6 +93,14 @@ export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer:
   }, [state.kind]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Results rendered elsewhere on the page: bring them into view when a scan starts.
+  useEffect(() => {
+    if (running && portalEl) {
+      const calm = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      portalEl.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "nearest" });
+    }
+  }, [running, portalEl]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -176,6 +201,8 @@ export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer:
     }
   }
 
+  const portal = (node: React.ReactNode) => (portalEl ? createPortal(node, portalEl) : node);
+
   const elapsed = state.kind === "running" ? Math.max(0, Math.floor((now - state.started) / 1000)) : 0;
 
   return (
@@ -184,18 +211,14 @@ export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer:
         id="scan"
         onSubmit={onSubmit}
         noValidate
-        className={`no-print scroll-mt-28 ${hero ? "ck-in mt-6 lg:col-start-1 lg:row-start-2 lg:mt-10 lg:self-start" : ""}`}
-        style={hero ? { ["--d" as string]: "200ms" } : undefined}
+        className={`no-print scroll-mt-28 ${hero ? "ck-in mt-6 lg:col-start-1 lg:row-start-2 lg:mt-8 lg:self-start" : tile ? "mt-6 lg:mt-8" : ""}`}
+        style={tile ? { ["--d" as string]: "160ms" } : undefined}
         aria-describedby={hintId}
       >
-        <label htmlFor={inputId} className={hero ? "sr-only" : "block text-sm font-bold text-ink"}>
+        <label htmlFor={inputId} className={tile ? "sr-only" : "block text-sm font-extrabold text-ink"}>
           Website address
         </label>
-        <div
-          className={`flex flex-col gap-2.5 sm:flex-row sm:gap-2 sm:rounded-full sm:bg-white sm:p-1.5 ${
-            hero ? "" : "mt-2 sm:shadow-[0_0_0_1.5px_var(--color-rule-strong)] sm:focus-within:shadow-[0_0_0_2px_var(--color-accent)]"
-          }`}
-        >
+        <div className={`flex flex-col gap-2.5 sm:flex-row sm:gap-2 sm:rounded-full sm:bg-white sm:p-1.5 sm:shadow-[inset_0_0_0_3px_var(--color-ink)] ${tile ? "" : "mt-2"}`}>
           <input
             ref={inputRef}
             id={inputId}
@@ -207,26 +230,27 @@ export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer:
             spellCheck={false}
             required
             maxLength={2048}
-            placeholder={hero ? "Your website, e.g. yourdomain.com" : "yourdomain.com"}
+            placeholder="yourwebsite.com"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             disabled={running}
-            className={`min-h-[56px] w-full flex-1 rounded-full bg-white px-6 text-[1.05rem] font-semibold text-ink placeholder:font-medium placeholder:text-muted focus:outline-none disabled:opacity-60 sm:min-h-[52px] sm:bg-transparent sm:px-5 ${
-              hero ? "focus-visible:ring-4 focus-visible:ring-kite sm:focus-visible:ring-0" : "border border-rule-strong focus:border-accent sm:border-0"
-            }`}
+            className="min-h-[58px] w-full flex-1 rounded-full bg-white px-6 text-[1.1rem] font-bold text-ink shadow-[inset_0_0_0_3px_var(--color-ink)] placeholder:font-semibold placeholder:text-muted focus:outline-none focus-visible:ring-4 focus-visible:ring-pink disabled:opacity-60 sm:min-h-[52px] sm:px-5 sm:shadow-none sm:focus-visible:ring-0"
           />
           {running ? (
-            <button type="button" onClick={() => abortRef.current?.abort()} className="btn-secondary min-h-[56px] sm:min-h-[52px]">
+            <button type="button" onClick={() => abortRef.current?.abort()} className="btn-secondary min-h-[58px] sm:min-h-[52px]">
               Cancel
             </button>
           ) : (
-            <button type="submit" className={`${hero ? "btn-primary" : "btn-primary"} min-h-[56px] !px-8 text-base sm:min-h-[52px]`}>
-              {cta}
+            <button type="submit" className="btn-primary min-h-[58px] !px-8 text-[1.05rem] sm:min-h-[52px]">
+              {cta} <span aria-hidden="true">→</span>
             </button>
           )}
         </div>
-        <p id={hintId} className={`mt-3 text-[0.95rem] font-medium ${hero ? "text-white" : "text-muted"}`}>
-          Free, no account. Score and top {offer.freeIssues} fixes free; full report {offer.price} once.
+        <p id={hintId} className="mt-4 flex flex-wrap gap-2">
+          <span className="chip">Free</span>
+          <span className="chip">No account</span>
+          <span className="chip">Top {offer.freeIssues} fixes free</span>
+          <span className="chip">Full report {offer.price}</span>
         </p>
       </form>
 
@@ -234,8 +258,16 @@ export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer:
         {announce}
       </p>
 
+      {state.kind === "error" && (
+        <p ref={errorRef} tabIndex={-1} className={`mt-6 rounded-2xl bg-fail-wash px-4 py-3 font-bold text-fail ${hero ? "lg:col-start-1 lg:row-start-3" : ""}`} role="alert">
+          {state.message}
+        </p>
+      )}
+
+      {portal(
+      <>
       {state.kind === "running" && (
-        <div className={`card mt-8 overflow-hidden text-ink ${hero ? "lg:col-span-2 lg:row-start-3" : ""}`} aria-busy="true">
+        <div className={`card overflow-hidden text-ink ${portalEl ? "" : "mt-8"} ${hero ? "lg:col-span-2 lg:row-start-3" : ""}`} aria-busy="true">
           <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule px-4 py-3">
             <p className="font-medium">{state.phase}&hellip;</p>
             <p className="num text-sm font-semibold text-muted">
@@ -243,7 +275,7 @@ export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer:
             </p>
           </div>
           <div className="h-1.5 bg-paper-deep" aria-hidden="true">
-            <div className="h-1.5 rounded-r-full bg-kite transition-[width] duration-500" style={{ width: `${Math.min(100, (state.pages / state.maxPages) * 100)}%` }} />
+            <div className="h-1.5 rounded-r-full bg-pink transition-[width] duration-500" style={{ width: `${Math.min(100, (state.pages / state.maxPages) * 100)}%` }} />
           </div>
           <ol className="num max-h-56 overflow-y-auto px-4 py-3 font-mono text-[0.78rem] leading-6 text-ink-soft" aria-label="Scan log">
             {state.log.map((l, i) => (
@@ -256,14 +288,9 @@ export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer:
         </div>
       )}
 
-      {state.kind === "error" && (
-        <p ref={errorRef} tabIndex={-1} className={`mt-6 rounded-xl bg-fail-wash px-4 py-3 font-medium text-fail ${hero ? "lg:col-start-1 lg:row-start-3" : ""}`} role="alert">
-          {state.message}
-        </p>
-      )}
 
       {state.kind === "done" && (
-        <div className={`mt-10 ${hero ? "rounded-[28px] bg-paper p-3 text-ink sm:p-5 lg:col-span-2 lg:row-start-3" : ""}`}>
+        <div className={`${portalEl ? "" : "mt-10"} ${tile ? "rounded-[32px] bg-paper p-3 text-ink sm:p-5" : ""} ${hero ? "lg:col-span-2 lg:row-start-3" : ""}`}>
           <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 text-sm">
             <p className="text-muted">
               Saved as a private link:{" "}
@@ -289,6 +316,8 @@ export function Scanner({ offer, layout = "block", cta = "Scan free" }: { offer:
             />
           </div>
         </div>
+      )}
+      </>,
       )}
     </div>
   );
