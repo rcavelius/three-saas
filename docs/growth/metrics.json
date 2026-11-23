@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T08:57:35.230Z",
+  "generated_at": "2026-11-23T20:53:31.470Z",
   "product": "gridrinse",
   "sources_tracked_since": "2026-11-23T08:26:00.448Z",
   "accounts_total": 0,
@@ -15,18 +15,18 @@
   },
   "last_1d": {
     "days": 1,
-    "visitors": 6,
-    "pageviews": 6,
+    "visitors": 7,
+    "pageviews": 9,
     "tool_users": 3,
     "tool_runs": 3,
-    "pricing_views": 1,
+    "pricing_views": 0,
     "signup_starts": 0,
     "checkout_starts": 0,
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 6,
-        "visitors": 6
+        "count": 9,
+        "visitors": 7
       },
       "tool_used": {
         "count": 3,
@@ -36,11 +36,16 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 4,
-        "visitors": 4
+        "views": 6,
+        "visitors": 5
       },
       {
-        "path": "/pricing",
+        "path": "/for/ecommerce-exports",
+        "views": 1,
+        "visitors": 1
+      },
+      {
+        "path": "/guides/dedupe-strategies",
         "views": 1,
         "visitors": 1
       },
@@ -51,24 +56,53 @@
       }
     ],
     "sources_available": true,
-    "visits": 0,
+    "visits": 5,
     "bot_pageviews": 1,
-    "bot_share": 0.143,
-    "mobile_share": null,
-    "top_referrers": [],
+    "bot_share": 0.1,
+    "mobile_share": 0.25,
+    "top_referrers": [
+      {
+        "host": "(direct or hidden)",
+        "visits": 5,
+        "visitors": 4
+      }
+    ],
     "top_countries": [
       {
         "country": "(unknown)",
-        "visitors": 6
+        "visitors": 4
+      },
+      {
+        "country": "US",
+        "visitors": 4
       }
     ],
-    "top_landing_pages": [],
+    "top_landing_pages": [
+      {
+        "path": "/",
+        "visits": 3,
+        "visitors": 3,
+        "top_referrer": null
+      },
+      {
+        "path": "/for/ecommerce-exports",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      },
+      {
+        "path": "/guides/dedupe-strategies",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      }
+    ],
     "utm_campaigns": []
   },
   "last_7d": {
     "days": 7,
-    "visitors": 40,
-    "pageviews": 102,
+    "visitors": 31,
+    "pageviews": 88,
     "tool_users": 5,
     "tool_runs": 5,
     "pricing_views": 9,
@@ -77,8 +111,8 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 102,
-        "visitors": 40
+        "count": 88,
+        "visitors": 31
       },
       "signup_started": {
         "count": 5,
@@ -92,8 +126,8 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 54,
-        "visitors": 35
+        "views": 42,
+        "visitors": 25
       },
       {
         "path": "/pricing",
@@ -126,11 +160,6 @@
         "visitors": 2
       },
       {
-        "path": "/login",
-        "views": 2,
-        "visitors": 2
-      },
-      {
         "path": "/tools",
         "views": 2,
         "visitors": 2
@@ -144,27 +173,71 @@
         "path": "/tools/split-column-csv",
         "views": 1,
         "visitors": 1
+      },
+      {
+        "path": "/guides/dedupe-strategies",
+        "views": 1,
+        "visitors": 1
+      },
+      {
+        "path": "/login",
+        "views": 1,
+        "visitors": 1
+      },
+      {
+        "path": "/for/ecommerce-exports",
+        "views": 1,
+        "visitors": 1
       }
     ],
     "sources_available": true,
-    "visits": 0,
+    "visits": 5,
     "bot_pageviews": 1,
-    "bot_share": 0.01,
-    "mobile_share": null,
-    "top_referrers": [],
+    "bot_share": 0.011,
+    "mobile_share": 0.25,
+    "top_referrers": [
+      {
+        "host": "(direct or hidden)",
+        "visits": 5,
+        "visitors": 4
+      }
+    ],
     "top_countries": [
       {
         "country": "(unknown)",
-        "visitors": 40
+        "visitors": 28
+      },
+      {
+        "country": "US",
+        "visitors": 4
       }
     ],
-    "top_landing_pages": [],
+    "top_landing_pages": [
+      {
+        "path": "/",
+        "visits": 3,
+        "visitors": 3,
+        "top_referrer": null
+      },
+      {
+        "path": "/for/ecommerce-exports",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      },
+      {
+        "path": "/guides/dedupe-strategies",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      }
+    ],
     "utm_campaigns": []
   },
   "last_30d": {
     "days": 30,
-    "visitors": 77,
-    "pageviews": 165,
+    "visitors": 80,
+    "pageviews": 170,
     "tool_users": 7,
     "tool_runs": 12,
     "pricing_views": 14,
@@ -173,8 +246,8 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 165,
-        "visitors": 77
+        "count": 170,
+        "visitors": 80
       },
       "signup_started": {
         "count": 7,
@@ -188,8 +261,8 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 94,
-        "visitors": 70
+        "views": 97,
+        "visitors": 72
       },
       {
         "path": "/pricing",
@@ -227,14 +300,14 @@
         "visitors": 4
       },
       {
-        "path": "/privacy",
+        "path": "/for/ecommerce-exports",
         "views": 3,
         "visitors": 3
       },
       {
-        "path": "/for/ecommerce-exports",
-        "views": 2,
-        "visitors": 2
+        "path": "/privacy",
+        "views": 3,
+        "visitors": 3
       },
       {
         "path": "/terms",
@@ -252,24 +325,58 @@
         "visitors": 2
       },
       {
+        "path": "/guides/dedupe-strategies",
+        "views": 1,
+        "visitors": 1
+      },
+      {
         "path": "/tools/split-column-csv",
         "views": 1,
         "visitors": 1
       }
     ],
     "sources_available": true,
-    "visits": 0,
+    "visits": 5,
     "bot_pageviews": 1,
     "bot_share": 0.006,
-    "mobile_share": null,
-    "top_referrers": [],
+    "mobile_share": 0.25,
+    "top_referrers": [
+      {
+        "host": "(direct or hidden)",
+        "visits": 5,
+        "visitors": 4
+      }
+    ],
     "top_countries": [
       {
         "country": "(unknown)",
         "visitors": 77
+      },
+      {
+        "country": "US",
+        "visitors": 4
       }
     ],
-    "top_landing_pages": [],
+    "top_landing_pages": [
+      {
+        "path": "/",
+        "visits": 3,
+        "visitors": 3,
+        "top_referrer": null
+      },
+      {
+        "path": "/for/ecommerce-exports",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      },
+      {
+        "path": "/guides/dedupe-strategies",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      }
+    ],
     "utm_campaigns": []
   }
 }

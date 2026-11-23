@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T08:57:37.254Z",
+  "generated_at": "2026-11-23T20:53:33.250Z",
   "product": "webhooktrail",
   "sources_tracked_since": "2026-11-23T08:26:02.921Z",
   "accounts_total": 0,
@@ -16,7 +16,7 @@
   "last_1d": {
     "days": 1,
     "visitors": 4,
-    "pageviews": 4,
+    "pageviews": 5,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
@@ -25,36 +25,53 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 4,
+        "count": 5,
         "visitors": 4
       }
     },
     "top_pages": [
       {
         "path": "/",
-        "views": 4,
+        "views": 5,
         "visitors": 4
       }
     ],
     "sources_available": true,
-    "visits": 0,
-    "bot_pageviews": 1,
-    "bot_share": 0.2,
-    "mobile_share": null,
-    "top_referrers": [],
+    "visits": 1,
+    "bot_pageviews": 7,
+    "bot_share": 0.583,
+    "mobile_share": 0,
+    "top_referrers": [
+      {
+        "host": "(direct or hidden)",
+        "visits": 1,
+        "visitors": 1
+      }
+    ],
     "top_countries": [
       {
         "country": "(unknown)",
         "visitors": 4
+      },
+      {
+        "country": "US",
+        "visitors": 1
       }
     ],
-    "top_landing_pages": [],
+    "top_landing_pages": [
+      {
+        "path": "/",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      }
+    ],
     "utm_campaigns": []
   },
   "last_7d": {
     "days": 7,
     "visitors": 4,
-    "pageviews": 4,
+    "pageviews": 5,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
@@ -63,36 +80,53 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 4,
+        "count": 5,
         "visitors": 4
       }
     },
     "top_pages": [
       {
         "path": "/",
-        "views": 4,
+        "views": 5,
         "visitors": 4
       }
     ],
     "sources_available": true,
-    "visits": 0,
-    "bot_pageviews": 1,
-    "bot_share": 0.2,
-    "mobile_share": null,
-    "top_referrers": [],
+    "visits": 1,
+    "bot_pageviews": 7,
+    "bot_share": 0.583,
+    "mobile_share": 0,
+    "top_referrers": [
+      {
+        "host": "(direct or hidden)",
+        "visits": 1,
+        "visitors": 1
+      }
+    ],
     "top_countries": [
       {
         "country": "(unknown)",
         "visitors": 4
+      },
+      {
+        "country": "US",
+        "visitors": 1
       }
     ],
-    "top_landing_pages": [],
+    "top_landing_pages": [
+      {
+        "path": "/",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      }
+    ],
     "utm_campaigns": []
   },
   "last_30d": {
     "days": 30,
     "visitors": 6,
-    "pageviews": 18,
+    "pageviews": 19,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 2,
@@ -101,14 +135,14 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 18,
+        "count": 19,
         "visitors": 6
       }
     },
     "top_pages": [
       {
         "path": "/",
-        "views": 6,
+        "views": 7,
         "visitors": 6
       },
       {
@@ -143,18 +177,35 @@
       }
     ],
     "sources_available": true,
-    "visits": 0,
-    "bot_pageviews": 1,
-    "bot_share": 0.053,
-    "mobile_share": null,
-    "top_referrers": [],
+    "visits": 1,
+    "bot_pageviews": 7,
+    "bot_share": 0.269,
+    "mobile_share": 0,
+    "top_referrers": [
+      {
+        "host": "(direct or hidden)",
+        "visits": 1,
+        "visitors": 1
+      }
+    ],
     "top_countries": [
       {
         "country": "(unknown)",
         "visitors": 6
+      },
+      {
+        "country": "US",
+        "visitors": 1
       }
     ],
-    "top_landing_pages": [],
+    "top_landing_pages": [
+      {
+        "path": "/",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      }
+    ],
     "utm_campaigns": []
   }
 }
