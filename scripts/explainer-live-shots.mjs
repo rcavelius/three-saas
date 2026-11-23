@@ -38,7 +38,7 @@ for (const pair of pairs) {
     const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: vp.mobile ? 2 : 1, isMobile: vp.mobile, hasTouch: vp.mobile });
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: "networkidle" });
-    const fetchedBeforeScroll = await page.evaluate(() => performance.getEntriesByType("resource").filter((e) => /\/video\/explainer\.(webm|mp4)/.test(e.name)).length);
+    const fetchedBeforeScroll = await page.evaluate(() => performance.getEntriesByType("resource").filter((e) => /\/video\/explainer(\.webm|\.mp4|-poster\.webp)/.test(e.name)).length);
     const video = page.locator("video").first();
     await video.scrollIntoViewIfNeeded();
     const tile = video.locator("xpath=ancestor::*[self::section or @role='group'][1]");
