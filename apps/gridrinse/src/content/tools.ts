@@ -351,6 +351,31 @@ export const TOOLS: ToolPage[] = [
     ],
     guide: { href: "/guides/csv-cleanup-checklist", label: "Guide: a CSV cleanup checklist" },
   },
+  {
+    slug: "rename-columns-csv",
+    title: "Rename and reorder columns in a CSV or Excel file (free)",
+    h1: "Rename and reorder columns in a CSV or Excel file",
+    description:
+      "Give CSV or Excel columns the exact names an import template expects and move them into the right order. Free, in your browser, your file is never uploaded.",
+    intro:
+      "Import templates want specific column names in a specific order, and exports rarely match. GridRinse renames the columns you choose, moves the ones you list to the front, and shows the result before you download.",
+    stepName: "Rename columns",
+    howTo: [
+      "Choose your file above.",
+      "Add the step \"Rename columns\" and type the new name next to each column. Add \"Reorder columns\" and list the columns that should come first.",
+      "Check the new header row in the review, then download.",
+    ],
+    example: {
+      input: { columns: ["Phone", "E-mail", "Full Name"], rows: [["555-0101", "ann@example.com", "Ann Lee"], ["555-0102", "sam@example.com", "Sam Park"]] },
+      steps: [makeStep({ type: "renameColumns", map: { "E-mail": "Email", "Full Name": "Name" } }), makeStep({ type: "reorderColumns", order: ["Name", "Email"] })],
+      note: "E-mail becomes Email, Full Name becomes Name, and both move in front of Phone.",
+    },
+    faq: [
+      { q: "What if the new name already exists?", a: "The renamed column gets a _2 suffix so every column name stays unique, and you see a warning in the review." },
+      { q: "What happens to columns I don't list when reordering?", a: "They follow the listed columns in their current order. Nothing is removed; use \"Drop columns\" for that." },
+      { q: "Is my data changed?", a: "No. Only the header names and the column order change; the cells stay as they are." },
+    ],
+  },
 ];
 
 export function getTool(slug: string): ToolPage | undefined {

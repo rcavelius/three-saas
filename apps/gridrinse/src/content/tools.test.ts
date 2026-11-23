@@ -73,4 +73,10 @@ describe("tool landing pages", () => {
   it("headers become snake_case and the blank one is named", () => {
     expect(ex("clean-csv-headers").after.columns).toEqual(["first_name", "order_id", "order_date", "column_4"]);
   });
+
+  it("rename and reorder put Name and Email first, then Phone", () => {
+    const r = ex("rename-columns-csv").after;
+    expect(r.columns).toEqual(["Name", "Email", "Phone"]);
+    expect(r.rows[0]).toEqual(["Ann Lee", "ann@example.com", "555-0101"]);
+  });
 });

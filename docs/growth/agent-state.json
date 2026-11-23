@@ -261,6 +261,23 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-23",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "did": [
+        "New tool page /tools/rename-columns-csv (rename and reorder columns for import templates) with pinned test; npm ci works again"
+      ],
+      "metrics": {
+        "visitors_7d": 37,
+        "tool_users_7d": 2,
+        "pricing_views_7d": 9,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }
