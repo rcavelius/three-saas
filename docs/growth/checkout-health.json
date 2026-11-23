@@ -1,0 +1,108 @@
+{
+  "about": "Checkout health. test_mode = weekly real-browser purchase of every pass and one monthly plan per app with Stripe TEST cards (free limit → paywall → Stripe Checkout → webhook → unlock cookie/link → paid limits). live_smoke = daily live Checkout sessions opened through the live sites and expired unpaid. Written by .github/workflows/checkout-e2e.yml.",
+  "updated_at": "2026-11-23T21:27:32.152Z",
+  "ok": true,
+  "last_run": "https://github.com/rcavelius/three-saas/actions/runs/45269176029",
+  "test_mode": {
+    "run_at": "2026-11-23T21:27:32.152Z",
+    "ok": true,
+    "flows": [
+      {
+        "app": "gridrinse",
+        "flow": "gridrinse 24-hour pass $5",
+        "ok": true,
+        "failed_steps": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "gridrinse Pro monthly $9",
+        "ok": true,
+        "failed_steps": []
+      },
+      {
+        "app": "changekite",
+        "flow": "changekite full-report pass $9",
+        "ok": true,
+        "failed_steps": []
+      },
+      {
+        "app": "changekite",
+        "flow": "changekite Solo monthly $19",
+        "ok": true,
+        "failed_steps": []
+      },
+      {
+        "app": "webhooktrail",
+        "flow": "webhooktrail 7-day pass $5",
+        "ok": true,
+        "failed_steps": []
+      },
+      {
+        "app": "webhooktrail",
+        "flow": "webhooktrail Developer monthly $9",
+        "ok": true,
+        "failed_steps": []
+      }
+    ]
+  },
+  "live_smoke": {
+    "run_at": "2026-11-23T21:24:09.019Z",
+    "ok": true,
+    "checks": [
+      {
+        "app": "changekite",
+        "flow": "pass report $9",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "changekite",
+        "flow": "plan solo $19/month",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "changekite",
+        "flow": "plan agency $79/month",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "pass day $5",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "plan pro $9/month",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "plan business $29/month",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "webhooktrail",
+        "flow": "pass week $5",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "webhooktrail",
+        "flow": "plan developer $9/month",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "webhooktrail",
+        "flow": "plan pro $29/month",
+        "ok": true,
+        "failed": []
+      }
+    ]
+  }
+}
