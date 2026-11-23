@@ -21,7 +21,7 @@ const free = WEBHOOKTRAIL_CATALOG.plans.find((p) => p.id === WEBHOOKTRAIL_CATALO
 describe("tool landing pages", () => {
   it("have unique slugs and search-sized titles and descriptions", () => {
     expect(TOOLS.length).toBeGreaterThanOrEqual(8);
-    expect(TOOLS.length).toBeLessThanOrEqual(12);
+    expect(TOOLS.length).toBeLessThanOrEqual(14);
     expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(TOOLS.length);
     expect(new Set(TOOLS.map((t) => t.title)).size).toBe(TOOLS.length);
     for (const t of TOOLS) {
@@ -102,6 +102,16 @@ describe("tool landing pages", () => {
       expect(payloads).toContain(s);
     }
     expect(payloads).toContain(".repeat(1_150_000)");
+  });
+
+  it("provider pages stay honest about signatures, masking and static responses", () => {
+    const twilio = TOOLS.find((t) => t.slug === "twilio-webhook-tester")!;
+    const slack = TOOLS.find((t) => t.slug === "slack-webhook-tester")!;
+    expect(isSensitiveHeader("x-twilio-signature")).toBe(true);
+    expect(isSensitiveHeader("x-slack-signature")).toBe(true);
+    expect(src("../components/inspector/BodyViewer.tsx")).toContain('"Form fields"');
+    for (const t of [twilio, slack]) expect(t.faq.some((f) => f.a.includes("does not check signatures"))).toBe(true);
+    expect(pageText(slack)).toContain(String(limits.responseBodyMaxBytes));
   });
 
   it("never claim forwarding to localhost or automatic forwarding", () => {

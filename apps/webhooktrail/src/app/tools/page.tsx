@@ -20,7 +20,7 @@ const GROUPS: { title: string; line: string; slugs: string[]; cols?: 2 }[] = [
   {
     title: "Provider testing",
     line: "The same capture URL, with the steps for each provider's dashboard and headers.",
-    slugs: ["stripe-webhook-tester", "github-webhook-tester", "shopify-webhook-tester"],
+    slugs: ["stripe-webhook-tester", "github-webhook-tester", "shopify-webhook-tester", "twilio-webhook-tester", "slack-webhook-tester"],
   },
   {
     title: "Responses, replay & diagnostics",

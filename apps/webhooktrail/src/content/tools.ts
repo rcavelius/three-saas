@@ -227,6 +227,66 @@ export const TOOLS: ToolPage[] = [
     links: [HELP_START, DOCS_CUSTOM, HELP_MASKING],
   },
   {
+    slug: "twilio-webhook-tester",
+    title: "Twilio webhook tester: inspect SMS and voice callbacks",
+    h1: "Twilio webhook tester",
+    description:
+      "Point a Twilio webhook URL at WebhookTrail and inspect each callback: the form-encoded parameters, the X-Twilio-Signature header and the raw body, live.",
+    intro:
+      "Twilio sends its webhook requests as HTTPS POSTs, normally form-encoded (per Twilio's public documentation). Point a number's webhook or a status callback at a WebhookTrail URL and see each request: the decoded form fields, the signature header and the raw body.",
+    feature: "inspector",
+    featureName: "Capture URL and live inspector",
+    howTo: [
+      "Click Create endpoint and copy the capture URL.",
+      "Paste it as the webhook or status callback URL in your Twilio console settings.",
+      "Send a message or place a call, then open the request in the inspector: form fields are decoded, and the raw body is one tab away.",
+    ],
+    faq: [
+      {
+        q: "Does WebhookTrail check X-Twilio-Signature?",
+        a: FAQ_NO_SIGNATURE_CHECK,
+      },
+      {
+        q: "Can I see the exact form parameters Twilio sent?",
+        a: "Yes. A form-encoded body is shown as decoded fields, and the Raw tab shows the exact bytes, which is what matters when you debug a signature mismatch.",
+      },
+      {
+        q: "Is there a Twilio integration?",
+        a: "No. WebhookTrail treats Twilio like any webhook sender: it records the request as received. It does not connect to your Twilio account, and the default response is not TwiML; you can set a custom response in the endpoint settings.",
+      },
+      { q: "What are the limits?", a: freePlanFacts },
+    ],
+    links: [HELP_START, HELP_MASKING, DOCS_CUSTOM],
+  },
+  {
+    slug: "slack-webhook-tester",
+    title: "Slack webhook tester: inspect events and slash command requests",
+    h1: "Slack webhook tester",
+    description:
+      "Use a WebhookTrail URL as a Slack request URL and inspect each request: the X-Slack-Signature and timestamp headers and the full JSON or form body.",
+    intro:
+      "Slack delivers Events API calls and slash commands to your request URL as HTTPS POSTs (per Slack's public documentation). Use a WebhookTrail URL there to see the signature and timestamp headers and the full body of each request.",
+    feature: "inspector",
+    featureName: "Capture URL and live inspector",
+    howTo: [
+      "Click Create endpoint and copy the capture URL.",
+      "Enter it as a request URL in your Slack app settings, for example for event subscriptions or a slash command.",
+      "Trigger the event or run the command, then open the request in the inspector.",
+    ],
+    faq: [
+      {
+        q: "Will Slack accept the URL when it verifies it?",
+        a: "Not necessarily. For Events API URLs Slack's documentation says the endpoint must answer a verification challenge, and WebhookTrail's responses are static (you can set a status code, content type and body, up to 4096 bytes). It is best for inspecting requests that Slack sends, such as slash commands and events, not for passing URL verification.",
+      },
+      { q: "Does WebhookTrail check X-Slack-Signature?", a: FAQ_NO_SIGNATURE_CHECK },
+      {
+        q: "Can I see the signature timestamp header?",
+        a: "Yes. All headers are shown. Signature-like headers are masked until you reveal them; the raw body is available unchanged, which you need to compute the signature yourself.",
+      },
+    ],
+    links: [HELP_START, DOCS_CUSTOM, HELP_MASKING],
+  },
+  {
     slug: "replay-webhook",
     title: "Replay a webhook to your server, once or with retries",
     h1: "Replay a captured webhook",
