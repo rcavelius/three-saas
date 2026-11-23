@@ -39,7 +39,30 @@ Each metrics window (`last_1d`, `last_7d`, `last_30d`) has:
   partial. Before it, everything shows as unknown — that is missing data, not "everyone came direct".
 
 Revenue: `stripe.mode` must be `"live"`; paid = `stripe.active_paid_subscriptions`, MRR = `stripe.mrr_usd`,
-sales ever = `stripe.subscriptions_ever`.
+sales ever = `stripe.paying_customers_ever` (subscriptions ever + one-time pass sales). One-time passes ($5/$9) are
+in `stripe.one_time_passes` (`sales_1d`, `sales_7d`, `sales_30d`, `revenue_usd_30d`, `sales_ever`,
+`revenue_usd_ever`, `by_pass`). `stripe.making_money_now` is true when a product has an active paid subscription or
+a pass sale in the last 30 days.
+
+## 2b. The first question, every single day: ARE WE MAKING MONEY?
+
+The owner's standing order: "Every day when you wake up, you have to say: are we making money? And if the answer is
+no, you need to get the money." So before anything else:
+
+1. Answer it from the metrics, per site and in total: **YES** (with the dollars: new sales in the last 24 h and 7 d,
+   MRR, pass revenue in 30 d) or **NO** (with how many days since launch and since the last sale).
+2. If the answer is NO for a site, name the **single biggest reason** in the funnel (no visitors, visitors who
+   never try the tool, tool users who never see the paywall, paywall views with no checkout, checkout starts with no
+   payment) and make that site's FOCUS.md today a **money focus** aimed at that exact leak: every crew agent's first
+   unit today goes at it. Rotate tactics day to day: if yesterday's money focus shipped and the leak didn't move,
+   try a different fix, never the same one twice in a row (check `boss-state.json`).
+3. Also read `docs/growth/checkout-health.json` if it exists: if any checkout flow is failing, that is the answer to
+   "why no money" and goes first, in capitals.
+4. Record the answer in `boss-state.json` (`money_log`: date, per-site yes/no, sales_24h, revenue_7d, the leak
+   named, the tactic chosen) so tomorrow you can see whether the tactic worked.
+
+Stay inside the hard rules: getting the money means pages, copy, paywall placement, internal links, technical SEO
+and search-engine submission. It never means spending, ads, emails, posts or price changes.
 
 Never round small numbers into trends. With fewer than ~20 visitors in a window, write the raw counts and say the
 sample is too small to conclude; still pick the most sensible focus.
@@ -51,6 +74,10 @@ Replace the whole file each run (git keeps the history). Plain, short, numbers c
 ```
 # Daily traffic report — <YYYY-MM-DD> (generated <HH:MM> UTC by the traffic boss)
 
+## ARE WE MAKING MONEY? <YES or NO>
+<one line per site: YES/NO, sales 24 h / 7 d, pass revenue 30 d, MRR; then total $ in the last 7 days>
+<if NO: "Why not:" the leak per site, and "Today's money move:" the tactic each crew is on>
+
 ## Summary
 <3–5 lines: total visitors across the three sites (last 24 h and 7 d), revenue, the single most important problem>
 
@@ -61,7 +88,7 @@ Replace the whole file each run (git keeps the history). Plain, short, numbers c
 - What they did (7 d): tool users / runs, pricing views, signup starts, new accounts, checkout starts, other events
 - Funnel drop-offs: visitors → tool users → pricing views → signup starts → checkout starts → paid, with the
   biggest drop named (e.g. "37 visitors, 2 used the tool: the first screen does not get people to try it")
-- Revenue: active paid, MRR, subscriptions ever (live mode only)
+- Revenue: active paid, MRR, subscriptions ever, pass sales 1 d / 7 d / 30 d and pass revenue (live mode only)
 - Crew shipped since last report: one line per crew log entry (agent, what it did), or "nothing"
 - Technical SEO: what site-check found and what you fixed
 

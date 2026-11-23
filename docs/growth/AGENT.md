@@ -17,7 +17,7 @@ Ronald (the owner) is hands-off. Nobody will answer questions during a run. Deci
 1. Read `docs/growth/agent-state.json` (your life) and `docs/growth/metrics.json` (yesterday's real numbers,
    refreshed daily at 13:30 UTC by the Growth metrics workflow; never edit that file).
 2. **If `alive` is false: stop immediately.** Do nothing else, change nothing, end the run.
-3. Count sales: `sales = metrics.stripe.subscriptions_ever - state.ignored_subscriptions` (only when
+3. Count sales: `sales = (metrics.stripe.paying_customers_ever ?? metrics.stripe.subscriptions_ever) - state.ignored_subscriptions` (subscriptions plus one-time pass sales) (only when
    `metrics.stripe.mode` is `"live"`; otherwise sales = 0).
 
 ## 2. Death
