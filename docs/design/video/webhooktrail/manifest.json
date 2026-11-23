@@ -1,0 +1,31 @@
+{
+  "asset": "webhooktrail homepage explainer loop",
+  "story": "A sender box fires a webhook envelope -> the receiver robot catches it and its screen shows the request as glowing lines -> it throws a replay back to the sender, which lights up -> loop.",
+  "caption": "Catch → inspect → replay",
+  "keyframes": {
+    "keyframe-start.png": { "tool": "Higgsfield generate_image gpt_image_2_6, quality high, 16:9", "job": "706de1ca-f4a2-448f-bb3e-d35e0fc13e90", "reference": "WebhookTrail v2 mascot + packet (docs/design/v2/webhooktrail/art/mascot, art/packet)" },
+    "keyframe-reference.png": { "tool": "Higgsfield generate_image gpt_image_2_6, quality high, 16:9", "job": "3c7c0cc9-7a45-4c39-9bd6-034b1f352f15", "use": "image reference for the packet in flight" }
+  },
+  "picked": {
+    "file": "source-take.mp4",
+    "model": "seedance_2_5 (Seedance 2.5), mode omni_reference, 7 s, 720p, no audio",
+    "job": "8feefc2f-bcc4-4244-982e-1f8fcdd0e213",
+    "inputs": "start_image = end_image = keyframe-start, image_references = keyframe-reference",
+    "why": "Clear catch, a readable screen readout while holding the packet, a clean throw back, the sender flashes on receipt. No warps."
+  },
+  "rejected": [
+    { "model": "seedance_2_5 omni_reference 7 s", "job": "f7ab2c2d-acab-4b92-b32e-62286eafaa1e", "why": "Packet is small and the screen readout is brief." },
+    { "model": "minimax_h3_max 6 s", "job": "f4cbc19e-ef26-4f9a-a8e0-726aef4eb4d1", "why": "Good, but the sender's port pops off as a loose disc for a few frames." }
+  ],
+  "web": {
+    "path": "apps/webhooktrail/public/video/",
+    "edit": "full clip, 0.6 s dissolve from the end into the start for a seamless loop",
+    "files": {
+      "explainer.mp4": "H.264 high, 960x540, 24 fps, 6.4 s, CRF 27, faststart, no audio, 166 KB",
+      "explainer.webm": "VP9, 960x540, CRF 38, no audio, 145 KB",
+      "explainer-poster.webp": "robot holding the packet, screen readout on, 17 KB"
+    }
+  },
+  "takes": "takes/*_sheet.jpg are contact sheets (one frame every 0.5 s) of every take, kept for review",
+  "created": "2026-11-23"
+}
