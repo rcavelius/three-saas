@@ -1,0 +1,32 @@
+{
+  "asset": "gridrinse homepage explainer loop",
+  "story": "Messy spreadsheet on a laptop -> the bubble mascot squeegees it -> clean sheet with a lime header -> cheer -> loop. It all happens on the laptop.",
+  "caption": "Messy CSV in → clean file out",
+  "keyframes": {
+    "keyframe-messy.png": { "tool": "Higgsfield generate_image gpt_image_2_6, quality high, 16:9", "job": "502ace96-d73e-443d-946e-1c5baf19f81c", "reference": "GridRinse v2 mascot concept (docs/design/v2/gridrinse/art/mascot, job 4cc9bd30-4672-4bee-bbf5-bc0365249257)" },
+    "keyframe-clean.png": { "tool": "Higgsfield generate_image gpt_image_2_6, quality high, 16:9, edit of keyframe-messy", "job": "371c8e68-cb53-4570-acd4-9f3a816bc6c5" }
+  },
+  "picked": {
+    "file": "source-take.mp4",
+    "model": "flux_3_video (FLUX 3 Video), 7 s, 720p, no audio",
+    "job": "f8687219-4c70-4397-908e-dc9d9d045d49",
+    "inputs": "start_image = end_image = keyframe-messy, image_references = keyframe-clean",
+    "why": "The squeegee visibly reveals a clean sheet behind it and the clean sheet is held about 2 s. Its last second (a junk sheet sliding over the keyboard) is cut."
+  },
+  "rejected": [
+    { "model": "seedance_2_5 omni_reference 7 s", "job": "d15cbce1-09f6-487b-a157-942540bf05f6", "why": "Ends on the clean sheet (no loop); the mascot covers the laptop for most of the clip." },
+    { "model": "seedance_2_5 omni_reference 7 s", "job": "3c2be75f-3ddd-41d5-bd5e-bb7ca508062f", "why": "Good runner-up (foam burst, clean sheet), but the mascot turns its back and loses the squeegee for half a second." },
+    { "model": "minimax_h3_max 6 s", "job": "8d89c772-0107-4117-9d43-284bd53b9980", "why": "The sheet never becomes clean, so the product promise is not shown." }
+  ],
+  "web": {
+    "path": "apps/gridrinse/public/video/",
+    "edit": "trim 0-5.8 s, then a 0.6 s dissolve from the end into the start for a seamless loop (scratchpad encode.ps1; ffmpeg 9.0.2 at BelowNormal priority)",
+    "files": {
+      "explainer.mp4": "H.264 high, 960x528, 24 fps, 5.2 s, CRF 27, faststart, no audio, 347 KB",
+      "explainer.webm": "VP9, 960x528, CRF 38, no audio, 393 KB",
+      "explainer-poster.webp": "clean-sheet frame (mascot cheering), 45 KB"
+    }
+  },
+  "takes": "takes/*_sheet.jpg are contact sheets (one frame every 0.5 s) of every take, kept for review",
+  "created": "2026-11-23"
+}

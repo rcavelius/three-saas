@@ -6,6 +6,18 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "-w", "@apps/gridrinse"],
       "port": 3002
+    },
+    {
+      "name": "changekite-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "@apps/changekite"],
+      "port": 3001
+    },
+    {
+      "name": "webhooktrail-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "@apps/webhooktrail"],
+      "port": 3003
     }
   ]
 }

@@ -8,6 +8,7 @@ import { Art } from "@/components/grid/Art";
 import { PixelTitle } from "@/components/grid/PixelTitle";
 import { TraceCell } from "@/components/grid/TraceCell";
 import { FlowDiagram } from "@/components/grid/FlowDiagram";
+import { LoopVideo } from "@/components/home/LoopVideo";
 import { CATALOG, FREE_LIMITS, formatCount, limitsFromPlan, priceLabel } from "@/lib/plans";
 import { TOOLS } from "@/content/tools";
 import { GUIDES } from "./guides/guides";
@@ -113,6 +114,27 @@ export default function Home() {
 
           {/* One-glance explainer: sender -> your URL -> inspector -> replay. */}
           <FlowDiagram replayNote={`Replay to a URL you verified. Paid plans or the ${offer.name}.`} />
+
+          {/* The same story as a short silent loop: a sender fires a hook, the receiver catches it, reads it, replays it. */}
+          <div aria-labelledby="loop-title" role="group" className="g-row border-t border-line grid-cols-1 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+            <div className="g-x relative overflow-hidden bg-bg p-2 md:p-3">
+              <LoopVideo src="/video/explainer" poster="/video/explainer-poster.webp" width={960} height={540} className="block aspect-video h-auto w-full" />
+            </div>
+            <div className="g-x flex flex-col justify-center gap-4 p-4 md:p-6">
+              <p className="g-cap text-fg-dim">Watch it work</p>
+              <h2 id="loop-title" className="font-mono text-[26px] font-extrabold leading-[32px] tracking-[-0.02em] lg:text-[34px] lg:leading-[42px]">
+                Catch <span aria-hidden="true">→</span>
+                <span className="sr-only">, then</span> inspect <span aria-hidden="true">→</span>
+                <span className="sr-only">, then</span> replay.
+              </h2>
+              <p className="max-w-[34ch] text-[15px] leading-6">
+                Your URL catches every request, shows you exactly what came in, and sends it again when you are ready.
+              </p>
+              <a href="#create" className="btn btn-signal self-start">
+                Get my URL <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
         </section>
 
         <div className="empty:hidden [&>*]:border-b [&>*]:border-line [&>*]:p-4 md:[&>*]:p-5">

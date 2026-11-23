@@ -12,6 +12,7 @@ import { env } from "@/lib/env";
 import { EXAMPLE_HOST, exampleScore } from "@/lib/example-report";
 import { TOOLS } from "@/content/tools";
 import { Explainer } from "@/components/home/Explainer";
+import { LoopVideo } from "@/components/home/LoopVideo";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
@@ -81,6 +82,27 @@ export default function HomePage() {
 
         {/* Scan progress and the report land here (empty until a scan starts). */}
         <div id="scan-results" className="col-span-2 scroll-mt-4 empty:hidden lg:col-span-12" />
+
+        {/* What it does, as a short silent loop: the kite scans a site, pins what is broken, scores it. */}
+        <section aria-labelledby="loop-title" className="tile ck-reveal col-span-2 grid items-center gap-6 bg-pink p-4 sm:p-7 lg:col-span-12 lg:grid-cols-[1.4fr_1fr] lg:gap-10 lg:p-9">
+          <div className="overflow-hidden rounded-[24px] border-[3px] border-ink bg-paper">
+            <LoopVideo src="/video/explainer" poster="/video/explainer-poster.webp" width={960} height={540} className="block aspect-video h-auto w-full" />
+          </div>
+          <div className="px-2 pb-2 lg:px-0">
+            <span className="chip">Watch it work</span>
+            <h2 id="loop-title" className="display mt-4 text-[2.25rem] leading-[1.02] sm:text-[3.25rem]">
+              Scan <span aria-hidden="true">→</span>
+              <span className="sr-only">, then</span> score <span aria-hidden="true">→</span>
+              <span className="sr-only">, then</span> fixes.
+            </h2>
+            <p className="mt-3 max-w-[34ch] text-[1.0625rem] font-bold">
+              The kite reads your pages, pins every broken thing and gives your site one score out of 100.
+            </p>
+            <a href="#scan" className="btn-primary mt-6 inline-flex">
+              Scan my site <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </section>
 
         {/* What it does, in one picture. */}
         <Explainer />

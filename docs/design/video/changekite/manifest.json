@@ -1,0 +1,31 @@
+{
+  "asset": "changekite homepage explainer loop",
+  "story": "The kite flies over a website and scans it with a light beam -> red pins pop onto broken spots -> a score card with a ring gauge pops up -> the kite flies back -> loop.",
+  "caption": "Scan → score → fixes",
+  "keyframes": {
+    "keyframe-start.png": { "tool": "Higgsfield generate_image gpt_image_2_6, quality high, 16:9", "job": "65dd2fc9-490a-46c1-a416-04afbbecfe1a", "reference": "apps/changekite/public/art/kite.webp" },
+    "keyframe-reference.png": { "tool": "Higgsfield generate_image gpt_image_2_6, quality high, 16:9", "job": "466e22f1-9595-4b84-878d-325f47e5879e", "use": "image reference for the pins and score card" }
+  },
+  "picked": {
+    "file": "source-take.mp4",
+    "model": "seedance_2_5 (Seedance 2.5), mode omni_reference, 7 s, 720p, no audio",
+    "job": "9897d5a2-cab2-4c0f-833a-84b7dd7a1630",
+    "inputs": "start_image = end_image = keyframe-start, image_references = keyframe-reference",
+    "why": "Scan beam, three clear pins on cracks, a readable ring score card, kite stays on model."
+  },
+  "rejected": [
+    { "model": "seedance_2_5 omni_reference 7 s", "job": "db7925a6-e0aa-4d83-9fa9-d719ae1c41c2", "why": "Pins are tiny and the score card reads as a speedometer." },
+    { "model": "minimax_h3_max 6 s", "job": "c89cdf72-58b0-4af9-89e8-665ec35188aa", "why": "Kite flattens into a sliver for a few frames near the end." }
+  ],
+  "web": {
+    "path": "apps/changekite/public/video/",
+    "edit": "full clip, 0.6 s dissolve from the end into the start for a seamless loop",
+    "files": {
+      "explainer.mp4": "H.264 high, 960x540, 24 fps, 6.4 s, CRF 27, faststart, no audio, 245 KB",
+      "explainer.webm": "VP9, 960x540, CRF 38, no audio, 241 KB",
+      "explainer-poster.webp": "pins + kite + score card frame, 30 KB"
+    }
+  },
+  "takes": "takes/*_sheet.jpg are contact sheets (one frame every 0.5 s) of every take, kept for review",
+  "created": "2026-11-23"
+}
