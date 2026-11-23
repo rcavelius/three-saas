@@ -24,4 +24,10 @@ export const GUIDES: Guide[] = [
     description: "Capture a real webhook, verify your staging receiver, then replay it once or with retries to check idempotency and error handling.",
     updated: "2026-11-11",
   },
+  {
+    slug: "verify-slack-request-signatures",
+    title: "Verify Slack request signatures (X-Slack-Signature and the timestamp)",
+    description: "How Slack signs Events API and slash command requests with a v0 HMAC-SHA256 over the timestamp and raw body, and how to debug mismatches by capturing a real request.",
+    updated: "2026-11-23",
+  },
 ];

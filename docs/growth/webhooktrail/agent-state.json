@@ -25,6 +25,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-23",
+      "agent": "guides",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added guide /guides/verify-slack-request-signatures, linked from /tools/slack-webhook-tester, tests pinned"
+      ],
+      "metrics": {
+        "visitors_7d": 4,
+        "signup_starts_7d": 0,
+        "pricing_views_7d": 0,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

@@ -141,4 +141,13 @@ describe("tool landing pages", () => {
     expect(urls).toContain("/tools");
     for (const t of TOOLS) expect(urls).toContain(`/tools/${t.slug}`);
   });
+
+  it("links the Slack tool page and the Slack guide to each other and lists the guide in the sitemap", async () => {
+    const slack = TOOLS.find((t) => t.slug === "slack-webhook-tester")!;
+    expect(slack.links.map((l) => l.href)).toContain("/guides/verify-slack-request-signatures");
+    expect(GUIDES.map((g) => g.slug)).toContain("verify-slack-request-signatures");
+    const { default: sitemap } = await import("@/app/sitemap");
+    const urls = (await sitemap()).map((e) => new URL(e.url).pathname);
+    expect(urls).toContain("/guides/verify-slack-request-signatures");
+  });
 });

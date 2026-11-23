@@ -66,6 +66,7 @@ const responseTypes = joinAnd(RESPONSE_CONTENT_TYPES.map((t) => `\`${t}\``)).rep
 
 const GUIDE_STRIPE = { href: "/guides/verify-stripe-webhook-signatures", label: "Guide: verify Stripe webhook signatures" };
 const GUIDE_GITHUB = { href: "/guides/verify-github-webhook-signatures", label: "Guide: verify GitHub webhook signatures" };
+const GUIDE_SLACK = { href: "/guides/verify-slack-request-signatures", label: "Guide: verify Slack request signatures" };
 const GUIDE_REPLAY = { href: "/guides/test-webhook-retries-with-replay", label: "Guide: test retries and idempotency with replay" };
 const HELP_START = { href: "/help/getting-started", label: "Help: getting started" };
 const HELP_REPLAY = { href: "/help/replay-and-destinations", label: "Help: replay requests to verified destinations" };
@@ -284,7 +285,7 @@ export const TOOLS: ToolPage[] = [
         a: "Yes. All headers are shown. Signature-like headers are masked until you reveal them; the raw body is available unchanged, which you need to compute the signature yourself.",
       },
     ],
-    links: [HELP_START, DOCS_CUSTOM, HELP_MASKING],
+    links: [GUIDE_SLACK, HELP_START, DOCS_CUSTOM, HELP_MASKING],
   },
   {
     slug: "replay-webhook",
