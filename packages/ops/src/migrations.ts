@@ -83,4 +83,20 @@ ALTER TABLE incidents ADD COLUMN IF NOT EXISTS acknowledged_at timestamptz;
 ALTER TABLE incidents ADD COLUMN IF NOT EXISTS acknowledged_by text;
 `,
   },
+  {
+    // Where visitors come from (privacy-safe: referrer host only, UTM tokens, CF country code, coarse
+    // device class, obvious-bot flag). Never an IP, full URL or user-agent string.
+    id: "ops_0005_analytics_sources",
+    sql: `
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS referrer_host text;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS utm_source text;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS utm_medium text;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS utm_campaign text;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS country text;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS device text;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS is_bot boolean NOT NULL DEFAULT false;
+ALTER TABLE analytics_events ADD COLUMN IF NOT EXISTS is_landing boolean NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS analytics_time_idx ON analytics_events (created_at);
+`,
+  },
 ];

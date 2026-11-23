@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildEvent, EVENT_SPEC, sanitizeEventProps, track } from "./analytics";
+import { buildEvent, EVENT_SPEC, landingSource, sanitizeEventProps, track } from "./analytics";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -41,6 +41,16 @@ describe("analytics never carries cell data or file names", () => {
     const e = buildEvent("pageview", {}, "/guides/fix-excel-dates");
     expect(e.path).toBe("/guides/fix-excel-dates");
     expect(Object.keys(e).sort()).toEqual(["anonymousId", "name", "path", "props"]);
+  });
+
+  it("landingSource sends only the referrer origin and utm values, and marks visits from other sites as landings", () => {
+    vi.stubGlobal("document", { referrer: "https://www.google.com/search?q=private+words" });
+    vi.stubGlobal("location", { pathname: "/tools/x", search: "?utm_source=reddit&utm_campaign=launch&email=a@b.example", origin: "https://gridrinse.com" });
+    const s = landingSource();
+    expect(s).toEqual({ referrer: "https://www.google.com", utm: { source: "reddit", campaign: "launch" }, landing: true });
+    expect(JSON.stringify(s)).not.toMatch(/private|a@b/);
+    vi.stubGlobal("document", { referrer: "https://gridrinse.com/guides/y" });
+    expect(landingSource().landing).toBe(false);
   });
 
   it("track posts only the sanitized payload to our own /api/events", async () => {

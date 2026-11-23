@@ -96,11 +96,46 @@ export function buildEvent<N extends EventName>(name: N, props?: PropsOf<N>, pat
   };
 }
 
+let landingSent = false;
+
+/**
+ * Where this visit came from, sent once per page load on the first pageview: the referrer's origin only
+ * (never its path or query) and the three utm_* values. The server keeps just the host and short tokens.
+ */
+export function landingSource(): { referrer?: string; utm?: Record<string, string>; landing?: boolean } {
+  const out: { referrer?: string; utm?: Record<string, string>; landing?: boolean } = {};
+  try {
+    const ref = typeof document !== "undefined" && document.referrer ? new URL(document.referrer).origin : "";
+    if (ref) out.referrer = ref.slice(0, 200);
+    // A visit starts here unless this page load came from one of our own pages.
+    out.landing = typeof location === "undefined" || ref !== location.origin;
+  } catch {
+    /* ignore */
+  }
+  try {
+    const q = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
+    const utm: Record<string, string> = {};
+    for (const k of ["source", "medium", "campaign"]) {
+      const v = q.get(`utm_${k}`);
+      if (v) utm[k] = v.slice(0, 64);
+    }
+    if (Object.keys(utm).length) out.utm = utm;
+  } catch {
+    /* ignore */
+  }
+  return out;
+}
+
 /** Fire-and-forget. Never throws, never blocks the page. */
 export function track<N extends EventName>(name: N, props?: PropsOf<N>): void {
   try {
     if (typeof window === "undefined") return;
-    const body = JSON.stringify(buildEvent(name, props));
+    const event: EventPayload & { referrer?: string; utm?: Record<string, string>; landing?: boolean } = buildEvent(name, props);
+    if (name === "pageview" && !landingSent) {
+      landingSent = true;
+      Object.assign(event, landingSource());
+    }
+    const body = JSON.stringify(event);
     // fetch keepalive (survives navigation like a beacon) rather than sendBeacon, so the exact body is
     // visible in devtools and in the end-to-end no-upload test.
     void fetch("/api/events", { method: "POST", body, headers: { "content-type": "application/json" }, keepalive: true, credentials: "same-origin" }).catch(() => {});

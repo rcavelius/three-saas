@@ -18,12 +18,111 @@ export const DEFAULT_EVENT_NAMES = [
   "cta_clicked",
 ] as const;
 
+/**
+ * Where a visit came from, privacy-safe: the referrer is reduced to its host, UTM values are short fixed
+ * tokens, the country is Cloudflare's two-letter code and the device a coarse class. No IP, no full URL,
+ * no user agent string is ever stored.
+ */
+export interface VisitSource {
+  referrerHost?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  country?: string | null;
+  device?: "mobile" | "desktop" | null;
+  isBot?: boolean;
+  /** First pageview of a visit (page load not coming from our own site): the entry/landing page. */
+  landing?: boolean;
+}
+
 export interface TrackInput {
   name: string;
   anonymousId?: string | null;
   userId?: string | null;
   path?: string | null;
   props?: Record<string, unknown> | null;
+  source?: VisitSource | null;
+}
+
+const HOST_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?)+$/;
+
+/**
+ * Full referrer URL -> host only ("https://www.google.com/search?q=x" -> "google.com"). Returns null for
+ * empty, non-http(s), IP-address, malformed or self-referrals (any host in `ownHosts`).
+ */
+export function referrerHost(raw: unknown, ownHosts: readonly string[] = []): string | null {
+  if (typeof raw !== "string" || raw.length === 0 || raw.length > 2048) return null;
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") {
+    // Android apps send android-app://com.google.android.gm/ as the referrer.
+    if (u.protocol === "android-app:" && HOST_RE.test(u.hostname.toLowerCase())) return `android-app:${u.hostname.toLowerCase()}`.slice(0, 100);
+    return null;
+  }
+  let host = u.hostname.toLowerCase().replace(/\.$/, "");
+  if (isIP(host.replace(/^\[|\]$/g, ""))) return null;
+  host = host.replace(/^www\.|^m\./, "");
+  if (!HOST_RE.test(host) || host.length > 100) return null;
+  const own = ownHosts.map((h) => h.toLowerCase().replace(/^www\./, ""));
+  if (own.includes(host)) return null;
+  return host;
+}
+
+/** utm_* value -> lowercase token of at most 64 chars from [a-z0-9._-+ ], or null. Never personal data. */
+export function sanitizeUtm(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const v = raw.trim().toLowerCase().slice(0, 64);
+  if (!v || !/^[a-z0-9._+\- ]+$/.test(v) || looksPersonal(v)) return null;
+  return v;
+}
+
+/** Cloudflare's CF-IPCountry header (two letters). "XX" (unknown) and "T1" (Tor) become null. */
+export function countryFromHeaders(headers: Headers): string | null {
+  const v = (headers.get("cf-ipcountry") ?? "").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(v) || v === "XX" || v === "T1") return null;
+  return v;
+}
+
+const BOT_UA_RE =
+  /bot\b|bot\/|crawl|spider|slurp|scrape|headless|lighthouse|pagespeed|chrome-lighthouse|gtmetrix|pingdom|uptime|monitor|preview|facebookexternalhit|embedly|whatsapp|telegram|discord|slack|skypeuripreview|curl\/|wget\/|python-|aiohttp|httpx|go-http-client|java\/|okhttp|node-fetch|undici|axios|libwww|phantomjs|puppeteer|playwright|selenium|cypress|httpclient|feedfetcher|validator|archive\.org|ia_archiver|semrush|ahrefs|mj12|dotbot|petalbot|yandex|baiduspider|bingpreview|gptbot|claudebot|anthropic|perplexity|ccbot|bytespider|amazonbot|applebot/i;
+
+/** An obvious crawler, monitor, link-preview fetcher or scripted client (or no user agent at all). */
+export function isObviousBot(userAgent: string | null | undefined): boolean {
+  if (!userAgent || userAgent.trim().length < 10) return true;
+  return BOT_UA_RE.test(userAgent);
+}
+
+/** Coarse device class from the user agent: phones and tablets are "mobile". */
+export function deviceClass(userAgent: string | null | undefined): "mobile" | "desktop" | null {
+  if (!userAgent) return null;
+  return /Mobi|Android|iPhone|iPad|iPod|Tablet|Silk|Kindle|Opera Mini|IEMobile/i.test(userAgent) ? "mobile" : "desktop";
+}
+
+/**
+ * Builds the VisitSource for one beacon: referrer + utm come from the client body (only the landing
+ * pageview sends them), country/device/bot from the request headers.
+ */
+export function visitSourceFrom(
+  headers: Headers,
+  body: { referrer?: unknown; utm?: unknown; landing?: unknown },
+  ownHosts: readonly string[] = [],
+): VisitSource {
+  const ua = headers.get("user-agent");
+  const utm = body.utm && typeof body.utm === "object" && !Array.isArray(body.utm) ? (body.utm as Record<string, unknown>) : {};
+  return {
+    referrerHost: referrerHost(body.referrer, ownHosts),
+    utmSource: sanitizeUtm(utm.source),
+    utmMedium: sanitizeUtm(utm.medium),
+    utmCampaign: sanitizeUtm(utm.campaign),
+    country: countryFromHeaders(headers),
+    device: deviceClass(ua),
+    isBot: isObviousBot(ua),
+    landing: body.landing === true,
+  };
 }
 
 export const MAX_PROPS = 20;
@@ -101,9 +200,13 @@ export async function trackEvent(
 ): Promise<{ stored: boolean; reason?: string }> {
   const allowed = opts.allowedNames ?? DEFAULT_EVENT_NAMES;
   if (typeof e.name !== "string" || !allowed.includes(e.name)) return { stored: false, reason: "name_not_allowed" };
+  const s = e.source ?? {};
+  const device = s.device === "mobile" || s.device === "desktop" ? s.device : null;
+  const country = typeof s.country === "string" && /^[A-Z]{2}$/.test(s.country) ? s.country : null;
   await ex.query(
-    `INSERT INTO analytics_events (name, anonymous_id, user_id, path, props, created_at)
-     VALUES ($1, $2, $3, $4, $5::jsonb, $6)`,
+    `INSERT INTO analytics_events (name, anonymous_id, user_id, path, props, created_at,
+                                   referrer_host, utm_source, utm_medium, utm_campaign, country, device, is_bot, is_landing)
+     VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
     [
       e.name,
       sanitizeAnonId(e.anonymousId),
@@ -111,6 +214,15 @@ export async function trackEvent(
       sanitizePath(e.path),
       JSON.stringify(sanitizeProps(e.props)),
       (opts.now ?? new Date()).toISOString(),
+      // Re-sanitized here so direct trackEvent callers cannot store a full URL or free text.
+      s.referrerHost ? referrerHost(`https://${s.referrerHost}/`) ?? (s.referrerHost.startsWith("android-app:") ? s.referrerHost.slice(0, 100) : null) : null,
+      sanitizeUtm(s.utmSource),
+      sanitizeUtm(s.utmMedium),
+      sanitizeUtm(s.utmCampaign),
+      country,
+      device,
+      s.isBot === true,
+      s.landing === true && e.name === "pageview",
     ],
   );
   return { stored: true };
