@@ -19,11 +19,13 @@ const NAV = [
  */
 export function BrandBar() {
   return (
-    <div className="no-print fixed inset-y-0 left-0 z-30 hidden w-[96px] flex-col items-center justify-between bg-ink py-6 lg:flex">
-      <Link href="/" aria-label="ChangeKite home" className="group flex flex-1 items-center justify-center no-underline">
-        <span className="sideways display text-[3.6rem] leading-none text-yellow transition-transform duration-300 group-hover:-translate-y-1">ChangeKite</span>
-      </Link>
-      <KiteMark className="h-12 w-12 -rotate-12" />
+    <div className="no-print hidden w-[104px] shrink-0 bg-ink p-2 pr-0 lg:block">
+      <div className="sticky top-2 flex h-[calc(100dvh-1rem)] flex-col items-center justify-between rounded-[22px] bg-yellow py-5">
+        <Link href="/" aria-label="ChangeKite home" className="group flex flex-1 items-center justify-center no-underline">
+          <span className="sideways display text-[4.6rem] leading-none text-ink transition-transform duration-300 group-hover:-translate-y-1">ChangeKite</span>
+        </Link>
+        <KiteMark className="h-14 w-14 -rotate-12 transition-transform duration-300 hover:rotate-6" />
+      </div>
     </div>
   );
 }

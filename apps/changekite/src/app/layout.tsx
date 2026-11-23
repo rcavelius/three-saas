@@ -56,13 +56,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           Skip to content
         </a>
+        <div className="flex min-h-dvh">
         <BrandBar />
-        <div className="flex min-h-dvh flex-col lg:pl-[96px]">
+        <div className="flex min-w-0 flex-1 flex-col">
           <SiteHeader />
           <main id="main" className="flex-1 pb-24 has-[.ck-home]:bg-ink has-[.ck-home]:pb-0 lg:pb-32">
             {children}
           </main>
           <SiteFooter />
+        </div>
         </div>
         <Analytics />
         <Reveal />

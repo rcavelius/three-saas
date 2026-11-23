@@ -52,7 +52,7 @@ export function Burst({ children, className = "", fill = "var(--color-yellow)" }
           vectorEffect="non-scaling-stroke"
         />
       </svg>
-      <span className="relative px-7 py-4 text-center">{children}</span>
+      <span className="relative px-9 py-4 text-center">{children}</span>
     </span>
   );
 }

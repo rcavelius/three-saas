@@ -33,10 +33,10 @@ export default function HomePage() {
   const promises = ["No account needed", "Obeys robots.txt", "Never logs in", "Never submits forms", `Up to ${offer.freePages} pages free`, "12 checks per scan", "Results in about a minute"];
 
   return (
-    <div className="ck-home bg-ink px-3 pb-3 lg:px-4 lg:pb-4">
+    <div className="ck-home bg-ink px-2 pb-2">
       <JsonLd data={softwareApplicationJsonLd(new URL(env().APP_URL).origin)} />
 
-      <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-3 lg:grid-cols-12">
+      <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-2 lg:grid-cols-12">
         {/* Hero: the headline and the real scan form. */}
         <section aria-labelledby="hero-title" className="tile col-span-2 bg-yellow px-6 pb-8 pt-7 sm:px-10 sm:pb-12 sm:pt-10 lg:col-span-7 lg:min-h-[600px] lg:px-14 lg:pb-14 lg:pt-14">
           <Star className="ck-twinkle absolute right-5 top-5 h-11 w-11 sm:right-8 sm:top-8 sm:h-16 sm:w-16" fill="var(--color-pink)" />
@@ -51,7 +51,7 @@ export default function HomePage() {
         </section>
 
         {/* The mascot: the kite that reads your pages. */}
-        <section aria-labelledby="kite-title" className="tile col-span-2 flex min-h-[250px] items-end bg-cyan p-6 sm:min-h-[360px] sm:p-10 lg:col-span-5 lg:min-h-[600px]">
+        <section aria-labelledby="kite-title" className="tile col-span-2 flex min-h-[250px] items-end bg-cyan bg-[repeating-linear-gradient(-45deg,transparent_0_28px,rgba(255,255,255,0.22)_28px_56px)] p-6 sm:min-h-[360px] sm:p-10 lg:col-span-5 lg:min-h-[600px]">
           <img
             src="/art/kite.webp"
             alt="ChangeKite's mascot: a glossy orange and pink kite with a smiling face and a tail of bows"
@@ -87,7 +87,7 @@ export default function HomePage() {
           <div className="mt-6">
             <ScoreDial score={example.score} grade={example.grade} size={230} label={`Example score ${example.score} out of 100`} />
           </div>
-          <Burst className="-mt-6 -rotate-6 text-[1.35rem]" fill="var(--color-yellow)">
+          <Burst className="-mt-6 -rotate-6 px-3 text-[1.35rem]" fill="var(--color-yellow)">
             <span className="display leading-tight">{GRADE_LABEL[example.grade]}</span>
           </Burst>
           <p className="mt-4 text-[1.0625rem] font-extrabold">{toPerfect} points to a perfect 100</p>
@@ -132,11 +132,16 @@ export default function HomePage() {
         >
           <img src="/art/bell.webp" alt="" width={319} height={360} loading="lazy" className="ck-art ck-float pointer-events-none absolute right-6 top-6 h-32 w-auto sm:right-12 sm:h-44" style={{ ["--r" as string]: "12deg" }} />
           <span className="chip self-start">From {price(plans[0]!)}/month</span>
-          <div className="max-w-[62%]">
+          <div className="max-w-[70%]">
             <h2 id="watch-title" className="display text-[2.25rem] leading-none sm:text-[3.25rem]">
               We&rsquo;ll keep watching.
             </h2>
             <p className="mt-3 text-[1.0625rem] font-bold">Scheduled re-scans. An email only when something breaks.</p>
+            <p className="mt-5 flex flex-wrap gap-2">
+              <span className="rounded-full bg-white px-4 py-2 font-extrabold">Re-scan every {plans[0]!.limits.scanFrequencyHours} h</span>
+              <span className="rounded-full bg-white px-4 py-2 font-extrabold">Up to {plans[plans.length - 1]!.limits.sites} sites</span>
+              <span className="rounded-full bg-white px-4 py-2 font-extrabold">History kept</span>
+            </p>
           </div>
         </Link>
 

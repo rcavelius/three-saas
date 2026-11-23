@@ -14,7 +14,7 @@ const TONES = ["bg-orange text-ink", "bg-cyan text-ink", "bg-green text-ink"];
 export default function GuidesPage() {
   return (
     <>
-      <PageHero title="Fixing what the report finds" lede="Short, practical write-ups of the problems that hurt sites most often." tone="pink" art="/art/link.webp" wide />
+      <PageHero title="Fixing what the report finds" lede="Short, practical write-ups of the problems that hurt sites most often." tone="orange" art="/art/link.webp" wide />
       <div className="mx-auto max-w-[1360px] px-5 pt-20 md:px-8 lg:px-12 lg:pt-28">
         <h2 className="sr-only">All guides</h2>
         <ul className="grid gap-4 lg:grid-cols-3">

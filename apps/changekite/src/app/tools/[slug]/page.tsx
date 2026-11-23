@@ -99,8 +99,8 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         }}
       />
 
-      <section aria-labelledby="tool-title" className="bg-ink px-3 pb-3 lg:px-4 lg:pb-4">
-        <div className="tile relative mx-auto grid max-w-[1400px] gap-x-16 gap-y-7 bg-yellow px-6 pb-12 pt-9 text-ink sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:px-14 lg:pb-16 lg:pt-14">
+      <section aria-labelledby="tool-title" className="bg-ink px-2 pb-2">
+        <div className="tile relative mx-auto grid max-w-[1400px] gap-x-16 bg-yellow px-6 pb-12 pt-9 text-ink sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-14 lg:pb-16 lg:pt-14">
           <div className="lg:col-start-1 lg:row-start-1">
             <nav aria-label="Breadcrumb" className="chip">
               <Link href="/tools" className="hover:underline">
@@ -111,15 +111,19 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             <h1 id="tool-title" className="display sticker ck-in mt-5 text-[2.4rem] sm:text-[3.5rem] lg:text-[4.25rem]">
               {t.h1}
             </h1>
-            <p className="ck-in mt-5 max-w-[46ch] text-lg font-semibold leading-[1.5]" style={{ ["--d" as string]: "60ms" }}>
-              {t.intro}
-            </p>
           </div>
-          <div className="order-last text-ink lg:order-none lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start lg:pt-10">
+          {/* The form comes before the explanation, so it is on a phone's first screen. */}
+          <div className="lg:col-start-1 lg:row-start-2">
+            <Scanner layout="tile" cta={TOOL_CTA[t.slug]} offer={offer} resultsId="scan-results" />
+          </div>
+          <p className="ck-in mt-8 max-w-[46ch] text-lg font-semibold leading-[1.5] lg:col-start-1 lg:row-start-3" style={{ ["--d" as string]: "60ms" }}>
+            {t.intro}
+          </p>
+          <div className="mt-8 text-ink lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:mt-0 lg:self-center">
             {LINK_TOOLS.has(t.slug) ? <ExampleLinkCheck /> : <ExampleReport />}
           </div>
-          <Scanner layout="hero" cta={TOOL_CTA[t.slug]} offer={offer} />
         </div>
+        <div id="scan-results" className="mx-auto mt-2 max-w-[1400px] scroll-mt-4 empty:hidden" />
       </section>
 
       <div className="mx-auto max-w-3xl px-5 sm:px-8">

@@ -88,7 +88,7 @@ export function PageHero({
   wide?: boolean;
 }) {
   return (
-    <section aria-labelledby="page-title" className="bg-ink px-3 pb-3 lg:px-4 lg:pb-4">
+    <section aria-labelledby="page-title" className="bg-ink px-2 pb-2">
       <div className={`tile ck-in mx-auto max-w-[1400px] px-6 pb-12 pt-9 text-ink sm:px-10 lg:px-14 lg:pb-16 lg:pt-14 ${TONE_BG[tone]}`}>
         {art && (
           <img
