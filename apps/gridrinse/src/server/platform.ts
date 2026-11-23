@@ -10,7 +10,7 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { createAuth, type AppAuth, type EmailMessage } from "@repo/auth";
 import {
   BillingError,
@@ -46,6 +46,8 @@ import { createSupport, type AnthropicLike, type Support } from "@repo/support";
 
 export const CATALOG = GRIDRINSE_CATALOG;
 export const COOKIE_PREFIX = "gr";
+/** Cookie carrying an anonymous buyer's one-time pass (signed Checkout Session id). */
+export const PASS_COOKIE = `${COOKIE_PREFIX}_pass`;
 /** Header the auth route sets from the trusted-proxy client IP (any client-sent value is overwritten). */
 export const CLIENT_IP_HEADER = "x-gr-client-ip";
 
@@ -89,7 +91,7 @@ function notConfiguredGateway(): StripeGateway {
   return {
     mode: "test",
     customers: { create: fail },
-    checkout: { sessions: { create: fail } },
+    checkout: { sessions: { create: fail, retrieve: fail } },
     billingPortal: { sessions: { create: fail } },
     subscriptions: { retrieve: fail, list: fail, update: fail, cancel: fail },
     prices: { listByLookupKeys: fail },
@@ -161,6 +163,9 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
     appUrl: env.appUrl,
     now,
     automaticTax: env.stripeAutomaticTax,
+    // One-time passes (no account needed): the signed cookie is derived from the session secret, server-only.
+    passCookie: { name: PASS_COOKIE, secret: createHash("sha256").update(`pass-cookie-v1:${env.sessionSecret}`).digest("base64url") },
+    passStatementDescriptorSuffix: "GRIDRINSE.COM",
     checkoutBranding: { display_name: "GridRinse", button_color: "#138a4a", background_color: "#ffffff", border_style: "rounded" },
     paths: {
       checkoutSuccess: "/account/billing?checkout=success",

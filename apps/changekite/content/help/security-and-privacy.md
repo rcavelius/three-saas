@@ -11,6 +11,7 @@ This article summarises what ChangeKite stores and for how long. The full text i
 
 - We store the address you entered and the report produced from the public pages of that site.
 - No account is needed, no cookies are set for a free scan, and the scan record does not store your IP address. For rate limiting, a one-way hash of your IP address is kept in a counter for the current hour.
+- If you buy the one-time Full-site report pass, your browser gets a cookie (httpOnly) that carries the pass until it ends. It holds only a signed reference to the purchase.
 - Each report lives under a long random link. Anyone with the link can open it, so share it with care.
 - Free reports are deleted automatically after the retention period, 90 days by default.
 

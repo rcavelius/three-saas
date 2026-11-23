@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 import { Cleaner } from "@/components/Cleaner";
 import { HowHero } from "@/components/HowHero";
-import { freeProcessingLimits } from "@/server/plans";
+import { freeProcessingLimits, passOffer, upgradeOffers } from "@/server/plans";
 
 export const metadata: Metadata = pageMeta({
   title: "How it works",
@@ -15,7 +15,7 @@ export default function HowItWorks() {
     <>
       <HowHero />
       <div className="pt-8 sm:pt-10">
-        <Cleaner freeLimits={freeProcessingLimits()} />
+        <Cleaner freeLimits={freeProcessingLimits()} offers={upgradeOffers()} pass={passOffer()} />
       </div>
     </>
   );

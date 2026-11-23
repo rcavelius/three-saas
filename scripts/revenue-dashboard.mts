@@ -56,7 +56,12 @@ for (const app of apps) {
       (name='pageview' AND (path LIKE '/pricing%' OR path LIKE '/signup%')) OR name IN ('tool_used','signup_started','upgrade_clicked','checkout_started'))`);
   const pricing = await one(`SELECT count(*) n FROM analytics_events WHERE name='pageview' AND path LIKE '/pricing%' AND created_at >= $1`);
   const signups = await one(`SELECT count(*) n FROM analytics_events WHERE name='signup_completed' AND created_at >= $1`);
-  const checkouts = await one(`SELECT count(*) n FROM analytics_events WHERE name='checkout_started' AND created_at >= $1`);
+  const checkouts = await one(`SELECT count(*) n FROM analytics_events WHERE name IN ('checkout_started','pass_checkout_started') AND created_at >= $1`);
+  // One-time passes (billing_passes is recorded from verified Stripe sessions; refunded passes have revoked_at).
+  const passStats = await db
+    .query(`SELECT count(*) n, coalesce(sum(amount_cents), 0) cents FROM billing_passes WHERE created_at >= $1 AND revoked_at IS NULL AND livemode = $2`, [since, mode === "live"])
+    .then((r) => ({ n: Number(r.rows[0]?.n ?? 0), cents: Number(r.rows[0]?.cents ?? 0) }))
+    .catch(() => ({ n: 0, cents: 0 })); // table not migrated yet
   await db.end();
 
   const mine = subs.filter((s) => appOf(s) === app);
@@ -78,10 +83,12 @@ for (const app of apps) {
     [`new paid subs (${mode})`]: newPaid,
     [`active paid subs (${mode})`]: active.length,
     [`MRR USD (${mode})`]: (mrrCents / 100).toFixed(2),
+    [`passes sold (${mode})`]: passStats.n,
+    [`pass revenue USD (${mode}, incl. tax)`]: (passStats.cents / 100).toFixed(2),
     "cancellations": `${canceled} done, ${pendingCancel} at period end`,
     refunds: appRefunds.length,
     "spend USD": spendUsd.toFixed(2),
-    CAC: newPaid ? `$${(spendUsd / newPaid).toFixed(2)}` : spendUsd ? "no paid subs yet" : "n/a",
+    CAC: newPaid + passStats.n ? `$${(spendUsd / (newPaid + passStats.n)).toFixed(2)}` : spendUsd ? "no paying customers yet" : "n/a",
     "visitor → checkout": visitors ? `${((checkouts / visitors) * 100).toFixed(1)}%` : "n/a",
   });
 }

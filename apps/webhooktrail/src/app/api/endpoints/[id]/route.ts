@@ -1,6 +1,7 @@
 import { ownedEndpointContext } from "@/lib/api";
 import { deleteEndpoint, getVisibleEndpoint, toEndpointDTO, updateEndpoint } from "@/lib/endpoints";
 import { json, notFound, readJsonBody } from "@/lib/http";
+import { viewerPassInfo } from "@/lib/pass";
 import { updateEndpointSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -12,7 +13,11 @@ export async function GET(req: Request, { params }: Ctx): Promise<Response> {
   const { id } = await params;
   const ctx = await ownedEndpointContext(req, id, { mutating: false, allowExpired: true });
   if (ctx instanceof Response) return ctx;
-  return json({ endpoint: toEndpointDTO(ctx.endpoint, ctx.p.appUrl, ctx.limits, ctx.viewer), signedIn: Boolean(ctx.viewer.user) });
+  return json({
+    endpoint: toEndpointDTO(ctx.endpoint, ctx.p.appUrl, ctx.limits, ctx.viewer),
+    signedIn: Boolean(ctx.viewer.user),
+    pass: await viewerPassInfo(ctx.p, ctx.viewer),
+  });
 }
 
 /** Rename, change expiry (expiring endpoints only), set or reset the custom response. */

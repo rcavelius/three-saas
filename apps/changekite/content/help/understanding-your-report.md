@@ -3,7 +3,7 @@ title: Understanding your report and score
 slug: understanding-your-report
 summary: What the twelve checks in a ChangeKite report cover, how findings are graded critical, warning or notice, and how the score is calculated.
 category: Getting started
-updated: 2026-11-11
+updated: 2026-11-23
 ---
 Every finding in a ChangeKite report comes from one of a fixed set of checks. The full reference, with exactly how each check works, is on [What we check](/docs). This article is the short version.
 
@@ -29,6 +29,10 @@ Every finding in a ChangeKite report comes from one of a fixed set of checks. Th
 - **Crawl coverage**: what was and was not checked, for example when the page cap or time limit was reached.
 
 A check can show as *Not checked* when the scan could not run it.
+
+## Free report and full report
+
+The free report shows the score, every check's result with counts by severity, the number of pages read, and the 3 most severe findings with how to fix them. The full report lists every finding with the page it is on and the fix, plus the page-by-page list. It is included in the Solo and Agency plans, or unlocked for 7 days with the one-time Full-site report pass ($9, no account needed). See [Plans and limits](/help/plans-and-limits).
 
 ## How the score works
 

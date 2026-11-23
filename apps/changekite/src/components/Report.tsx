@@ -2,8 +2,10 @@
  * The audit document. Pure presentational (no hooks) so it renders on the server (/report/[id]) and inside the
  * client-side scanner. Imports only types and the score table, never network code.
  */
+import type { ReactNode } from "react";
 import type { CheckStatus, Issue, ScanReport, Severity } from "@/lib/scanner/types";
 import { SCORE_RULES } from "@/lib/scanner/score";
+import type { LockedSummary } from "@/lib/report-gate";
 
 const SEVERITY_META: Record<Severity, { label: string; plural: string; prefix: string; text: string; wash: string; rule: string }> = {
   critical: { label: "Critical", plural: "Critical", prefix: "C", text: "text-fail", wash: "bg-fail-wash", rule: "border-fail" },
@@ -92,7 +94,11 @@ function Finding({ issue, n }: { issue: Issue; n: string }) {
   );
 }
 
-export function Report({ report, id }: { report: ScanReport; id?: string }) {
+/**
+ * `locked` (from the server's gateReport) means `report.issues` holds only the top issues and the page list was
+ * withheld; `paywall` renders right under those top issues.
+ */
+export function Report({ report, id, locked = null, paywall }: { report: ScanReport; id?: string; locked?: LockedSummary | null; paywall?: ReactNode }) {
   const grade = GRADE_META[report.grade];
   const bySeverity = (s: Severity) => report.issues.filter((i) => i.severity === s);
   const tls = report.https.tls;
@@ -192,7 +198,21 @@ export function Report({ report, id }: { report: ScanReport; id?: string }) {
           <span className="num mr-3 text-base text-muted">2</span>Findings
         </h2>
         {report.issues.length === 0 && <p className="mt-4 text-ink-soft">No problems were found on the pages we inspected.</p>}
-        {(["critical", "warning", "notice"] as const).map((s, si) => {
+        {locked && (
+          <>
+            <p className="mt-3 text-ink-soft">
+              The {locked.shown === 1 ? "most severe issue" : `${locked.shown} most severe issues`} of {locked.total}, with how to fix{" "}
+              {locked.shown === 1 ? "it" : "them"}.
+            </p>
+            <ol className="mt-4 list-none border-t border-ink">
+              {report.issues.map((issue, i) => (
+                <Finding key={`${issue.id}-${i}`} issue={issue} n={`${SEVERITY_META[issue.severity].prefix}${i + 1}`} />
+              ))}
+            </ol>
+            {paywall}
+          </>
+        )}
+        {!locked && (["critical", "warning", "notice"] as const).map((s, si) => {
           const list = bySeverity(s);
           if (!list.length) return null;
           const meta = SEVERITY_META[s];
@@ -218,6 +238,11 @@ export function Report({ report, id }: { report: ScanReport; id?: string }) {
         <h2 id="s-pages" className="font-display text-2xl font-semibold">
           <span className="num mr-3 text-base text-muted">3</span>Pages inspected
         </h2>
+        {locked ? (
+          <p className="mt-4 text-ink-soft">
+            {report.stats.pagesCrawled} pages were read. The page-by-page list with status codes is part of the full report.
+          </p>
+        ) : (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[34rem] border-collapse text-left text-sm">
             <thead>
@@ -247,6 +272,7 @@ export function Report({ report, id }: { report: ScanReport; id?: string }) {
             </tbody>
           </table>
         </div>
+        )}
       </section>
 
       {/* 4. Site facts */}

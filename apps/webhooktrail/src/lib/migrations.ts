@@ -127,4 +127,21 @@ CREATE TABLE hp_usage_alerts (
 );
 `,
   },
+  {
+    // One-time passes (@repo/billing billing_passes) linked to the endpoint owners that used them: a pass cookie
+    // seen on a request by a workspace member or an anonymous owner links that pass to the workspace / owner, so
+    // capture, retention and replay jobs (which have no cookie) apply the pass to that owner's endpoints while
+    // billing still says the pass is active (paid, not expired, not refunded).
+    id: "webhooktrail_0003_pass_links",
+    sql: `
+CREATE TABLE hp_pass_links (
+  pass_session_id text NOT NULL,
+  owner_key text NOT NULL,
+  expires_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (pass_session_id, owner_key)
+);
+CREATE INDEX hp_pass_links_owner_idx ON hp_pass_links (owner_key, expires_at);
+`,
+  },
 ];

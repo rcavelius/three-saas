@@ -5,17 +5,18 @@
  * Authorization rules:
  * - Every workflow query is scoped by the org id from auth.requireOrg() (membership verified in the
  *   database), never by an id from the request. Another org's workflow id answers 404.
- * - Plan limits come only from billing.getEntitlements(orgId) on the server.
+ * - Plan limits come only from billing.getEntitlements(orgId, { passIds }) on the server; passIds come only from the
+ *   signed pass cookie (billing.passIdsFromCookieHeader), never from the request body.
  * - Mutating routes require a same-origin request and are rate limited per trusted client IP and per user.
  */
-import { checkoutRoute, getFreePlan, portalRoute, webhookRoute } from "@repo/billing";
+import { checkoutRoute, passCheckoutRoute, passClaimRoute, portalRoute, webhookRoute, type Entitlements } from "@repo/billing";
 import { getClientIp, recordCost, resolveIncident, setBudget } from "@repo/ops";
 import { cronTickRoute, eventsRoute, healthRoute, MAX_EVENT_BODY_BYTES } from "@repo/ops/next";
 import { EVENT_SPEC, sanitizeEventProps, type EventName } from "@/lib/analytics";
 import { WorkflowWriteSchema } from "@/lib/workflowPolicy";
 import type { ClientEntitlements } from "@/lib/limits";
 import { ApiError, assertSameOrigin, guarded, json, limitByIp, limitByKey, readJson } from "./http";
-import { CATALOG, CLIENT_IP_HEADER, type Platform } from "./platform";
+import { CLIENT_IP_HEADER, type Platform } from "./platform";
 
 const MINUTE = 60_000;
 const MAX_WORKFLOW_BODY = 64 * 1024;
@@ -80,30 +81,48 @@ async function seatCheck(p: Platform, headers: Headers, body: ArrayBuffer): Prom
 // Entitlements: what the browser applies to local processing (value fences, not security
 // boundaries: files never reach the server, so there is nothing server-side to protect there).
 
+/** Verified pass ids from the visitor's signed pass cookie (forged or unsigned values are dropped). */
+export function visitorPassIds(p: Platform, req: Request): string[] {
+  return p.billing.passIdsFromCookieHeader(req.headers.get("cookie"));
+}
+
+/** The pass as the browser may see it, with the buyer's reusable unlock link for another device. */
+function clientPass(p: Platform, ent: Entitlements): ClientEntitlements["pass"] {
+  if (!ent.pass) return null;
+  return {
+    name: ent.pass.name,
+    expiresAt: ent.pass.expiresAt.toISOString(),
+    unlockUrl: `${p.env.appUrl}/api/billing/pass/claim?session_id=${encodeURIComponent(ent.pass.id)}&next=${encodeURIComponent("/")}`,
+  };
+}
+
 export async function entitlementsRoute(p: Platform, req: Request): Promise<Response> {
   return guarded(async () => {
     await limitByIp(p.handle.executor, p.env.clientIp, req, "ent", 120, MINUTE, p.now());
+    const passIds = visitorPassIds(p, req);
     const session = await p.auth.getSession(req.headers);
     if (!session) {
-      const free = getFreePlan(CATALOG);
+      // Anonymous visitors are on the free plan, raised by a pass bought in this browser.
+      const ent = await p.billing.getEntitlements(null, { passIds });
       const body: ClientEntitlements = {
         signedIn: false,
-        planId: free.id,
-        planName: free.name,
+        planId: ent.planId,
+        planName: ent.planName,
         status: "none",
-        limits: { ...free.limits },
-        features: { ...free.features },
+        limits: ent.limits,
+        features: ent.features,
         cancelAtPeriodEnd: false,
         currentPeriodEnd: null,
         graceEndsAt: null,
         org: null,
         usage: null,
         billingConfigured: p.billingConfigured,
+        pass: clientPass(p, ent),
       };
       return json(200, body);
     }
     const { org, role, user } = await p.auth.requireOrg(req.headers);
-    const ent = await p.billing.getEntitlements(org.id);
+    const ent = await p.billing.getEntitlements(org.id, { passIds });
     const { rows } = await p.handle.executor.query<{ n: number }>(`SELECT count(*)::int AS n FROM auth_member WHERE organization_id = $1`, [org.id]);
     const body: ClientEntitlements = {
       signedIn: true,
@@ -120,6 +139,7 @@ export async function entitlementsRoute(p: Platform, req: Request): Promise<Resp
       user: { id: user.id, email: user.email, name: user.name },
       usage: { savedWorkflows: await p.workflows.count(org.id), teamSeats: Number(rows[0]?.n ?? 1) },
       billingConfigured: p.billingConfigured,
+      pass: clientPass(p, ent),
     };
     return json(200, body);
   });
@@ -133,7 +153,7 @@ async function workflowContext(p: Platform, req: Request, mutating: boolean) {
   await limitByIp(p.handle.executor, p.env.clientIp, req, mutating ? "wf-write" : "wf-read", mutating ? 60 : 240, MINUTE, p.now());
   const ctx = await p.auth.requireOrg(req.headers);
   if (mutating) await limitByKey(p.handle.executor, `wf-write-user:${ctx.user.id}`, 60, MINUTE, p.now());
-  const ent = await p.billing.getEntitlements(ctx.org.id);
+  const ent = await p.billing.getEntitlements(ctx.org.id, { passIds: visitorPassIds(p, req) });
   return { ...ctx, ent, limit: ent.limits.savedWorkflows ?? 0 };
 }
 
@@ -221,6 +241,38 @@ export async function portalRouteHandler(p: Platform, req: Request): Promise<Res
       return notConfigured();
     }
     return portalRoute(p.billing, (r) => resolveOwnerOrg(p, r))(req);
+  });
+}
+
+/** Signed-in buyer (optional): the pass then also counts for their workspace. Never throws for anonymous visitors. */
+async function resolvePassViewer(p: Platform, req: Request) {
+  const s = await p.auth.getSession(req.headers).catch(() => null);
+  if (!s) return null;
+  try {
+    const { org, user } = await p.auth.requireOrg(req.headers);
+    return { orgId: org.id, email: user.email };
+  } catch {
+    return { orgId: null, email: s.user.email };
+  }
+}
+
+/** POST { passId, returnPath } -> { url } of Stripe Checkout for a one-time pass. Anonymous visitors may buy. */
+export async function passCheckoutRouteHandler(p: Platform, req: Request): Promise<Response> {
+  return guarded(async () => {
+    await limitByIp(p.handle.executor, p.env.clientIp, req, "billing", 20, MINUTE, p.now());
+    if (!p.billingConfigured) {
+      assertSameOrigin(req, p.env.appUrl);
+      return json(503, { error: "billing_not_configured", message: "Payments are not switched on yet. Nothing is charged." });
+    }
+    return passCheckoutRoute(p.billing, (r) => resolvePassViewer(p, r))(req);
+  });
+}
+
+/** GET: Stripe's success redirect and the buyer's reusable unlock link. Sets the pass cookie, then 303 to next?pass=<status>. */
+export async function passClaimRouteHandler(p: Platform, req: Request): Promise<Response> {
+  return guarded(async () => {
+    await limitByIp(p.handle.executor, p.env.clientIp, req, "pass-claim", 30, MINUTE, p.now());
+    return passClaimRoute(p.billing)(req);
   });
 }
 

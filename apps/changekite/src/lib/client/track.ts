@@ -4,6 +4,8 @@
  * First-party, cookie-less product analytics: POST /api/events (same origin). The anonymous id is a
  * random value in localStorage, never linked to an IP; the user id is added server-side from the session.
  */
+import type { EventName } from "@/lib/events";
+
 const KEY = "ck_anon_id";
 
 function anonymousId(): string | null {
@@ -19,7 +21,7 @@ function anonymousId(): string | null {
   }
 }
 
-export type TrackName = "pageview" | "signup_started" | "signup_completed" | "checkout_started" | "tool_used" | "upgrade_clicked" | "pricing_viewed" | "cta_clicked";
+export type TrackName = EventName;
 
 export function track(name: TrackName, props?: Record<string, string | number | boolean | null>): void {
   try {

@@ -1,20 +1,30 @@
 ---
 title: Plans and limits
 slug: plans-and-limits
-summary: What the Free, Solo ($19/month) and Agency ($79/month) plans include, with exact limits for sites, pages, scan frequency, history and seats.
+summary: What the Free plan, the one-time Full-site report pass ($9) and the Solo ($19/month) and Agency ($79/month) plans include, with exact limits.
 category: Plans & billing
-updated: 2026-11-11
+updated: 2026-11-23
 ---
-ChangeKite has three plans. Prices are in US dollars, billed monthly; taxes may apply where required. You can compare them on the [pricing page](/pricing).
+ChangeKite has three plans and one one-time pass. Prices are in US dollars; plans are billed monthly, the pass is charged once. Taxes may apply where required. You can compare them on the [pricing page](/pricing).
 
 ## Free: $0
 
 - One-off scans from the home page, no account needed
 - Up to 25 pages per scan
+- The report shows the score, a summary of every check (with counts by severity) and the 3 most severe issues with how to fix them. The other issues, their fixes and the page-by-page list are in the full report.
 - Shareable report link
 - Print to PDF from your browser
 - No monitored sites, scheduled scans, email alerts or report history
 - 1 team seat
+
+## Full-site report pass: $9 once
+
+- Charged once; it never renews and there is nothing to cancel. No account needed.
+- For 7 days: the full report (every issue, where it is and how to fix it) on every report you open, including reports you ran before buying
+- Scans of up to 250 pages
+- PDF export of reports
+- Works in the browser you bought it in. Each report shows a **Copy unlock link** button while the pass is active: open that link on another device to use the pass there. If you were signed in when you bought it, it works for everyone in your workspace.
+- No monitored sites, alerts or history: for those, choose Solo or Agency.
 
 ## Solo: $19/month
 
@@ -24,6 +34,7 @@ ChangeKite has three plans. Prices are in US dollars, billed monthly; taxes may 
 - Email alerts only when something changes
 - 90 days of report history
 - 1 team seat
+- Full reports: every issue with its fix
 
 ## Agency: $79/month
 
@@ -33,6 +44,7 @@ ChangeKite has three plans. Prices are in US dollars, billed monthly; taxes may 
 - Email alerts only when something changes
 - 365 days of report history
 - 5 team seats
+- Full reports: every issue with its fix
 - Server-generated PDF reports (up to 30 PDF exports per workspace per hour)
 - Priority scan queue
 
@@ -44,7 +56,7 @@ On Free and Solo, use the **Print / PDF** button on a report to save it as a PDF
 
 ## Limits on free scans
 
-To keep the scanner fair and stop it being used to flood websites, free scans have extra limits:
+To keep the scanner fair and stop it being used to flood websites, scans started from the home page (free or with a pass) have extra limits:
 
 - A number of scans per hour from the same connection (5 per hour by default).
 - A number of scans of the same website per hour, no matter who asks (10 per hour by default).

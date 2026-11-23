@@ -27,6 +27,11 @@ export interface ClientEntitlements {
   user?: { id: string; email: string; name: string };
   usage: { savedWorkflows: number; teamSeats: number } | null;
   billingConfigured: boolean;
+  /**
+   * The visitor's active one-time pass (from the pass cookie, or bought by the signed-in workspace), or null.
+   * unlockUrl is the buyer's reusable link that unlocks the pass in another browser.
+   */
+  pass?: { name: string; expiresAt: string; unlockUrl: string } | null;
 }
 
 export interface ProcessingLimits {
@@ -35,6 +40,28 @@ export interface ProcessingLimits {
   maxFileBytes: number;
   maxRows: number;
   maxFiles: number;
+  /** Most rows in one cleaned download; -1 = unlimited. */
+  downloadRows: number;
+  /** Cleaned downloads per UTC day in this browser; -1 = unlimited. */
+  downloadsPerDay: number;
+}
+
+/** A one-time pass as the paywall may describe it (server-computed from the catalog). */
+export interface PassOffer {
+  passId: string;
+  name: string;
+  /** US dollars, charged once. */
+  price: number;
+  durationHours: number;
+  maxFileBytes: number;
+  maxRows: number;
+  maxFiles: number;
+}
+
+/** True when the pass would really take a file/batch of this size (the pass is only offered when it would). */
+export function passFits(pass: PassOffer | null | undefined, need?: { fileBytes?: number; rows?: number; files?: number }): pass is PassOffer {
+  if (!pass) return false;
+  return (need?.fileBytes === undefined || pass.maxFileBytes >= need.fileBytes) && (need?.rows === undefined || pass.maxRows >= need.rows) && (need?.files === undefined || pass.maxFiles >= need.files);
 }
 
 /** A paid plan as the upgrade prompts may describe it (server-computed from the catalog). */
@@ -87,6 +114,8 @@ export function processingLimits(planId: string, planName: string, limits: Recor
     maxFileBytes: cap(limits.maxFileMb === undefined ? undefined : limits.maxFileMb < 0 ? -1 : limits.maxFileMb * MB, ABSOLUTE_LIMITS.fileBytes),
     maxRows: cap(limits.maxRows, ABSOLUTE_LIMITS.rows),
     maxFiles: cap(limits.filesPerBatch, ABSOLUTE_LIMITS.files),
+    downloadRows: limits.downloadRows === undefined || limits.downloadRows < 0 ? -1 : limits.downloadRows,
+    downloadsPerDay: limits.downloadsPerDay === undefined || limits.downloadsPerDay < 0 ? -1 : limits.downloadsPerDay,
   };
 }
 

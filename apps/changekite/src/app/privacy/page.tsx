@@ -37,6 +37,11 @@ export default function PrivacyPage() {
         <li>Standard request logs (time, path, status) kept by the hosting provider.</li>
       </ul>
       <p>No account is needed for a free scan, no cookies are set for it, and no third-party analytics or advertising scripts are loaded.</p>
+      <p>
+        If you buy a one-time pass, Stripe processes the payment and gives us the email address and payment reference for it. We keep those with the
+        pass dates, and your browser gets a cookie (httpOnly) that carries the pass until it ends; it contains only a signed reference to the
+        purchase.
+      </p>
 
       <h2>Reports</h2>
       <p>

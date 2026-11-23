@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function CopyLink({ path }: { path: string }) {
+export function CopyLink({ path, label = "Copy link" }: { path: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -18,7 +18,7 @@ export function CopyLink({ path }: { path: string }) {
         }
       }}
     >
-      <span aria-live="polite">{copied ? "Link copied" : "Copy link"}</span>
+      <span aria-live="polite">{copied ? "Link copied" : label}</span>
     </button>
   );
 }

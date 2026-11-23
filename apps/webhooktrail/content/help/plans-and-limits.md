@@ -1,11 +1,11 @@
 ---
 title: Plans and limits
 slug: plans-and-limits
-summary: Exact limits of the Free, Developer ($9/month) and Pro ($29/month) plans, and what happens when you reach them.
+summary: Exact limits of the Free, Developer ($9/month) and Pro ($29/month) plans and the one-time 7-day pass ($5), and what happens when you reach them.
 category: Plans & billing
-updated: 2026-11-11
+updated: 2026-11-23
 ---
-WebhookTrail has three plans. Prices are in US dollars per month, excluding applicable taxes. Limits are checked on the server for every request. Anonymous endpoints always use the Free plan.
+WebhookTrail has three plans and a one-time 7-day pass. Prices are in US dollars per month, excluding applicable taxes. Limits are checked on the server for every request. Anonymous endpoints always use the Free plan.
 
 ## Free ($0)
 
@@ -36,6 +36,18 @@ WebhookTrail has three plans. Prices are in US dollars per month, excluding appl
 - First 5 MB of each body stored; bodies over 10 MB rejected
 - Replay to verified destinations, with retries
 - 5 team seats
+
+## 7-day pass ($5 once)
+
+A one-time payment, no subscription, no account needed. For 7 days after payment it adds to your plan:
+
+- Replay to verified destinations, with retries (destinations live in a workspace, so replay needs a free account)
+- 25 active endpoints
+- Endpoints live 7 days after creation, with 7 days of history
+- Newest 2,000 requests kept per endpoint
+- First 1 MB of each body stored; bodies over 2 MB rejected
+
+The monthly request quota and team seats stay those of your plan. The pass works in the browser that bought it and wherever you open its unlock link; bought while signed in, it counts for the whole workspace. It never renews: when it ends, your endpoints fall back to your plan's limits the same way a downgrade does (see below).
 
 ## Rate limits
 

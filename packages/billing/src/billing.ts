@@ -12,9 +12,10 @@
  * - Entitlements are computed server-side from billing_subscriptions only.
  */
 import type { DbHandle, SqlExecutor } from "@repo/database";
-import { getFreePlan, getPlan, planByLookupKey, type Catalog, type PlanDef } from "./catalog";
+import { applyPassGrants, getFreePlan, getPass, getPlan, planByLookupKey, type Catalog, type PassDef, type PlanDef } from "./catalog";
 import { BillingNotConfiguredError,
   invoiceSubscriptionId,
+  type GatewayCheckoutSession,
   normalizeSubscription,
   type GatewayEvent,
   type GatewaySubscription,
@@ -22,6 +23,7 @@ import { BillingNotConfiguredError,
   type SubscriptionStatus,
 } from "./gateway";
 import { advisoryXactLock } from "./locks";
+import { readCookie, signPassToken, verifyPassToken } from "./pass-token";
 
 // ---------------------------------------------------------------------------------------------
 // Public types
@@ -33,7 +35,7 @@ export interface PaymentFailedInfo {
 }
 
 export interface BillingAnomaly {
-  kind: "unknown_price" | "org_mismatch" | "hook_failed" | "reconcile_failed";
+  kind: "unknown_price" | "org_mismatch" | "hook_failed" | "reconcile_failed" | "pass_mismatch";
   message: string;
   orgId?: string;
   eventId?: string;
@@ -49,6 +51,8 @@ export interface BillingHooks {
    * `endsAt`; use it for the "your plan stays active until …" email. Fires once per scheduling.
    */
   onCancellationScheduled?(orgId: string, info: { planId: string; endsAt: Date | null }): Promise<void>;
+  /** A one-time pass was paid and recorded (fires once per pass). */
+  onPassPurchased?(pass: ActivePass): Promise<void>;
   /** Extension: incident-worthy problems (wire to @repo/ops raiseIncident). */
   onAnomaly?(a: BillingAnomaly): Promise<void>;
 }
@@ -82,7 +86,32 @@ export interface BillingOptions {
   /** Proration for changePlan. Default "create_prorations" (difference billed on the next invoice). */
   prorationBehavior?: "create_prorations" | "always_invoice";
   paths?: { checkoutSuccess?: string; checkoutCancel?: string; portalReturn?: string };
+  /**
+   * One-time passes: the cookie that carries a buyer's pass (value = Checkout Session id + HMAC). `secret` must be
+   * a server-only secret of at least 32 characters (e.g. derived from the auth secret). Without it passes can still be
+   * bought and attached to signed-in orgs, but anonymous buyers cannot be unlocked.
+   */
+  passCookie?: { name: string; secret: string };
+  /** Card statement suffix for one-time payments (e.g. "GRIDRINSE.COM"); subscriptions use the product descriptor. */
+  passStatementDescriptorSuffix?: string;
 }
+
+/** A paid, recorded pass that has not expired or been refunded. */
+export interface ActivePass {
+  /** Stripe Checkout Session id (also the bearer reference in the cookie / unlock link). */
+  id: string;
+  passId: string;
+  name: string;
+  orgId: string | null;
+  email: string | null;
+  startsAt: Date;
+  expiresAt: Date;
+}
+
+export type PassClaim =
+  | { status: "active"; pass: ActivePass }
+  | { status: "expired" | "revoked"; pass: Omit<ActivePass, "name"> & { name: string } }
+  | { status: "unpaid" | "invalid" };
 
 export interface CheckoutBranding {
   display_name: string;
@@ -104,6 +133,8 @@ export interface Entitlements {
   graceEndsAt: Date | null;
   /** The plan the org pays for (may differ from planId once the grace period is over). */
   subscribedPlanId: string;
+  /** The active one-time pass raising these limits (the one that lasts longest), or null. */
+  pass: { id: string; passId: string; name: string; expiresAt: Date } | null;
 }
 
 export interface UsageResult {
@@ -115,7 +146,24 @@ export interface UsageResult {
 export interface Billing {
   readonly catalog: Catalog;
   readonly appUrl: string;
-  getEntitlements(orgId: string): Promise<Entitlements>;
+  /**
+   * Plan + active passes. orgId null = anonymous visitor (free plan). passIds: Checkout Session ids from the
+   * visitor's verified pass cookie (see passIdsFromCookieHeader); passes bought by the org always count.
+   */
+  getEntitlements(orgId: string | null, opts?: { passIds?: string[] }): Promise<Entitlements>;
+  /** Stripe Checkout (mode "payment") for a one-time pass. No account needed; orgId binds the pass to an org too. */
+  createPassCheckout(
+    passId: string,
+    opts?: { orgId?: string | null; email?: string | null; returnPath?: string },
+  ): Promise<{ url: string; id: string }>;
+  /** Verifies a Checkout Session with Stripe and records the pass (idempotent; also done by the webhook). */
+  claimPass(sessionId: string): Promise<PassClaim>;
+  /** Active passes of an org and/or the given session ids. */
+  getActivePasses(opts: { orgId?: string | null; passIds?: string[] }): Promise<ActivePass[]>;
+  /** Verified pass session ids from a Cookie header ([] without passCookie configured). */
+  passIdsFromCookieHeader(cookieHeader: string | null): string[];
+  /** Set-Cookie header value carrying the pass until it expires (null without passCookie configured). */
+  passSetCookie(pass: Pick<ActivePass, "id"> & { expiresAt: Date | null }, opts?: { secure?: boolean }): string | null;
   consumeUsage(orgId: string, metric: string, amount: number, opts?: { period?: string }): Promise<UsageResult>;
   releaseUsage(orgId: string, metric: string, amount: number, opts?: { period?: string }): Promise<void>;
   getUsage(orgId: string, metric: string, opts?: { period?: string }): Promise<number>;
@@ -235,6 +283,19 @@ function isNotFound(e: unknown): boolean {
 }
 
 const PERIOD_RE = /^[A-Za-z0-9:_-]{1,40}$/;
+/** Stripe Checkout Session ids (cs_test_..., cs_live_...; FakeStripe: cs_test_fake...). */
+const SESSION_ID_RE = /^cs_(test|live)_[A-Za-z0-9]{1,250}$/;
+const MAX_PASS_IDS = 5;
+const EMAIL_RE = /^[^\s@]{1,200}@[^\s@]{1,200}$/;
+
+const PASS_COLUMNS = `id, pass_id, org_id, email, starts_at, expires_at, revoked_at`;
+
+/** A same-site path to come back to after Checkout ("/tools/x?y=1"); anything else becomes "/". */
+export function safeReturnPath(p: unknown): string {
+  if (typeof p !== "string" || p.length === 0 || p.length > 300) return "/";
+  if (!p.startsWith("/") || p.startsWith("//") || p.includes("\\") || /[\u0000-\u001f]/.test(p)) return "/";
+  return p;
+}
 
 // ---------------------------------------------------------------------------------------------
 
@@ -246,6 +307,9 @@ export function createBilling(opts: BillingOptions): Billing {
   const freePlan = getFreePlan(catalog);
   const configured = stripe.mode !== "none";
   if (configured && !opts.webhookSecret) throw new Error("createBilling: webhookSecret is required");
+  if (opts.passCookie && (opts.passCookie.secret.length < 32 || !/^[A-Za-z0-9_-]{1,40}$/.test(opts.passCookie.name))) {
+    throw new Error("createBilling: passCookie needs a cookie name and a secret of at least 32 characters");
+  }
   let appOrigin: URL;
   try {
     appOrigin = new URL(opts.appUrl);
@@ -299,7 +363,25 @@ export function createBilling(opts: BillingOptions): Billing {
     return getPlan(catalog, row.plan_id)?.id ?? freePlan.id;
   }
 
-  function computeEntitlements(row: SubRow | null): Entitlements {
+  function passDefOf(passId: string): PassDef | undefined {
+    return getPass(catalog, passId);
+  }
+
+  function activePassOf(r: Record<string, unknown>): ActivePass | null {
+    const def = passDefOf(String(r.pass_id));
+    if (!def) return null;
+    return {
+      id: String(r.id),
+      passId: def.id,
+      name: def.name,
+      orgId: (r.org_id as string | null) ?? null,
+      email: (r.email as string | null) ?? null,
+      startsAt: toDate(r.starts_at)!,
+      expiresAt: toDate(r.expires_at)!,
+    };
+  }
+
+  function computeEntitlements(row: SubRow | null, passes: ActivePass[] = []): Entitlements {
     const t = now().getTime();
     let effective: PlanDef = freePlan;
     let graceEndsAt: Date | null = null;
@@ -318,16 +400,20 @@ export function createBilling(opts: BillingOptions): Billing {
         if (endsAt && t >= endsAt.getTime()) effective = freePlan;
       }
     }
+    const defs = passes.map((p) => passDefOf(p.passId)).filter((d): d is PassDef => !!d);
+    const granted = applyPassGrants(effective.limits, effective.features, defs);
+    const longest = [...passes].sort((a, b) => b.expiresAt.getTime() - a.expiresAt.getTime())[0];
     return {
       planId: effective.id,
       planName: effective.name,
       status: row?.status ?? "none",
-      limits: { ...effective.limits },
-      features: { ...effective.features },
+      limits: granted.limits,
+      features: granted.features,
       cancelAtPeriodEnd: row?.cancel_at_period_end ?? false,
       currentPeriodEnd: row?.current_period_end ?? null,
       graceEndsAt,
       subscribedPlanId: subscribed,
+      pass: longest ? { id: longest.id, passId: longest.passId, name: longest.name, expiresAt: longest.expiresAt } : null,
     };
   }
 
@@ -482,7 +568,10 @@ export function createBilling(opts: BillingOptions): Billing {
 
   const priceCache = new Map<string, { id: string; at: number }>();
   async function priceIdFor(plan: PlanDef): Promise<string> {
-    const key = plan.stripeLookupKey!;
+    return priceIdForKey(plan.stripeLookupKey!, plan.priceMonthlyCents);
+  }
+
+  async function priceIdForKey(key: string, cents: number): Promise<string> {
     const cached = priceCache.get(key);
     if (cached && Date.now() - cached.at < PRICE_CACHE_MS) return cached.id;
     const prices = (await stripe.prices.listByLookupKeys([key])).filter((p) => p.active && p.lookupKey === key);
@@ -494,10 +583,10 @@ export function createBilling(opts: BillingOptions): Billing {
       );
     }
     const p = prices[0]!;
-    if (p.unitAmount !== plan.priceMonthlyCents) {
+    if (p.unitAmount !== cents) {
       throw new BillingError(
         "price_not_configured",
-        `Stripe price ${key} is ${p.unitAmount} cents but the catalog says ${plan.priceMonthlyCents}`,
+        `Stripe price ${key} is ${p.unitAmount} cents but the catalog says ${cents}`,
         500,
       );
     }
@@ -566,6 +655,8 @@ export function createBilling(opts: BillingOptions): Billing {
 
   type Prepared =
     | { kind: "subscription"; sub: GatewaySubscription; payment?: PaymentFailedInfo; expectOrg?: string }
+    | { kind: "pass"; session: GatewayCheckoutSession }
+    | { kind: "refund"; paymentIntent: string }
     | { kind: "ignore"; reason: string };
 
   async function retrieveOrSnapshot(id: string, snapshot?: Record<string, unknown>): Promise<GatewaySubscription> {
@@ -581,7 +672,15 @@ export function createBilling(opts: BillingOptions): Billing {
   async function prepare(event: GatewayEvent): Promise<Prepared> {
     const o = event.object;
     switch (event.type) {
-      case "checkout.session.completed": {
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
+        if (o.mode === "payment") {
+          const md = (o.metadata ?? {}) as Record<string, unknown>;
+          if (md.app !== catalog.app || md.kind !== "pass") return { kind: "ignore", reason: "payment checkout of another product" };
+          // Source of truth: re-fetch the session (payment status) from Stripe.
+          return { kind: "pass", session: await stripe.checkout.sessions.retrieve(String(o.id)) };
+        }
+        if (event.type !== "checkout.session.completed") return { kind: "ignore", reason: "async payment of a subscription checkout" };
         if (o.mode !== "subscription") return { kind: "ignore", reason: "not a subscription checkout" };
         const subId = typeof o.subscription === "string" ? o.subscription : (o.subscription as { id?: string })?.id;
         if (!subId) return { kind: "ignore", reason: "checkout without subscription" };
@@ -615,6 +714,12 @@ export function createBilling(opts: BillingOptions): Billing {
       }
       case "customer.subscription.trial_will_end":
         return { kind: "ignore", reason: "trial_will_end needs no state change" };
+      case "charge.refunded": {
+        // Only a full refund ends a pass. Charges of other products / the other business match no pass row.
+        const pi = typeof o.payment_intent === "string" ? o.payment_intent : (o.payment_intent as { id?: string } | null)?.id;
+        if (!pi || o.refunded !== true) return { kind: "ignore", reason: "partial refund or no payment intent" };
+        return { kind: "refund", paymentIntent: pi };
+      }
       default:
         return { kind: "ignore", reason: `unhandled event type ${event.type}` };
     }
@@ -656,9 +761,28 @@ export function createBilling(opts: BillingOptions): Billing {
         let label: string;
         let error: string | null = null;
         let orgId: string | null = null;
+        let newPass: ActivePass | null = null;
         if (prepared.kind === "ignore") {
           label = "ignored";
           error = null;
+        } else if (prepared.kind === "pass") {
+          const r = await recordPassTx(tx, prepared.session);
+          if (r.kind === "rejected") {
+            label = "ignored";
+            error = r.reason;
+          } else {
+            label = "processed";
+            orgId = r.pass.orgId;
+            if (r.kind === "created") newPass = r.pass;
+          }
+        } else if (prepared.kind === "refund") {
+          const { rows } = await tx.query<{ id: string; org_id: string | null }>(
+            `UPDATE billing_passes SET revoked_at = $2 WHERE payment_intent_id = $1 AND app = $3 AND revoked_at IS NULL
+             RETURNING id, org_id`,
+            [prepared.paymentIntent, now(), catalog.app],
+          );
+          label = rows.length ? "processed" : "ignored";
+          orgId = rows[0]?.org_id ?? null;
         } else {
           result = await applySubscription(tx, prepared.sub, event.created);
           if (result.kind === "foreign") {
@@ -681,13 +805,21 @@ export function createBilling(opts: BillingOptions): Billing {
           `UPDATE billing_events SET processed_at = $2, outcome = $3, error = $4, org_id = $5 WHERE id = $1`,
           [event.id, now(), label, error, orgId],
         );
-        return { duplicate: false as const, result, label, orgId, error };
+        return { duplicate: false as const, result, label, orgId, error, newPass };
       });
       if (outcome.duplicate) return text(200, JSON.stringify({ received: true, duplicate: true }));
 
       // Side effects after COMMIT, exactly once per event id.
       const hookErrors: string[] = [];
       if (outcome.result) hookErrors.push(...(await runApplyHooks(outcome.result, event.id)));
+      if (outcome.newPass) {
+        const pass = outcome.newPass;
+        const e = await safeHook("onPassPurchased", hooks.onPassPurchased && (() => hooks.onPassPurchased!(pass)), {
+          orgId: pass.orgId ?? undefined,
+          eventId: event.id,
+        });
+        if (e) hookErrors.push(e);
+      }
       if (outcome.error && outcome.label === "processed" && outcome.orgId) {
         const e = await safeHook(
           "onAnomaly",
@@ -724,9 +856,160 @@ export function createBilling(opts: BillingOptions): Billing {
 
   // ---- public API --------------------------------------------------------------------------
 
-  async function getEntitlements(orgId: string): Promise<Entitlements> {
-    requireOrgId(orgId);
-    return computeEntitlements(await loadSub(ex, orgId));
+  async function getEntitlements(orgId: string | null, o?: { passIds?: string[] }): Promise<Entitlements> {
+    if (orgId !== null) requireOrgId(orgId);
+    const [row, passes] = await Promise.all([
+      orgId === null ? Promise.resolve(null) : loadSub(ex, orgId),
+      getActivePasses({ orgId, passIds: o?.passIds }),
+    ]);
+    return computeEntitlements(row, passes);
+  }
+
+  // ---- one-time passes ---------------------------------------------------------------------
+
+  async function getActivePasses(o: { orgId?: string | null; passIds?: string[] }): Promise<ActivePass[]> {
+    if (!catalog.passes?.length) return [];
+    const ids = (o.passIds ?? []).filter((id) => typeof id === "string" && SESSION_ID_RE.test(id)).slice(0, MAX_PASS_IDS);
+    const orgId = o.orgId ?? null;
+    if (!orgId && ids.length === 0) return [];
+    const { rows } = await ex.query<Record<string, unknown>>(
+      `SELECT ${PASS_COLUMNS} FROM billing_passes
+       WHERE app = $1 AND revoked_at IS NULL AND starts_at <= $2 AND expires_at > $2
+         AND (id = ANY($3::text[]) OR ($4::text IS NOT NULL AND org_id = $4::text))
+       ORDER BY expires_at DESC`,
+      [catalog.app, now(), ids, orgId],
+    );
+    return rows.map(activePassOf).filter((p): p is ActivePass => !!p);
+  }
+
+  type RecordResult = { kind: "created" | "existing"; pass: ActivePass } | { kind: "rejected"; reason: string };
+
+  /** Records a paid pass session once (id = session id). The pass starts when it is first recorded. */
+  async function recordPassTx(tx: SqlExecutor, session: GatewayCheckoutSession): Promise<RecordResult> {
+    const md = session.metadata ?? {};
+    if (session.mode !== "payment" || md.app !== catalog.app || md.kind !== "pass") {
+      return { kind: "rejected", reason: `checkout ${session.id} is not a ${catalog.app} pass` };
+    }
+    const def = passDefOf(md.passId ?? "");
+    if (!def) return { kind: "rejected", reason: `checkout ${session.id} names unknown pass ${md.passId ?? "?"}` };
+    if (session.paymentStatus !== "paid") return { kind: "rejected", reason: `checkout ${session.id} is not paid (${session.paymentStatus})` };
+    const startsAt = now();
+    const expiresAt = new Date(startsAt.getTime() + def.durationHours * 3_600_000);
+    const orgId = typeof md.orgId === "string" && md.orgId.length > 0 && md.orgId.length <= 200 ? md.orgId : null;
+    const ins = await tx.query<Record<string, unknown>>(
+      `INSERT INTO billing_passes (id, app, pass_id, org_id, email, stripe_customer_id, payment_intent_id, amount_cents,
+         currency, livemode, starts_at, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       ON CONFLICT (id) DO NOTHING
+       RETURNING ${PASS_COLUMNS}`,
+      [
+        session.id,
+        catalog.app,
+        def.id,
+        orgId,
+        session.customerEmail ? session.customerEmail.slice(0, 320) : null,
+        session.customer,
+        session.paymentIntent,
+        session.amountTotal,
+        session.currency,
+        session.livemode,
+        startsAt,
+        expiresAt,
+      ],
+    );
+    if (ins.rows[0]) return { kind: "created", pass: activePassOf(ins.rows[0])! };
+    const again = (await tx.query<Record<string, unknown>>(`SELECT ${PASS_COLUMNS} FROM billing_passes WHERE id = $1`, [session.id])).rows[0]!;
+    return { kind: "existing", pass: activePassOf(again)! };
+  }
+
+  async function createPassCheckout(
+    passId: string,
+    o: { orgId?: string | null; email?: string | null; returnPath?: string } = {},
+  ): Promise<{ url: string; id: string }> {
+    const def = typeof passId === "string" ? passDefOf(passId) : undefined;
+    if (!def) throw new BillingError("invalid_plan", `Unknown pass "${String(passId)}"`, 400);
+    if (o.orgId != null) requireOrgId(o.orgId);
+    if (!configured) throw new BillingNotConfiguredError();
+    const price = await priceIdForKey(def.stripeLookupKey, def.priceCents);
+    const back = safeReturnPath(o.returnPath);
+    const metadata: Record<string, string> = { app: catalog.app, kind: "pass", passId: def.id, ...(o.orgId ? { orgId: o.orgId } : {}) };
+    const email = typeof o.email === "string" && EMAIL_RE.test(o.email) ? o.email : undefined;
+    const sep = back.includes("?") ? "&" : "?";
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer_creation: "always",
+      ...(email ? { customer_email: email } : {}),
+      ...(o.orgId ? { client_reference_id: o.orgId } : {}),
+      line_items: [{ price, quantity: 1 }],
+      // The claim route verifies the session with Stripe, records the pass and sets the pass cookie.
+      success_url: `${appUrl}/api/billing/pass/claim?session_id={CHECKOUT_SESSION_ID}&next=${encodeURIComponent(back)}`,
+      cancel_url: `${appUrl}${back}${sep}pass=canceled`,
+      allow_promotion_codes: opts.allowPromotionCodes ?? false,
+      metadata,
+      payment_intent_data: {
+        metadata,
+        ...(opts.passStatementDescriptorSuffix ? { statement_descriptor_suffix: opts.passStatementDescriptorSuffix.slice(0, 22) } : {}),
+      },
+      ...(opts.checkoutBranding ? { branding_settings: opts.checkoutBranding } : {}),
+      ...(opts.automaticTax
+        ? { automatic_tax: { enabled: true }, billing_address_collection: "required" as const, tax_id_collection: { enabled: true } }
+        : {}),
+    });
+    return { url: session.url, id: session.id };
+  }
+
+  async function claimPass(sessionId: string): Promise<PassClaim> {
+    if (typeof sessionId !== "string" || !SESSION_ID_RE.test(sessionId)) return { status: "invalid" };
+    if (!catalog.passes?.length) return { status: "invalid" };
+    const load = async () =>
+      (await ex.query<Record<string, unknown>>(`SELECT ${PASS_COLUMNS} FROM billing_passes WHERE id = $1 AND app = $2`, [
+        sessionId,
+        catalog.app,
+      ])).rows[0];
+    let raw = await load();
+    if (!raw) {
+      if (!configured) return { status: "invalid" };
+      let session: GatewayCheckoutSession;
+      try {
+        session = await stripe.checkout.sessions.retrieve(sessionId);
+      } catch (e) {
+        if (isNotFound(e)) return { status: "invalid" };
+        throw e;
+      }
+      const md = session.metadata ?? {};
+      if (session.mode !== "payment" || md.app !== catalog.app || md.kind !== "pass") return { status: "invalid" };
+      if (session.paymentStatus !== "paid") return { status: "unpaid" };
+      const r = await handle.transaction((tx) => recordPassTx(tx, session));
+      if (r.kind === "rejected") return { status: "invalid" };
+      if (r.kind === "created") {
+        const pass = r.pass;
+        await safeHook("onPassPurchased", hooks.onPassPurchased && (() => hooks.onPassPurchased!(pass)), { orgId: pass.orgId ?? undefined });
+      }
+      raw = await load();
+    }
+    const pass = raw ? activePassOf(raw) : null;
+    if (!raw || !pass) return { status: "invalid" };
+    if (raw.revoked_at) return { status: "revoked", pass };
+    if (pass.expiresAt.getTime() <= now().getTime()) return { status: "expired", pass };
+    return { status: "active", pass };
+  }
+
+  function passIdsFromCookieHeader(cookieHeader: string | null): string[] {
+    if (!opts.passCookie || !cookieHeader) return [];
+    const v = readCookie(cookieHeader, opts.passCookie.name);
+    const id = v ? verifyPassToken(v, opts.passCookie.secret) : null;
+    return id && SESSION_ID_RE.test(id) ? [id] : [];
+  }
+
+  function passSetCookie(pass: Pick<ActivePass, "id"> & { expiresAt: Date | null }, o?: { secure?: boolean }): string | null {
+    if (!opts.passCookie) return null;
+    // expiresAt null = payment still pending: keep the reference long enough for a delayed payment to clear and the
+    // pass to run its full length (entitlements only count it once the paid session is recorded).
+    const longest = Math.max(0, ...(catalog.passes ?? []).map((p) => p.durationHours)) * 3_600_000;
+    const until = pass.expiresAt ? pass.expiresAt.getTime() : now().getTime() + 14 * DAY_MS + longest;
+    const maxAge = Math.max(0, Math.floor((until - now().getTime()) / 1000));
+    const secure = o?.secure ?? appOrigin.protocol === "https:";
+    return `${opts.passCookie.name}=${signPassToken(pass.id, opts.passCookie.secret)}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
   }
 
   async function consumeUsage(orgId: string, metric: string, amount: number, o?: { period?: string }): Promise<UsageResult> {
@@ -908,6 +1191,11 @@ export function createBilling(opts: BillingOptions): Billing {
     catalog,
     appUrl,
     getEntitlements,
+    createPassCheckout,
+    claimPass,
+    getActivePasses,
+    passIdsFromCookieHeader,
+    passSetCookie,
     consumeUsage,
     releaseUsage,
     getUsage,

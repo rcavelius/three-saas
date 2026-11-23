@@ -10,13 +10,21 @@ Paid plans are billed monthly in US dollars through Stripe. GridRinse never sees
 ## Upgrading
 
 1. Sign in and open [Account → Billing](/account/billing), or choose a plan on the [pricing page](/pricing).
-2. Click **Upgrade to Pro ($12/mo)** or **Upgrade to Business ($29/mo)**.
+2. Click **Upgrade to Pro ($9/mo)** or **Upgrade to Business ($29/mo)**.
 3. You are taken to Stripe's secure checkout page to pay.
 4. Back on the billing page, the new plan appears as soon as Stripe confirms the payment, usually within seconds. Reload the page if it has not changed yet.
 
 If you leave checkout without paying, you see "Checkout was canceled. Nothing was charged."
 
 If the billing page says payments are not switched on for this site yet, you can use everything on the Free plan and nothing will be charged.
+
+## One-time 24-hour pass
+
+For a one-off job you can buy a **24-hour pass** ($5) instead of a plan: from the download panel in the cleaner, from a "file too big" notice, or on the [pricing page](/pricing). It needs no account. It is charged once through Stripe and never renews; when the 24 hours are over, the browser is back on the Free plan. While it is active, the cleaner shows "Pass active until …" and a private unlock link for another browser.
+
+Before you go to checkout, your cleaning steps and the loaded file are kept in this browser's own storage (never uploaded), so when you come back you can download right away. If the file is not there, drop it again; the steps are kept.
+
+If a pass did not unlock what the pricing page describes, email support within 7 days of purchase for a full refund; a refunded pass stops working.
 
 ## Switching plans, card and invoices
 

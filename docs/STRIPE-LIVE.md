@@ -28,6 +28,25 @@ requires it to match the public name; the snack-box charges now show MEDIA MASTE
 GridRinse Checkout shows "GridRinse" (`branding_settings`), subscription charges show GRIDRINSE.COM (product
 statement descriptor), the billing portal and Stripe receipts show Media Masters.
 
+**2026-11-23: one-time passes (owner: "figure out a way for them to pay").** Each product also sells a one-time pass
+through Checkout `mode: payment`, no account needed (catalog `passes` in `packages/billing/src/catalogs.ts`):
+
+| Product | Pass | Price | Lasts | Unlocks | Live price (lookup key) |
+|---|---|---|---|---|---|
+| GridRinse | 24-hour pass | $5 | 24 h | Pro processing limits, unlimited downloads | `gridrinse_day_pass` |
+| ChangeKite | Full-site report | $9 | 7 days | full issue list with fixes, 250-page scans, PDF | `changekite_report_pass` |
+| WebhookTrail | 7-day pass | $5 | 7 days | replay, Developer capture limits | `webhooktrail_week_pass` |
+
+Live products `<app>_<pass>_pass` (tax code `txcd_10103000`, tax-exclusive one-time USD prices) were created with the
+setup script (`STRIPE_LIVE_SETUP_APPROVED=yes`). One-time card charges show the account prefix plus the
+`statement_descriptor_suffix` `<APP>.COM`. The three live webhook endpoints now also send
+`checkout.session.async_payment_succeeded` and `charge.refunded` (a full refund revokes the pass). The buyer comes back
+through `/api/billing/pass/claim?session_id=…`, which re-checks the session with Stripe, records it in
+`billing_passes` (idempotent with the webhook; the pass starts then) and sets an HMAC-signed HttpOnly cookie
+`<prefix>_pass`; that URL is also the buyer's unlock link for another device. A pass bought while signed in also counts
+for the org. `scripts/live-pass-checkout-check.mts` opens one live Checkout per pass through the public route and
+expires it unpaid. The revenue dashboard counts passes from `billing_passes`.
+
 ## Owner items
 
 1. **Done 2026-11-17:** restricted key `products-billing` (rk_live_…wGyt) saved and checked read-only: all 10 permissions

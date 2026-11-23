@@ -34,7 +34,7 @@ export default function PrivacyPage() {
         <li>
           <strong>Captured requests.</strong> Everything sent to a capture URL: method, path, query string, headers, body (up to the
           plan&apos;s stored size: {plans.map((p) => `${formatBytesShort(p.storedBodyBytes)} on ${p.planName}`).join(", ")}), body size,
-          content type, the sender&apos;s IP address and the time received. WebhookTrail&apos;s own session and owner cookies are removed from
+          content type, the sender&apos;s IP address and the time received. WebhookTrail&apos;s own session, owner and pass cookies are removed from
           stored headers. Senders may include personal data or credentials in these requests; WebhookTrail stores them as received so you can
           inspect them. Secrets are masked in the console by default, but the stored request is unchanged.
         </li>
@@ -117,7 +117,8 @@ export default function PrivacyPage() {
       <h2>Cookies and local storage</h2>
       <p>
         WebhookTrail sets only strictly necessary cookies: <code>wt_owner</code> (30 days, sent only to our API) lets you access endpoints you
-        created without an account, and sign-in session cookies keep you signed in when you have an account. Local storage holds only the
+        created without an account, <code>wt_pass</code> (until a one-time pass you bought ends) unlocks that pass in this browser, and
+        sign-in session cookies keep you signed in when you have an account. Local storage holds only the
         random usage-counter ID, which you can clear at any time. There are no analytics, advertising or third-party cookies.
       </p>
 

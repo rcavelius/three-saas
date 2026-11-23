@@ -2,7 +2,8 @@
 
 /**
  * First-party analytics (no third parties): POSTs an allow-listed event name to /api/events.
- * Names: pageview, signup_started, signup_completed, checkout_started, tool_used, upgrade_clicked.
+ * Names: pageview, signup_started, signup_completed, checkout_started, tool_used, upgrade_clicked, and the pass
+ * events in lib/analytics-events.ts (paywall_shown, pass_checkout_started, pass_activated).
  */
 function anonymousId(): string {
   try {

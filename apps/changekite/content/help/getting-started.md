@@ -14,7 +14,7 @@ A free scan needs no account.
 1. Go to the [home page](/).
 2. Enter the address of the site, for example `yourdomain.com`. If you leave out `https://`, ChangeKite adds it for you.
 3. Start the scan and watch the progress as pages are checked.
-4. When it finishes you get a report at its own link, `/report/<id>`.
+4. When it finishes you get a report at its own link, `/report/<id>`: the score, a summary of every check and the 3 most severe issues with how to fix them. The full report, with every issue and its fix, is included in the paid plans or unlocked with the one-time Full-site report pass ($9 for 7 days, no account needed).
 
 A free scan follows links on the site you entered for up to 25 pages and three clicks deep, and stops after about 45 seconds. Anything it did not reach is listed in the report under *Crawl coverage*, so a clean report is never mistaken for a complete one.
 

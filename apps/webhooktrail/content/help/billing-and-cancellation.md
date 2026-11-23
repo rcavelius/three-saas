@@ -37,6 +37,10 @@ If a payment fails, the billing page shows a warning and a date until which you 
 
 If you were charged in error, or WebhookTrail did not work for you in your first 14 days of a paid plan, contact us within 14 days of the charge (open a ticket from [/support](/support) or email support) and a person refunds it in full. Other refund requests are reviewed individually by a person. Refunds go back to the original payment method through Stripe. See the [terms](/terms).
 
+## One-time 7-day pass
+
+The 7-day pass ($5) is a single charge, not a subscription: it never renews and there is nothing to cancel. You can buy it without an account from any replay or limit notice, or from the [pricing page](/pricing). It works in the browser that bought it; the inspector shows an unlock link you can open on another device. Bought while signed in, it also counts for your workspace. If a pass did not unlock what the pricing page describes, email support within 7 days of purchase for a full refund; a refunded pass stops working.
+
 ## Deleting your account with an active subscription
 
 If you delete your account, any active subscription of the workspaces you alone own is canceled at once, without a refund for the rest of the period. Invoices and payment records stay with Stripe as required for accounting. See [Deleting your account](/help/delete-your-account).

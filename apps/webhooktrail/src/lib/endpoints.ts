@@ -2,6 +2,7 @@ import { withOrgLock } from "@repo/billing";
 import type { SqlExecutor } from "@repo/database";
 import { newSlug } from "./ids";
 import { orgLimits } from "./org-data";
+import { ownerLimits } from "./pass";
 import { FREE_LIMITS, limits, type PlanLimits } from "./plans";
 import type { Platform } from "./platform";
 import type { EndpointDTO, ResponseContentType } from "./types";
@@ -77,6 +78,7 @@ export function toEndpointDTO(row: EndpointRow, origin: string, lim: PlanLimits,
     permissions: {
       canDelete: manage,
       canReplay: orgOwned && lim.replay,
+      replayIncluded: lim.replay,
       canManageDestinations: orgOwned && canManage(viewer.org?.role),
     },
   };
@@ -125,12 +127,13 @@ export type CreateResult = { ok: true; row: EndpointRow; limits: PlanLimits } | 
 export async function createEndpoint(
   p: Pick<Platform, "handle" | "billing">,
   owner: { orgId: string; userId: string } | { anonHash: string },
-  opts: { name?: string; now?: Date } = {},
+  opts: { name?: string; now?: Date; passIds?: string[] } = {},
 ): Promise<CreateResult> {
   const now = opts.now ?? new Date();
   const nowIso = now.toISOString();
   const isOrg = "orgId" in owner;
-  const lim = isOrg ? await orgLimits(p, owner.orgId) : FREE_LIMITS;
+  // Anonymous owners get the free plan, raised by an active pass (cookie or linked).
+  const lim = isOrg ? await orgLimits(p, owner.orgId, opts.passIds) : await ownerLimits(p, { anonHash: owner.anonHash }, opts.passIds);
   return p.handle.transaction(async (tx) => {
     // Serialises "count then insert" per owner so concurrent creations cannot exceed the limit.
     await withOrgLock(tx, isOrg ? owner.orgId : `anon:${owner.anonHash}`);

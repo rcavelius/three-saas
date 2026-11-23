@@ -2,16 +2,37 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckoutButton } from "@/components/account/BillingActions";
 import { JsonLd } from "@/components/JsonLd";
+import { PassBuyButton } from "@/components/pass/PassPaywall";
+import { passLimits, passOffer, weekPass } from "@/lib/pass";
 import { CATALOG, formatBytesShort, formatCount, limitsFromPlan, priceLabel } from "@/lib/plans";
 import { serverViewer } from "@/lib/server-session";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "WebhookTrail pricing: Free, Developer ($9/month) and Pro ($29/month). Webhook capture, inspection, team seats and safe replay.",
+  description:
+    "WebhookTrail pricing: Free, a one-time 7-day pass ($5, no subscription), Developer ($9/month) and Pro ($29/month). Webhook capture, inspection, team seats and safe replay.",
   alternates: { canonical: "/pricing" },
 };
 
+const offer = passOffer();
+
 const FAQ: [string, string][] = [
+  [
+    `What is the ${offer.name}?`,
+    `A one-time payment of ${offer.price} that unlocks replay and the larger limits shown above for ${offer.durationLabel}: ${offer.endpoints} active endpoints, ${offer.lifetimeDays}-day endpoint lifetime and history, and ${offer.requestsStored} stored requests per endpoint. You do not need an account to buy it. Replay sends to a destination you have verified, which lives in a workspace, so replay itself needs a free account.`,
+  ],
+  [
+    "Does the pass renew?",
+    `No. It is charged once and never renews. Access ends ${offer.durationLabel} after payment; your endpoints then fall back to your plan's limits, the same way a cancelled subscription does.`,
+  ],
+  [
+    "How do I use the pass on another device?",
+    "The pass works in the browser that bought it. While it is active, the inspector shows an unlock link: open it in another browser to unlock that one too. If you bought it while signed in, it also counts for your whole workspace.",
+  ],
+  [
+    "Can I get a refund for a pass?",
+    "If a pass did not unlock what this page describes, email support within 7 days of purchase for a full refund; a refunded pass stops working.",
+  ],
   [
     "How does billing work?",
     "Paid plans are monthly subscriptions in US dollars, charged by Stripe. You can switch plans or cancel in the billing portal at any time. Taxes may apply.",
@@ -43,6 +64,18 @@ export default async function PricingPage() {
   const isOwner = viewer.org?.role === "owner";
   const plans = CATALOG.plans.map((p) => ({ def: p, lim: limitsFromPlan(p.id, p.limits, p.features, p.name) }));
   const origin = process.env.APP_URL || "http://localhost:3003";
+  const pass = weekPass();
+  const pl = passLimits();
+  const passRows: [string, string][] = [
+    ["Active endpoints", formatCount(pl.endpoints)],
+    ["Endpoint lifetime", `${offer.lifetimeDays} days`],
+    ["Captured requests / month", "Same as your plan"],
+    ["History", `${pl.historyDays} days, newest ${formatCount(pl.requestsStored)} per endpoint`],
+    ["Stored payload", `${formatBytesShort(pl.storedBodyBytes)} per request`],
+    ["Max payload accepted", formatBytesShort(pl.maxBodyBytes)],
+    ["Replay to verified destinations", pl.replay ? "Yes, with retries*" : "No"],
+    ["Team seats", "Same as your plan"],
+  ];
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-14">
@@ -60,7 +93,15 @@ export default async function PricingPage() {
             price: (p.priceMonthlyCents / 100).toFixed(2),
             priceCurrency: "USD",
             category: "subscription",
-          })),
+          })).concat([
+            {
+              "@type": "Offer",
+              name: pass.name,
+              price: (pass.priceCents / 100).toFixed(2),
+              priceCurrency: "USD",
+              category: "one-time purchase",
+            },
+          ]),
         }}
       />
       <JsonLd
@@ -73,12 +114,12 @@ export default async function PricingPage() {
       <p className="label">Pricing</p>
       <h1 className="mt-3 text-[32px] md:text-[40px] font-semibold tracking-[-0.02em]">Start free. Pay for history, teams and replay.</h1>
       <p className="mt-3 max-w-[60ch] text-[15px] text-fg-muted">
-        The Free plan works without an account. An account keeps endpoints in a workspace; paid plans add longer history, larger payloads,
-        replay to verified destinations and, on Pro, team seats.
+        The Free plan works without an account. Debugging one integration this week? The {offer.name} is a single {offer.price} payment,
+        no subscription. Monthly plans add longer history, larger payloads, replay to verified destinations and, on Pro, team seats.
       </p>
 
-      <div className="mt-10 grid gap-px bg-line border border-line rounded-[6px] overflow-hidden lg:grid-cols-3">
-        {plans.map(({ def, lim }) => {
+      <div className="mt-10 grid gap-px bg-line border border-line rounded-[6px] overflow-hidden md:grid-cols-2 xl:grid-cols-4">
+        {plans.flatMap(({ def, lim }) => {
           const free = def.id === CATALOG.freePlanId;
           const rows: [string, string][] = [
             ["Active endpoints", formatCount(lim.endpoints)],
@@ -90,7 +131,7 @@ export default async function PricingPage() {
             ["Replay to verified destinations", lim.replay ? "Yes, with retries" : "No"],
             ["Team seats", String(lim.teamSeats)],
           ];
-          return (
+          const card = (
             <section key={def.id} aria-labelledby={`plan-${def.id}`} className="bg-surface p-6 flex flex-col">
               <h2 id={`plan-${def.id}`} className="text-[18px] font-semibold">
                 {def.name}
@@ -124,9 +165,38 @@ export default async function PricingPage() {
               </div>
             </section>
           );
+          if (!free) return [card];
+          // The one-time pass sits right after Free: the step up for a single debugging week.
+          return [
+            card,
+            <section key="pass" aria-labelledby="plan-pass" className="bg-surface p-6 flex flex-col ring-1 ring-inset ring-signal/40">
+              <h2 id="plan-pass" className="text-[18px] font-semibold">
+                {offer.name}
+              </h2>
+              <p className="mt-3">
+                <span className="text-[34px] font-semibold tracking-tight tabular-nums">{offer.price}</span>
+                <span className="text-fg-dim text-[13px]"> once, for {offer.durationLabel}</span>
+              </p>
+              <p className="mt-1 text-[12.5px] text-fg-muted">One-time, no subscription, no account needed.</p>
+              <dl className="mt-4 divide-y divide-line border-y border-line flex-1">
+                {passRows.map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-4 py-2 text-[13px]">
+                    <dt className="text-fg-muted">{k}</dt>
+                    <dd className="font-mono text-[12.5px] text-right">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-3 text-[12px] text-fg-dim">* Replay goes to a destination you verify, which needs a free account.</p>
+              <div className="mt-4">
+                <PassBuyButton />
+              </div>
+            </section>,
+          ];
         })}
       </div>
-      <p className="mt-6 text-[12.5px] text-fg-dim max-w-[70ch]">Prices in USD per month, excluding applicable taxes.</p>
+      <p className="mt-6 text-[12.5px] text-fg-dim max-w-[70ch]">
+        Plan prices in USD per month; the {offer.name} is a single charge. Taxes may apply.
+      </p>
 
       <section aria-labelledby="faq" className="mt-14 max-w-3xl">
         <h2 id="faq" className="text-[22px] font-semibold">

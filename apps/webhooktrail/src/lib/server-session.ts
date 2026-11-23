@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { linkViewerPasses } from "./pass";
 import { getPlatform, type Platform } from "./platform";
 import { getViewer, type Viewer } from "./viewer";
 
@@ -9,6 +10,7 @@ export async function serverViewer(): Promise<{ p: Platform; viewer: Viewer; hea
   const h = new Headers(await headers());
   const p = await getPlatform();
   const viewer = await getViewer(p, new Request(p.appUrl, { headers: h }));
+  await linkViewerPasses(p, viewer);
   return { p, viewer, headers: h };
 }
 

@@ -40,6 +40,11 @@ export const replayPlanNames = joinAnd(REPLAY_PLANS.map((p) => p.def.name));
 const replayFrom = REPLAY_PLANS.slice().sort((a, b) => a.def.priceMonthlyCents - b.def.priceMonthlyCents)[0];
 export const replayFromPrice = replayFrom ? `${priceLabel(replayFrom.def)}/month` : "";
 
+/** The one-time pass that includes replay (catalog pass "week"), e.g. "the 7-day pass ($5 once, no subscription)". */
+const replayPass = (CATALOG.passes ?? []).find((p) => p.features.replay);
+const replayPassPrice = replayPass ? `$${(replayPass.priceCents / 100).toFixed(replayPass.priceCents % 100 === 0 ? 0 : 2)}` : "";
+export const replayPassNote = replayPass ? `the ${replayPass.name} (${replayPassPrice} once, no subscription)` : "";
+
 /** Free plan in one sentence (anonymous endpoints get the Free plan too). */
 export const freePlanFacts =
   `The Free plan needs no account: up to ${formatCount(free.endpoints)} endpoints, ${formatCount(free.requestsPerMonth)} captured requests a month, ` +
@@ -225,7 +230,7 @@ export const TOOLS: ToolPage[] = [
     slug: "replay-webhook",
     title: "Replay a webhook to your server, once or with retries",
     h1: "Replay a captured webhook",
-    description: `Resend a captured webhook to your staging server, once or with up to 5 retries, and see each response. On the ${replayPlanNames} plans, from ${replayFromPrice}.`,
+    description: `Resend a captured webhook to your server, once or with up to 5 retries, and see each response. ${replayPlanNames} plans from ${replayFromPrice}${replayPass ? `, or a ${replayPassPrice} one-time pass` : ""}.`,
     intro:
       "Capture a real delivery once, then send it again to your receiver whenever you need to: after a fix, to test idempotency, or to reproduce a bug. Each attempt is recorded with its status code and timing.",
     feature: "replay",
@@ -236,7 +241,10 @@ export const TOOLS: ToolPage[] = [
       "Open the request, pick the destination and choose Replay once, or a number of attempts with retries.",
     ],
     faq: [
-      { q: "Which plans include replay?", a: `${replayPlanNames}. ${paidPlanFacts}` },
+      {
+        q: "Which plans include replay?",
+        a: `${replayPlanNames}. ${paidPlanFacts}${replayPassNote ? ` For a single debugging week there is also ${replayPassNote}, which adds replay and the Developer capture limits for 7 days.` : ""}`,
+      },
       {
         q: "What is sent?",
         a: "The captured method and body, to the destination URL exactly. Sensitive headers such as Authorization are left out unless you tick them; cookies, Host and hop-by-hop headers are never sent. The preview shows the exact headers first.",

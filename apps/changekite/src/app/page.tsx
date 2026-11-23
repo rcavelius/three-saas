@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Scanner } from "@/components/Scanner";
+import { reportOffer } from "@/lib/offer";
 import { JsonLd } from "@/components/JsonLd";
 import { softwareApplicationJsonLd } from "@/lib/marketing";
 import { env } from "@/lib/env";
@@ -14,6 +15,7 @@ function firstSentence(s: string): string {
 }
 
 export default function HomePage() {
+  const offer = reportOffer();
   return (
     <>
       <JsonLd data={softwareApplicationJsonLd(new URL(env().APP_URL).origin)} />
@@ -24,10 +26,11 @@ export default function HomePage() {
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">
           ChangeKite reads up to 25 of your pages and checks links, titles, descriptions, canonicals, image alt text, your
-          sitemap, robots.txt and HTTPS. You get a written report: what is wrong, where, and how to fix it.
+          sitemap, robots.txt and HTTPS. The free scan gives you the score, a summary of every check and the top {offer.freeIssues} issues
+          with how to fix them. The full report, every issue with where it is and the fix, is {offer.price} one-time.
         </p>
         <div className="mt-10 max-w-3xl">
-          <Scanner />
+          <Scanner offer={offer} />
         </div>
       </section>
 
@@ -66,6 +69,11 @@ export default function HomePage() {
             A free scan starts at the address you enter and follows links on the same site: 25 pages, three clicks deep, three
             requests at a time with a pause between them. It stops after about 45 seconds. The report always says what was
             not reached, so a clean result is never mistaken for a complete one.
+          </p>
+          <p>
+            The free report shows the score, the result of every check and the {offer.freeIssues} most severe issues with fixes. The{" "}
+            {offer.name} pass ({offer.price} once, no subscription, no account) unlocks every issue and fix on every report for{" "}
+            {offer.duration}, scans of up to {offer.pagesPerScan} pages and PDF export.
           </p>
           <p>
             It does not run JavaScript, log in, submit forms or measure speed. It reads the HTML your server sends, which is

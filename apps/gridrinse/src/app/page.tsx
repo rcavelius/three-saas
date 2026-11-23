@@ -11,7 +11,7 @@ import { TOOLS } from "@/content/tools";
 import { formatBytes, formatLimit, processingLimits } from "@/lib/limits";
 import { ogImage } from "@/lib/seo";
 import { appUrl } from "@/lib/site";
-import { displayPlans, freeProcessingLimits, softwareApplicationLd, upgradeOffers } from "@/server/plans";
+import { displayPlans, freeProcessingLimits, passOffer, softwareApplicationLd, upgradeOffers } from "@/server/plans";
 
 const TITLE = "Free CSV & Excel cleaner: no upload, no account · GridRinse";
 const DESCRIPTION =
@@ -64,6 +64,7 @@ const mb = (bytes: number) => formatBytes(bytes).replace(/\.0 /, " ");
 export default function Home() {
   const free = freeProcessingLimits();
   const plans = displayPlans();
+  const pass = passOffer();
   return (
     <>
       <section className="mint-grid border-b-2 border-ink">
@@ -85,7 +86,7 @@ export default function Home() {
       </section>
 
       <div className="pt-8 sm:pt-10">
-        <Cleaner freeLimits={free} offers={upgradeOffers()} emptyState="hidden" />
+        <Cleaner freeLimits={free} offers={upgradeOffers()} pass={pass} emptyState="hidden" />
       </div>
 
       <section id="how-it-works" aria-labelledby="features-heading" className="mx-auto max-w-[1400px] scroll-mt-4 px-4 pb-16 sm:px-8">
@@ -128,6 +129,11 @@ export default function Home() {
                     <li>Files up to {mb(l.maxFileBytes)}</li>
                     <li>{formatLimit(l.maxRows)} rows per file</li>
                     <li>{l.maxFiles} files at once (merge or batch)</li>
+                    <li>
+                      {l.downloadRows < 0 && l.downloadsPerDay < 0
+                        ? "Unlimited downloads"
+                        : `${l.downloadsPerDay === 1 ? "One download a day" : `${formatLimit(l.downloadsPerDay)} downloads a day`}, up to ${formatLimit(l.downloadRows)} rows`}
+                    </li>
                     <li>{wf === 0 ? "Workflows saved in this browser" : wf < 0 ? "Unlimited workflows in your account" : `${wf} workflows in your account`}</li>
                     {p.features.sharedTeamWorkflows && <li>Shared team workflows, {p.limits.teamSeats} seats</li>}
                   </ul>
@@ -145,6 +151,11 @@ export default function Home() {
             })}
           </ul>
           <p className="mt-5 text-[15px] font-medium">
+            {pass && (
+              <>
+                One-off job? A {pass.name} (${pass.price}, one-time, no account) gives Pro&apos;s file limits and unlimited downloads for {pass.durationHours} hours.{" "}
+              </>
+            )}
             <Link href="/pricing" className="font-extrabold underline decoration-2 underline-offset-4">
               Compare plans in detail
             </Link>

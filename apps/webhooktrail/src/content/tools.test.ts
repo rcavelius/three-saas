@@ -35,7 +35,10 @@ describe("tool landing pages", () => {
   });
 
   it("quote only prices that exist in WEBHOOKTRAIL_CATALOG", () => {
-    const prices = new Set(WEBHOOKTRAIL_CATALOG.plans.map((p) => `$${p.priceMonthlyCents / 100}`));
+    const prices = new Set([
+      ...WEBHOOKTRAIL_CATALOG.plans.map((p) => `$${p.priceMonthlyCents / 100}`),
+      ...(WEBHOOKTRAIL_CATALOG.passes ?? []).map((p) => `$${p.priceCents / 100}`),
+    ]);
     for (const t of TOOLS) {
       for (const m of pageText(t).match(/\$\d+(?:\.\d+)?/g) ?? []) expect(prices, `${t.slug}: ${m}`).toContain(m);
     }

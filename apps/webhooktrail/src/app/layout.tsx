@@ -2,8 +2,11 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { Pageview } from "@/components/Pageview";
+import { PassOfferProvider } from "@/components/pass/PassOfferContext";
+import { PassReturnNotice } from "@/components/pass/PassStatus";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getOperator } from "@/lib/admin";
+import { passOffer } from "@/lib/pass";
 import { getPlatform } from "@/lib/platform";
 import "@repo/support/styles.css";
 import "./globals.css";
@@ -61,9 +64,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Skip to content
         </a>
         <SiteHeader signedIn={state.signedIn} operator={state.operator} />
-        <main id="main" className="flex-1 flex flex-col">
-          {children}
-        </main>
+        <PassOfferProvider offer={passOffer()}>
+          <PassReturnNotice />
+          <main id="main" className="flex-1 flex flex-col">
+            {children}
+          </main>
+        </PassOfferProvider>
         <SiteFooter />
         <Pageview />
       </body>

@@ -6,7 +6,7 @@ import { toolSample } from "@/content/tool-samples";
 import { getTool } from "@/content/tools";
 import { CLEANER_EVENTS } from "@/lib/cleaner-events";
 import { processingLimits } from "@/lib/limits";
-import { upgradeOffers } from "@/server/plans";
+import { passOffer, upgradeOffers } from "@/server/plans";
 import { Cleaner } from "./Cleaner";
 
 const blobs: { blob: Blob; name: string }[] = [];
@@ -18,6 +18,8 @@ const sent: { url: string; body: string }[] = [];
 beforeEach(() => {
   blobs.length = 0;
   sent.length = 0;
+  window.localStorage.clear();
+  window.sessionStorage.clear();
   let lastBlob: Blob | null = null;
   vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: (b: Blob) => ((lastBlob = b), "blob:test"), revokeObjectURL: () => {} }));
   vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BillingActions } from "./actions";
 import { AccountNav, Meter } from "@/components/account/Meter";
+import { linkedPassIds } from "@/lib/pass";
 import { requireMember } from "@/lib/server-session";
 import { usageSummary } from "@/lib/usage";
 
@@ -9,9 +10,10 @@ export const metadata: Metadata = { title: "Billing", robots: { index: false, fo
 const dateFmt = (d: Date) => new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(d);
 
 export default async function BillingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const { p, org } = await requireMember("/account/billing");
+  const { p, org, viewer } = await requireMember("/account/billing");
   const sp = await searchParams;
-  const ent = await p.billing.getEntitlements(org.id);
+  // Plan + passes bought by the workspace + this browser's pass cookie + passes linked to the workspace.
+  const ent = await p.billing.getEntitlements(org.id, { passIds: [...viewer.passIds, ...(await linkedPassIds(p.ex, { orgId: org.id }))] });
   const u = await usageSummary(p, org.id);
   const isOwner = org.role === "owner";
   const paid = ent.planId !== p.billing.catalog.freePlanId;
@@ -48,6 +50,12 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         <p role="status" className="mt-4 border border-warn/40 bg-warn/5 rounded-[4px] px-3 py-2 text-[13px] text-warn">
           Your subscription is canceled and ends on {dateFmt(ent.currentPeriodEnd)} (UTC). Until then you keep {ent.planName}. Afterwards
           endpoints over the Free limit are paused, not deleted.
+        </p>
+      )}
+
+      {ent.pass && (
+        <p role="status" className="mt-4 border border-ok/40 bg-ok/5 rounded-[4px] px-3 py-2 text-[13px] text-ok">
+          {ent.pass.name} active until {dateFmt(ent.pass.expiresAt)} (UTC). It is a one-time payment and does not renew.
         </p>
       )}
 

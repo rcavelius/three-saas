@@ -5,6 +5,7 @@ import { Report } from "./Report";
 import type { ScanReport } from "@/lib/scanner/types";
 import { summarizeChecks } from "@/lib/scanner/score";
 import { FREE_LIMITS } from "@/lib/scanner/scan";
+import { gateReport } from "@/lib/report-gate";
 
 afterEach(cleanup);
 
@@ -50,6 +51,19 @@ describe("<Report>", () => {
     expect(screen.getByRole("heading", { name: /Warnings\s*\(1\)/ })).toBeTruthy();
     expect(screen.getByText("Broken internal link (404): https://e.com/x")).toBeTruthy();
     expect(screen.getByText(/Trusted, issued by Test CA/)).toBeTruthy();
+  });
+
+  it("locked: lists only the top issues, puts the paywall right under them and withholds the page list", () => {
+    const g = gateReport(report, { limits: { reportIssues: 1 }, features: { fullReport: false } });
+    expect(g.locked).not.toBeNull();
+    const { container } = render(<Report report={g.report} id="abcdefghijklmnopqrstuv" locked={g.locked} paywall={<div data-testid="paywall">pay</div>} />);
+    expect(screen.getByText("Broken internal link (404): https://e.com/x")).toBeTruthy();
+    expect(screen.queryByText("1 image without an alt attribute")).toBeNull();
+    expect(screen.getByText(/most severe issue of 3/)).toBeTruthy();
+    const findings = container.querySelector("#s-findings")!.parentElement!;
+    expect(within(findings).getByTestId("paywall")).toBeTruthy();
+    expect(screen.getByText(/page-by-page list with status codes is part of the full report/)).toBeTruthy();
+    expect(screen.getAllByRole("table")).toHaveLength(1); // summary table only
   });
 
   it("only links http(s) URLs, with safe rel attributes", () => {

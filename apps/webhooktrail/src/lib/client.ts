@@ -7,6 +7,8 @@ export class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
+    /** Extra fields of the API error object (e.g. limit, passAvailable). */
+    public data: Record<string, unknown> = {},
   ) {
     super(message);
   }
@@ -25,14 +27,16 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
   if (!res.ok) {
     let code = "http_error";
     let message = `Request failed (${res.status})`;
+    let data: Record<string, unknown> = {};
     try {
       const j = (await res.json()) as ApiErrorDTO;
+      data = j.error as unknown as Record<string, unknown>;
       code = j.error.code;
       message = j.error.issues?.length ? j.error.issues.map((i) => `${i.path || "input"}: ${i.message}`).join("; ") : j.error.message;
     } catch {
       /* non-JSON error */
     }
-    throw new ApiError(res.status, code, message);
+    throw new ApiError(res.status, code, message, data);
   }
   return (await res.json()) as T;
 }

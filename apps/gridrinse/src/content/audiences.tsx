@@ -157,7 +157,7 @@ export const AUDIENCES: Audience[] = [
       },
       {
         q: "How large can the export be?",
-        a: "5 MB and 50,000 rows per file on the free plan, 50 MB and 500,000 rows on Pro, 200 MB and 2,000,000 rows on Business. Processing speed depends on your computer.",
+        a: "5 MB and 50,000 rows per file on the free plan, 50 MB and 500,000 rows on Pro, 200 MB and 2,000,000 rows on Business. Processing speed depends on your computer. Free downloads are one a day of up to 1,000 rows; a $5 24-hour pass or a paid plan has unlimited downloads.",
       },
       {
         q: "Can I keep the line items instead?",

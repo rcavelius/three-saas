@@ -3,6 +3,7 @@
  * `getPlatform()` is the process-wide singleton (kept on globalThis so Next dev reloads reuse it);
  * tests build their own with `createPlatform()` and install it with `installPlatform()`.
  */
+import { createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { AUTH_MIGRATIONS, createAuth, isAuthError, type AppAuth, type AuthEmailTemplates } from "@repo/auth";
@@ -12,6 +13,8 @@ import {
   CHANGEKITE_CATALOG,
   checkoutRoute,
   createBilling,
+  passCheckoutRoute,
+  passClaimRoute,
   portalRoute,
   webhookRoute,
   getPlan,
@@ -51,6 +54,9 @@ import { SCAN_SITE_QUEUE, scheduleDueSites, siteScanJobHandler, type MonitorDeps
 import { dispatchPendingAlerts } from "./monitoring/alerts";
 import { SUPPORT_MIGRATIONS, createSupport, type AnthropicLike, type Support } from "@repo/support";
 
+/** Cookie carrying an anonymous buyer's one-time pass (HttpOnly, signed). */
+export const PASS_COOKIE_NAME = "ck_pass";
+
 export const ALL_MIGRATIONS = [...CORE_MIGRATIONS, ...AUTH_MIGRATIONS, ...BILLING_MIGRATIONS, ...OPS_MIGRATIONS, ...SUPPORT_MIGRATIONS, ...CHANGEKITE_MIGRATIONS];
 
 export interface Platform {
@@ -66,7 +72,7 @@ export interface Platform {
   logger: Logger;
   monitor: MonitorDeps;
   support: Support;
-  billingRoutes: { checkout: RouteFn; portal: RouteFn; webhook: RouteFn };
+  billingRoutes: { checkout: RouteFn; portal: RouteFn; webhook: RouteFn; passCheckout: RouteFn; passClaim: RouteFn };
   /** AuthError -> Response, using this platform's copy of the class (bundles may hold several). */
   authErrorResponse(err: unknown): Response | null;
   now: () => Date;
@@ -107,7 +113,7 @@ export function unconfiguredStripeGateway(): StripeGateway {
   return {
     mode: "test",
     customers: { create: fail },
-    checkout: { sessions: { create: fail } },
+    checkout: { sessions: { create: fail, retrieve: fail } },
     billingPortal: { sessions: { create: fail } },
     subscriptions: { retrieve: fail, list: async () => [], update: fail, cancel: fail },
     prices: { listByLookupKeys: async () => [] },
@@ -190,6 +196,9 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
     appUrl,
     now,
     automaticTax: e.STRIPE_AUTOMATIC_TAX,
+    // One-time "Full-site report" pass: signed cookie for anonymous buyers (secret derived from the auth secret, server-only).
+    passCookie: { name: PASS_COOKIE_NAME, secret: createHash("sha256").update("pass-cookie-v1:" + e.SESSION_SECRET).digest("base64url") },
+    passStatementDescriptorSuffix: "CHANGEKITE.COM",
     checkoutBranding: { display_name: "ChangeKite", button_color: "#1d3a66", background_color: "#ffffff", border_style: "rounded" },
     paths: {
       checkoutSuccess: "/account/billing?checkout=success",
@@ -351,10 +360,21 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
     const { org, user } = await auth.requireOrg(req.headers, { role: "owner" });
     return { orgId: org.id, email: user.email };
   };
+  // Pass checkout: anonymous allowed; a signed-in buyer's active org gets the pass too. Never throws for anonymous.
+  const resolvePassViewer = async (req: Request) => {
+    try {
+      const { org, user } = await auth.requireOrg(req.headers);
+      return { orgId: org.id, email: user.email };
+    } catch {
+      return null;
+    }
+  };
   const billingRoutes = {
     checkout: checkoutRoute(billing, resolveOwner),
     portal: portalRoute(billing, resolveOwner),
     webhook: webhookRoute(billing),
+    passCheckout: passCheckoutRoute(billing, resolvePassViewer),
+    passClaim: passClaimRoute(billing),
   };
   const authErrorResponse = (err: unknown) => (isAuthError(err) ? err.toResponse() : null);
 

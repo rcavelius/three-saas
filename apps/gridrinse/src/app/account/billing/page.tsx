@@ -30,7 +30,8 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
   const { checkout } = await searchParams;
   const { p, headers } = await requirePageSession("/account/billing");
   const { org, role } = await p.auth.requireOrg(headers);
-  const ent = await p.billing.getEntitlements(org.id);
+  // The workspace's plan, raised by a one-time pass bought by the workspace or in this browser (signed cookie).
+  const ent = await p.billing.getEntitlements(org.id, { passIds: p.billing.passIdsFromCookieHeader(headers.get("cookie")) });
   const workflows = await p.workflows.count(org.id);
   const { rows } = await p.handle.executor.query<{ n: number }>(`SELECT count(*)::int AS n FROM auth_member WHERE organization_id = $1`, [org.id]);
   const seatsUsed = Number(rows[0]?.n ?? 1);
@@ -69,6 +70,14 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         {!p.billingConfigured && (
           <p role="status" className="border-l-2 border-rule-strong bg-sunken px-3 py-2 text-sm">
             Payments are not switched on for this site yet. You can use everything on the free plan; nothing will be charged.
+          </p>
+        )}
+
+        {ent.pass && (
+          <p role="status" className="border-l-2 border-accent bg-accent-wash px-3 py-2 text-sm">
+            {ent.pass.name.charAt(0).toUpperCase() + ent.pass.name.slice(1)} active until{" "}
+            {new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeStyle: "short", timeZone: "UTC" }).format(ent.pass.expiresAt)} UTC. It was a one-time payment and does
+            not renew. The limits below include it.
           </p>
         )}
 

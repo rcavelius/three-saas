@@ -14,7 +14,7 @@
  * otherwise. The org id ALWAYS comes from the resolver, never from the request body.
  */
 import { z } from "zod";
-import { isBillingError, type Billing } from "./billing";
+import { isBillingError, safeReturnPath, type Billing } from "./billing";
 import { BillingNotConfiguredError } from "./gateway";
 
 export interface OwnerOrg {
@@ -132,5 +132,97 @@ export function webhookRoute(billing: Billing) {
       status: r.status,
       headers: { "content-type": r.status === 200 ? "application/json" : "text/plain", "cache-control": "no-store" },
     });
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// One-time passes (no account needed)
+
+export interface PassViewer {
+  /** Signed-in org (optional): the pass also counts for every member of it. */
+  orgId?: string | null;
+  /** Prefills the Checkout email. */
+  email?: string | null;
+}
+export type ResolvePassViewer = (req: Request) => Promise<PassViewer | null>;
+
+const passBody = z.object({ passId: z.string().min(1).max(40), returnPath: z.string().max(300).optional() });
+
+/**
+ * POST { passId, returnPath? } -> { url } of a Stripe Checkout (mode "payment"), or 303 for form posts.
+ * Same-origin only. Anonymous visitors may buy; resolveViewer (optional) attaches a signed-in org.
+ */
+export function passCheckoutRoute(billing: Billing, resolveViewer?: ResolvePassViewer) {
+  return async (req: Request): Promise<Response> => {
+    if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
+    if (!sameOrigin(req, billing.appUrl)) return json(403, { error: "cross_origin" });
+    let raw: { passId?: unknown; returnPath?: unknown };
+    try {
+      if (isForm(req)) {
+        const f = await req.formData();
+        raw = { passId: f.get("passId"), returnPath: f.get("returnPath") ?? undefined };
+      } else {
+        raw = ((await req.json()) as typeof raw | null) ?? {};
+      }
+    } catch {
+      return json(400, { error: "invalid_body" });
+    }
+    const parsed = passBody.safeParse({ passId: raw.passId, returnPath: raw.returnPath ?? undefined });
+    if (!parsed.success) return json(400, { error: "invalid_pass" });
+    let viewer: PassViewer | null = null;
+    if (resolveViewer) {
+      try {
+        viewer = await resolveViewer(req);
+      } catch {
+        viewer = null; // anonymous purchase still works
+      }
+    }
+    try {
+      const { url } = await billing.createPassCheckout(parsed.data.passId, {
+        orgId: viewer?.orgId ?? null,
+        email: viewer?.email ?? null,
+        returnPath: parsed.data.returnPath,
+      });
+      return respondUrl(req, url);
+    } catch (e) {
+      return billingErrorResponse(e);
+    }
+  };
+}
+
+/**
+ * GET ?session_id=cs_...&next=/path : Stripe's success redirect (and the buyer's reusable unlock link).
+ * Verifies the session with Stripe, records the pass, sets the pass cookie and redirects to next?pass=<status>.
+ */
+export function passClaimRoute(billing: Billing) {
+  return async (req: Request): Promise<Response> => {
+    if (req.method !== "GET") return new Response("method not allowed", { status: 405 });
+    const u = new URL(req.url);
+    const next = safeReturnPath(u.searchParams.get("next"));
+    const to = (status: string) => {
+      const target = new URL(next, billing.appUrl);
+      target.searchParams.set("pass", status);
+      return target.pathname + target.search + target.hash;
+    };
+    const headers = new Headers({ "cache-control": "no-store", "referrer-policy": "no-referrer" });
+    let status: string;
+    try {
+      const sessionId = u.searchParams.get("session_id") ?? "";
+      const claim = await billing.claimPass(sessionId);
+      status = claim.status;
+      // "unpaid" (a delayed payment method): keep the signed reference so the pass unlocks in this browser once the
+      // payment clears and the webhook records it.
+      const cookie =
+        claim.status === "active"
+          ? billing.passSetCookie(claim.pass)
+          : claim.status === "unpaid"
+            ? billing.passSetCookie({ id: sessionId, expiresAt: null })
+            : null;
+      if (cookie) headers.append("set-cookie", cookie);
+    } catch {
+      status = "error";
+    }
+    headers.set("location", to(status));
+    return new Response(null, { status: 303, headers });
   };
 }

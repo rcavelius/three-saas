@@ -5,7 +5,8 @@ import { apiError, json, readJsonBody, tooManyRequests } from "@/lib/http";
 import { sha256Hex } from "@/lib/ids";
 import { orgLimits } from "@/lib/org-data";
 import { ensureOwnerToken, ownerCookieHeader } from "@/lib/owner";
-import { FREE_LIMITS, limits } from "@/lib/plans";
+import { linkViewerPasses, ownerLimits, passLimits, viewerPassInfo } from "@/lib/pass";
+import { limits } from "@/lib/plans";
 import { createEndpointSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -14,18 +15,25 @@ export const dynamic = "force-dynamic";
 /**
  * The caller's endpoints: `endpoints` = the signed-in workspace's (all members see them),
  * `anonymous` = unclaimed endpoints of this browser's owner cookie (claimable after sign-in).
+ * `pass` = the viewer's active one-time pass, if any.
  */
 export async function GET(req: Request): Promise<Response> {
   const ctx = await apiContext(req, { mutating: false });
   if (ctx instanceof Response) return ctx;
   const { p, viewer } = ctx;
-  const out: { endpoints: unknown[]; anonymous: unknown[]; signedIn: boolean } = { endpoints: [], anonymous: [], signedIn: Boolean(viewer.user) };
+  const out: { endpoints: unknown[]; anonymous: unknown[]; signedIn: boolean; pass: unknown } = {
+    endpoints: [],
+    anonymous: [],
+    signedIn: Boolean(viewer.user),
+    pass: await viewerPassInfo(p, viewer),
+  };
   if (viewer.org) {
-    const lim = await orgLimits(p, viewer.org.id);
+    const lim = await orgLimits(p, viewer.org.id, viewer.passIds);
     out.endpoints = (await listOrgEndpoints(ctx.ex, viewer.org.id)).map((r) => toEndpointDTO(r, p.appUrl, lim, viewer));
   }
   if (viewer.anonHash) {
-    const anon = (await listAnonEndpoints(ctx.ex, viewer.anonHash)).map((r) => toEndpointDTO(r, p.appUrl, FREE_LIMITS, viewer));
+    const lim = await ownerLimits(p, { anonHash: viewer.anonHash }, viewer.passIds);
+    const anon = (await listAnonEndpoints(ctx.ex, viewer.anonHash)).map((r) => toEndpointDTO(r, p.appUrl, lim, viewer));
     if (viewer.org) out.anonymous = anon;
     else out.endpoints = anon;
   }
@@ -44,13 +52,13 @@ export async function POST(req: Request): Promise<Response> {
   if (!rl.allowed) return tooManyRequests(rl.resetAt, "Too many endpoints created from this IP. Try again later.");
 
   if (viewer.user && viewer.org) {
-    const result = await createEndpoint(p, { orgId: viewer.org.id, userId: viewer.user.id }, { name: input.data.name });
+    const result = await createEndpoint(p, { orgId: viewer.org.id, userId: viewer.user.id }, { name: input.data.name, passIds: viewer.passIds });
     if (!result.ok) {
       return apiError(
         403,
         "endpoint_limit",
         `Your plan allows ${result.limit} active endpoints. Delete one or upgrade for more.`,
-        { limit: result.limit },
+        { limit: result.limit, passAvailable: result.limit >= 0 && passLimits().endpoints > result.limit },
       );
     }
     return json({ endpoint: toEndpointDTO(result.row, p.appUrl, result.limits, viewer) }, { status: 201 });
@@ -58,16 +66,19 @@ export async function POST(req: Request): Promise<Response> {
 
   const { token, isNew } = ensureOwnerToken(req);
   const anonHash = sha256Hex(token);
-  const result = await createEndpoint(p, { anonHash }, { name: input.data.name });
+  const anonViewer = { ...viewer, anonHash };
+  // A pass bought before this browser had an owner token is linked to the new token now.
+  if (isNew) await linkViewerPasses(p, anonViewer);
+  const result = await createEndpoint(p, { anonHash }, { name: input.data.name, passIds: viewer.passIds });
   if (!result.ok) {
     return apiError(
       403,
       "endpoint_limit",
-      `Free endpoints are limited to ${result.limit} active at a time. Delete one, wait for one to expire, or sign up.`,
-      { limit: result.limit },
+      `Free endpoints are limited to ${result.limit} active at a time. Delete one, wait for one to expire, or get the 7-day pass.`,
+      { limit: result.limit, passAvailable: result.limit >= 0 && passLimits().endpoints > result.limit },
     );
   }
   const headers = new Headers();
   if (isNew) headers.append("Set-Cookie", ownerCookieHeader(token));
-  return json({ endpoint: toEndpointDTO(result.row, p.appUrl, FREE_LIMITS, { ...viewer, anonHash }) }, { status: 201, headers });
+  return json({ endpoint: toEndpointDTO(result.row, p.appUrl, result.limits, anonViewer) }, { status: 201, headers });
 }

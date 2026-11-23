@@ -36,7 +36,7 @@ describe("subscription lifecycle", () => {
     ]);
     const ent = await t.billing.getEntitlements("org_a");
     expect(ent).toMatchObject({ planId: "solo", status: "active", cancelAtPeriodEnd: false, subscribedPlanId: "solo" });
-    expect(ent.limits).toEqual({ sites: 3, pagesPerScan: 250, scanFrequencyHours: 24, historyDays: 90, teamSeats: 1 });
+    expect(ent.limits).toEqual({ sites: 3, pagesPerScan: 250, scanFrequencyHours: 24, historyDays: 90, teamSeats: 1, reportIssues: -1 });
     expect(ent.features.scheduledScans).toBe(true);
     expect(ent.currentPeriodEnd!.getTime()).toBe(t.clock.t.getTime() + 30 * DAY);
     expect(t.seen.planChanged).toEqual([["org_a", "free", "solo"]]);

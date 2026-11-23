@@ -22,7 +22,7 @@ The [guides](/guides) are step-by-step articles for the most common problems:
 
 Every report has a **JSON** button. It opens the full report data at `/api/report/<id>`, where `<id>` is the id from the report link.
 
-- For a free report, anyone with the link can open the JSON, just like the report itself.
+- For a free report, anyone with the link can open the JSON, just like the report itself. Without a pass or plan it contains the same as the free report: the summary and the 3 most severe issues, plus counts of the rest.
 - For a report of a monitored site, you must be signed in as a member of the workspace. Everyone else gets "not found".
 
 The JSON contains the report id, when it was created, and the full report.
@@ -30,6 +30,7 @@ The JSON contains the report id, when it was created, and the full report.
 ## Exporting a report as PDF
 
 - **Agency plan**: reports of monitored sites have a **Download PDF** button that creates a PDF on the server. Each workspace can export up to 30 PDFs per hour.
+- **Full-site report pass**: while the pass is active, every report you open has a **Download PDF** button (up to 30 PDFs per hour).
 - **Free scans, Free and Solo plans**: use the **Print / PDF** button on the report and choose "Save as PDF" in your browser's print dialog.
 
 ## Sharing a report
