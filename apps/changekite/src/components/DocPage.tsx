@@ -8,6 +8,7 @@ export function DocPage({
   eyebrow: string;
   title: string;
   lede?: string;
+  /** Legal pages: shows the draft banner until the operator details are set and the text is approved. */
   draft?: boolean;
   children: React.ReactNode;
 }) {
@@ -17,7 +18,7 @@ export function DocPage({
       <h1 className="mt-3 font-display text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{title}</h1>
       {draft && (
         <p role="note" className="mt-6 border-l-2 border-warn bg-warn-wash px-4 py-3 font-medium text-ink">
-          Draft &mdash; requires legal review before publication.
+          Draft &mdash; requires legal review before publication. This text describes how the product works today but is not yet a binding policy.
         </p>
       )}
       {lede && <p className="mt-6 text-lg leading-relaxed text-ink-soft">{lede}</p>}

@@ -18,8 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # ChangeKite and WebhookTrail are shut down (2026-11-17), so only GridRinse is checked.
-        domain: [gridrinse.com]
+        domain: [gridrinse.com, changekite.com, webhooktrail.com]
     steps:
       - name: GET https://${{ matrix.domain }}/api/health
         run: |

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, ApiError } from "@/lib/client";
+import { track } from "@/lib/track";
 import type { EndpointDTO } from "@/lib/types";
 
 export function CreateEndpointButton({ size = "lg" }: { size?: "lg" | "sm" }) {
@@ -15,6 +16,7 @@ export function CreateEndpointButton({ size = "lg" }: { size?: "lg" | "sm" }) {
     setError(null);
     try {
       const { endpoint } = await api<{ endpoint: EndpointDTO }>("/api/endpoints", { method: "POST", body: {} });
+      track("tool_used", { tool: "create_endpoint" });
       router.push(`/e/${endpoint.id}`);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not create an endpoint. Check your connection.");

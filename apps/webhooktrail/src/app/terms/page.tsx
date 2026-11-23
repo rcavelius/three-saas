@@ -1,41 +1,89 @@
 import type { Metadata } from "next";
-import { LegalDraft } from "@/components/LegalDraft";
+import Link from "next/link";
+import { LegalDraft, OperatorDetails } from "@/components/LegalDraft";
+import { legalInfo } from "@/lib/legal";
 
-export const metadata: Metadata = { title: "Terms of service (draft)", robots: { index: false }, alternates: { canonical: "/terms" } };
+export const dynamic = "force-dynamic";
+
+export function generateMetadata(): Metadata {
+  const published = legalInfo().published;
+  return {
+    title: published ? "Terms of service" : "Terms of service (draft)",
+    robots: published ? undefined : { index: false },
+    alternates: { canonical: "/terms" },
+  };
+}
 
 export default function TermsPage() {
+  const legal = legalInfo();
   return (
-    <LegalDraft title="Terms of service" updated="November 2026">
-      <h2>The service</h2>
+    <LegalDraft title="Terms of service" updated="2026-11-23" legal={legal}>
+      <h2>1. The service</h2>
       <p>
-        WebhookTrail provides URLs that record HTTP requests sent to them and a console to inspect those requests. The Free plan is
-        provided without an account, as is, and may change or be limited at any time.
+        WebhookTrail provides capture URLs that record the HTTP requests sent to them, a console and API to inspect those requests, custom
+        responses, and, on paid plans, replay of captured requests to destinations you have verified. The Free plan can be used without an
+        account, within the limits shown on the <Link href="/pricing">pricing page</Link>.
       </p>
 
-      <h2>Acceptable use</h2>
+      <h2>2. Acceptable use</h2>
       <ul>
         <li>Use capture URLs for testing and debugging integrations you are entitled to test.</li>
         <li>
           Do not use WebhookTrail to collect credentials or personal data from people who have not agreed to it, to host or distribute
           content, to run phishing or malware campaigns, or to attack third parties.
         </li>
-        <li>Do not try to circumvent rate limits, size limits or ownership checks.</li>
+        <li>Do not try to circumvent rate limits, size limits, plan limits or ownership checks, or disrupt the service.</li>
+        <li>Only add replay destinations you control or are allowed to send requests to.</li>
       </ul>
-
-      <h2>Your data</h2>
       <p>
-        You are responsible for what is sent to your endpoints. Avoid sending production secrets or real personal data; if you do,
-        delete them when you are done. Data is deleted when an endpoint expires or is deleted.
+        We may suspend endpoints or accounts that break these rules. Report abuse to <a href={`mailto:${legal.abuseEmail}`}>{legal.abuseEmail}</a>.
       </p>
 
-      <h2>Availability and liability</h2>
+      <h2>3. Your data</h2>
       <p>
-        There is no uptime guarantee for the Free plan. Requests may be rejected (413, 429) or lost. [Limitation of liability, governing
-        law and contact details to be completed after legal review.]
+        What is sent to your endpoints remains yours, and you are responsible for it. Avoid sending production secrets or real personal data;
+        if you do, delete them when you are done. Captured requests are deleted when they pass your plan&apos;s history period, when an
+        endpoint expires or is deleted, or when you delete them. WebhookTrail is a testing tool, not a backup: keep your own copy of anything
+        you need. How we handle data is described in the <Link href="/privacy">privacy policy</Link>.
       </p>
 
-      <h2>Paid plans</h2>
-      <p>Paid plans are monthly subscriptions billed in advance through Stripe, our payment processor; we never see or store your full card details. A subscription renews automatically each month until you cancel. You can upgrade, downgrade or cancel at any time from your account&apos;s billing page: upgrades take effect immediately with a prorated charge, and after a cancellation your paid features stay active until the end of the period you have already paid for, then your account moves to the free plan. If a payment fails we email you and keep your paid features for 7 days while Stripe retries; if payment still fails, the account moves to the free plan and nothing is deleted. Refund requests are reviewed individually by a person; contact support. We will give at least 30 days&apos; notice by email before changing the price of a plan you are subscribed to.</p>
+      <h2>4. Availability and liability</h2>
+      <p>
+        The service is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo;, without warranties of any kind, including fitness for a
+        particular purpose. There is no uptime guarantee. Requests can be rejected (for example <code>413</code> or <code>429</code> when a limit
+        is reached) or lost, and replays can fail. You are responsible for checking results before relying on them in production.
+      </p>
+
+      <h2>5. Paid plans</h2>
+      <p>
+        Paid plans are monthly subscriptions in US dollars, billed in advance through Stripe, our payment processor; we never see or store your
+        full card details. Taxes may be added where they apply. A subscription renews automatically each month until you cancel. Billing
+        belongs to a workspace and only its owner can change it. You can upgrade, downgrade or cancel at any time from the billing page of your
+        account: upgrades take effect immediately with a prorated charge, and after a cancellation your paid features stay active until the end
+        of the period you have already paid for, then your workspace moves to the Free plan. If a payment fails we email you and keep your paid
+        features for 7 days while Stripe retries; if payment still fails, the workspace moves to the Free plan. Endpoints over the Free limit
+        are then paused, not deleted, and captured requests older than the Free history period are removed by the normal cleanup. We will give
+        at least 30 days&apos; notice by email before changing the price of a plan you are subscribed to.
+      </p>
+
+      <h2>6. Cancellation and refunds</h2>
+      <p>
+        You can cancel at any time from Account &rarr; Billing &rarr; Manage subscription; no email or call is needed. Cancellation takes effect at
+        the end of the period you have paid for, and you keep paid features until then; you are not charged again. We do not pro-rate partial
+        months after a cancellation. If you were charged in error, or the service did not work for you in your first 14 days of a paid plan,
+        email {legal.supportEmail} within 14 days of the charge and a person will refund it in full. Other refund requests are reviewed
+        individually. Refunds go back to the original payment method through Stripe.
+      </p>
+
+      <h2>7. Changes</h2>
+      <p>
+        These terms may change. Material changes will be announced on this page with a new date, and by email to paying customers at least 30
+        days in advance.
+      </p>
+
+      <h2>8. Who we are, contact and governing law</h2>
+      <OperatorDetails legal={legal} />
+      <p>These terms are governed by the laws of {legal.jurisdiction ?? "[jurisdiction — to be added before publication]"}.</p>
     </LegalDraft>
   );
 }

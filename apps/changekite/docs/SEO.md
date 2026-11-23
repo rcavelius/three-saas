@@ -8,7 +8,7 @@ Everything below needs the production domain; nothing has been submitted anywher
 2. Publish the `TXT` record Google shows (`google-site-verification=…`) at the DNS provider for the apex (`@`).
    Propagation is usually minutes; click **Verify**.
 3. **Sitemaps → Add a new sitemap**: `https://<domain>/sitemap.xml`. It lists the home page, pricing, docs, the guides,
-   the crawler page, sign-up and the legal pages. Private URLs (reports, dashboard, account, admin, API) are excluded and
+   the twelve `/tools/*` checker pages and `/tools`, the crawler page, sign-up and (once `LEGAL_APPROVED=1` and the operator details are set) the legal pages. Private URLs (reports, dashboard, account, admin, API) are excluded and
    disallowed in `robots.txt`.
 4. Optional: Bing Webmaster Tools can import the property from Search Console.
 5. After a week, check **Pages** for "Excluded by noindex" (expected only for `/login` and private pages) and
@@ -21,7 +21,7 @@ Everything below needs the production domain; nothing has been submitted anywher
   login, password and invitation pages (plus `X-Robots-Tag` on `/report/*` and `/api/*`).
 - JSON-LD, rendered with the per-request CSP nonce:
   - `SoftwareApplication` with one `Offer` per plan from `CHANGEKITE_CATALOG` (home and pricing),
-  - `FAQPage` on pricing (billing, cancellation, refunds handled by a person, retention, safety, privacy),
+  - `FAQPage` on pricing (billing, cancellation, the 14-day refund promise, retention, safety, privacy),
   - `Article` on every guide and `HowTo` on the step-by-step guides.
 - The free tool is the home page itself (a working scanner, not a landing page in front of one).
 - No testimonials, logos, customer counts or ratings anywhere: there are none yet.
@@ -37,6 +37,7 @@ Everything below needs the production domain; nothing has been submitted anywher
 | robots.txt blocking google, disallow all robots.txt, robots.txt vs noindex | `/guides/robots-txt-blocking-search-engines` |
 | what does each SEO check mean (titles, meta descriptions, canonical, alt text) | `/docs` |
 | ChangeKiteBot user agent | `/bot` |
+| broken link checker, find 404 pages, redirect chain checker, mixed content checker, canonical tag checker, sitemap checker, robots.txt checker, ssl certificate checker, title/meta description checker, alt text checker, website monitoring | `/tools/<slug>` (data in `src/content/tools.ts`; claims pinned by `src/content/tools.test.ts`) |
 
 ## Internal links
 

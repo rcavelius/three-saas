@@ -73,7 +73,7 @@ const SAMPLES: Sample[] = [
   {
     id: "oversized",
     label: "Oversized payload (1.1 MB)",
-    note: "Exceeds the 1 MB limit, so the capture URL answers 413 and nothing is stored.",
+    note: "Larger than the Free plan's 1 MB maximum: on Free the capture URL answers 413 and nothing is stored. Paid plans accept larger bodies.",
     method: "POST",
     path: "/upload",
     contentType: "text/plain",

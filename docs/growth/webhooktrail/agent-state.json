@@ -1,0 +1,11 @@
+{
+  "name": "WebhookTrail sales agents",
+  "born": "2026-11-23",
+  "deadline": "2027-01-31",
+  "alive": true,
+  "generation": 1,
+  "sales_seen": 0,
+  "ignored_subscriptions": 0,
+  "ignored_note": "Raise ignored_subscriptions by 1 if the owner makes his own refunded test purchase, so it does not count as a sale.",
+  "log": []
+}

@@ -26,7 +26,7 @@ export function BillingActions({
           <PortalButton />
           <p className="mt-2 text-[12.5px] text-fg-dim">
             Switching plans, updating the card and canceling happen in Stripe&apos;s billing portal. Canceling keeps the plan until the end of
-            the paid period; refunds are handled by a person: contact support.
+            the paid period. Charged in error, or it did not work for you in your first 14 days? Contact support within 14 days for a full refund.
           </p>
         </div>
       ) : (

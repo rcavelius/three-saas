@@ -1,19 +1,26 @@
 /**
- * Daily GridRinse growth numbers for the sales agent (docs/growth/AGENT.md), written to docs/growth/metrics.json.
- * Counts only: no emails, names, ids or IP addresses ever go into the file (it is committed to the repo).
- *   npx tsx scripts/growth-metrics.mts            (locally reads .secrets/cloudflare-gridrinse.json)
- * In GitHub Actions: DATABASE_URL_GRIDRINSE and STRIPE_SECRET_KEY from secrets.
+ * Daily growth numbers for a product's sales agents. Counts only: no emails, names, ids or IP addresses ever go
+ * into the file (it is committed to the repo).
+ *   npx tsx scripts/growth-metrics.mts [gridrinse|changekite|webhooktrail]      (default gridrinse)
+ * GridRinse writes docs/growth/metrics.json (rulebook docs/growth/AGENT.md); the others write
+ * docs/growth/<app>/metrics.json (rulebook docs/growth/<app>/AGENT.md).
+ * Locally reads .secrets/cloudflare-<app>.json; in GitHub Actions DATABASE_URL_<APP> and STRIPE_SECRET_KEY.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import pg from "pg";
 import Stripe from "stripe";
 
-const local = existsSync(".secrets/cloudflare-gridrinse.json")
-  ? JSON.parse(readFileSync(".secrets/cloudflare-gridrinse.json", "utf8").replace(/^﻿/, ""))
-  : {};
-const db = process.env.DATABASE_URL_GRIDRINSE ?? local.DATABASE_URL;
+const APPS = ["gridrinse", "changekite", "webhooktrail"] as const;
+const app = (process.argv[2] ?? "gridrinse") as (typeof APPS)[number];
+if (!APPS.includes(app)) throw new Error(`Unknown app "${app}" (expected one of ${APPS.join(", ")})`);
+const outDir = app === "gridrinse" ? "docs/growth" : `docs/growth/${app}`;
+const secretsFile = `.secrets/cloudflare-${app}.json`;
+const dbVar = `DATABASE_URL_${app.toUpperCase()}`;
+
+const local = existsSync(secretsFile) ? JSON.parse(readFileSync(secretsFile, "utf8").replace(/^﻿/, "")) : {};
+const db = process.env[dbVar] ?? local.DATABASE_URL;
 const stripeKey = process.env.STRIPE_SECRET_KEY ?? local.STRIPE_SECRET_KEY;
-if (!db) throw new Error("DATABASE_URL_GRIDRINSE is not set");
+if (!db) throw new Error(`${dbVar} is not set`);
 
 const client = new pg.Client({ connectionString: db });
 await client.connect();
@@ -62,7 +69,7 @@ const subRows = await q<{ plan_id: string; status: string }>(`SELECT plan_id, st
 const windows = { last_1d: await windowStats(1), last_7d: await windowStats(7), last_30d: await windowStats(30) };
 await client.end();
 
-// Paid customers straight from Stripe (the source of truth), GridRinse prices only.
+// Paid customers straight from Stripe (the source of truth), this product's prices only (one account sells all three).
 let stripeStats: Record<string, unknown> = { available: false };
 if (stripeKey) {
   const stripe = new Stripe(stripeKey);
@@ -71,7 +78,7 @@ if (stripeKey) {
   const firstPaidDates: string[] = [];
   for await (const s of stripe.subscriptions.list({ status: "all", limit: 100, expand: ["data.items.data.price"] })) {
     const price = s.items.data[0]?.price;
-    if (!price?.lookup_key?.startsWith("gridrinse_")) continue;
+    if (!price?.lookup_key?.startsWith(`${app}_`)) continue;
     const paidStatuses = ["active", "past_due", "trialing"];
     if (paidStatuses.includes(s.status)) {
       active++;
@@ -88,12 +95,12 @@ if (stripeKey) {
 
 const out = {
   generated_at: new Date().toISOString(),
-  product: "gridrinse",
+  product: app,
   accounts_total: n(accounts?.total),
   subscriptions_in_db: subRows.reduce<Record<string, number>>((m, r) => ((m[`${r.plan_id}:${r.status}`] = (m[`${r.plan_id}:${r.status}`] ?? 0) + 1), m), {}),
   stripe: stripeStats,
   ...windows,
 };
-mkdirSync("docs/growth", { recursive: true });
-writeFileSync("docs/growth/metrics.json", JSON.stringify(out, null, 2) + "\n");
-console.log(`metrics: visitors 7d ${out.last_7d.visitors}, accounts ${out.accounts_total}, paid ${JSON.stringify((stripeStats as { active_paid_subscriptions?: number }).active_paid_subscriptions ?? "n/a")}`);
+mkdirSync(outDir, { recursive: true });
+writeFileSync(`${outDir}/metrics.json`, JSON.stringify(out, null, 2) + "\n");
+console.log(`${app} metrics: visitors 7d ${out.last_7d.visitors}, accounts ${out.accounts_total}, paid ${JSON.stringify((stripeStats as { active_paid_subscriptions?: number }).active_paid_subscriptions ?? "n/a")}`);

@@ -33,9 +33,8 @@ jobs:
       - id: pick
         run: |
           app="${{ github.event.inputs.app || 'all' }}"
-          # ChangeKite and WebhookTrail were shut down on 2026-11-17 (owner decision) to stop their hosting costs.
-          # "all" now means only the live product; deploy one of them by name to bring it back.
-          if [ "$app" = "all" ]; then echo 'apps=["gridrinse"]' >> "$GITHUB_OUTPUT";
+          # ChangeKite and WebhookTrail were shut down on 2026-11-17 and relaunched publicly on 2026-11-23 (owner decision).
+          if [ "$app" = "all" ]; then echo 'apps=["gridrinse","changekite","webhooktrail"]' >> "$GITHUB_OUTPUT";
           else echo "apps=[\"$app\"]" >> "$GITHUB_OUTPUT"; fi
 
   deploy:
@@ -91,7 +90,7 @@ jobs:
           done
           test "$code" = "200"
           code=$(curl -s -o /dev/null -w '%{http_code}' "$url/")
-          echo "/ -> $code (401 while the site password is on, 200 when public)"
-          case "$code" in 200|401) ;; *) exit 1 ;; esac
+          echo "/ -> $code (all three sites are public, so anything but 200 means the site password is still on or the app is broken)"
+          test "$code" = "200"
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$url/api/cron/tick")
           echo "cron without secret -> $code"; test "$code" = "401"

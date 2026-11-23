@@ -11,6 +11,7 @@ export function SiteFooter() {
         <nav aria-label="Footer">
           <ul className="flex flex-wrap gap-x-5 gap-y-2">
             <li><Link className="hover:text-ink hover:underline" href="/docs">Checks</Link></li>
+            <li><Link className="hover:text-ink hover:underline" href="/tools">Tools</Link></li>
             <li><Link className="hover:text-ink hover:underline" href="/guides">Guides</Link></li>
             <li><Link className="hover:text-ink hover:underline" href="/pricing">Pricing</Link></li>
             <li><Link className="hover:text-ink hover:underline" href="/help">Help center</Link></li>

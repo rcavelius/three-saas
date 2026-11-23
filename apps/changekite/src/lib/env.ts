@@ -23,6 +23,11 @@ const changekiteEnvSchema = z
     STRIPE_SECRET_KEY: optionalString,
     STRIPE_WEBHOOK_SECRET: optionalString,
     STRIPE_LIVE_MODE_AUTHORIZED: optionalString,
+    /** STRIPE_AUTOMATIC_TAX=1: Stripe Tax on checkout (set up in the Stripe dashboard first). */
+    STRIPE_AUTOMATIC_TAX: z
+      .string()
+      .optional()
+      .transform((v) => v?.trim() === "1"),
     RESEND_API_KEY: optionalString,
     EMAIL_FROM: z.string().default("ChangeKite <no-reply@localhost>"),
     SUPPORT_EMAIL: optionalString,
