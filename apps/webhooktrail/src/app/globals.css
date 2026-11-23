@@ -634,6 +634,7 @@ html:has(.theme-grid) {
 }
 /* Ghost cut-corner (secondary): ink outline drawn with an inset ring. */
 .btn-cut-ghost {
+  clip-path: none;
   background: transparent;
   color: var(--color-fg);
   box-shadow: inset 0 0 0 1.5px var(--color-fg);

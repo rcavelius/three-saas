@@ -28,7 +28,7 @@ export function GuideShell({ guide, steps, children }: { guide: Guide; steps?: s
               }
         }
       />
-      <PageHead word="Guides" wordHref="/guides" title={guide.title} lead={<p>{guide.description}</p>} aside={<p className="font-mono text-[12px] text-fg-dim">Updated {guide.updated}</p>} />
+      <PageHead word="Guides" wordHref="/guides" title={guide.title} art="hook" lead={<><p>{guide.description}</p><p className="mt-3 font-mono text-[12px] text-fg-dim">Updated {guide.updated}</p></>} />
       <div className="g-row grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <div className="g-x hidden p-4 md:p-6 lg:block">
           <Link href="/guides" className="g-cap hover:text-signal">
