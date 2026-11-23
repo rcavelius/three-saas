@@ -52,7 +52,7 @@ test("public pages: no CSP violations, accessible, fit 390 px", async ({ page })
   }
   // The tool itself, with a file loaded
   await page.goto("/");
-  await page.getByRole("button", { name: "Try a sample file" }).click();
+  await page.getByRole("button", { name: "Clean a messy sample file" }).click();
   await expect(page.locator('p.sr-only[role="status"]')).toContainText(/Cleaned:/, { timeout: 30_000 });
   await axe(page, "/ (tool loaded)");
 
@@ -97,8 +97,8 @@ test("sign up → verify → log in → tool → billing → delete account", as
 
   // The tool, signed in: limits come from the server (Free).
   await page.goto("/");
-  await expect(page.getByText(/Free plan: up to 3 files/)).toBeVisible();
-  await page.getByRole("button", { name: "Try a sample file" }).click();
+  await expect(page.getByText(/free up to 5 MB/)).toBeVisible();
+  await page.getByRole("button", { name: "Clean a messy sample file" }).click();
   await expect(page.locator('p.sr-only[role="status"]')).toContainText(/Cleaned:/, { timeout: 30_000 });
   await expect(page.getByText(/keeps workflows in this browser only/)).toBeVisible();
 

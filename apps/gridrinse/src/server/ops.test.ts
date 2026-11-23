@@ -64,6 +64,21 @@ describe("analytics events route", () => {
     const unknown = await app.call((p, req) => app.routes.eventsRouteHandler(p, req), "/api/events", { body: { name: "file_uploaded" } });
     expect(unknown.status).toBe(400);
   });
+
+  it("stores GridRinse's own funnel events, not only the shared default names", async () => {
+    for (const [name, props] of [
+      ["signup_submitted", { plan: "pro", outcome: "sent" }],
+      ["upgrade_shown", { plan: "pro", from: "limit" }],
+      ["file_rejected", { reason: "too_big" }],
+      ["sample_downloaded", {}],
+    ] as const) {
+      const r = await app.call((p, req) => app.routes.eventsRouteHandler(p, req), "/api/events", { body: { name, anonymousId: "anon_funnel01", path: "/signup", props } });
+      expect(r.status).toBe(204);
+    }
+    const { rows } = await app.p.handle.executor.query<{ name: string; props: Record<string, unknown> }>(`SELECT name, props FROM analytics_events WHERE anonymous_id = 'anon_funnel01' ORDER BY name`);
+    expect(rows.map((r) => r.name)).toEqual(["file_rejected", "sample_downloaded", "signup_submitted", "upgrade_shown"]);
+    expect(rows.find((r) => r.name === "signup_submitted")!.props).toEqual({ plan: "pro", outcome: "sent" });
+  });
 });
 
 describe("internal ops dashboard access", () => {

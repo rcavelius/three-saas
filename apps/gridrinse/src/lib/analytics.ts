@@ -13,15 +13,25 @@ type PropSpec = "count" | readonly string[];
 export const EVENT_SPEC = {
   pageview: {},
   signup_started: { plan: ["free", "pro", "business"] },
+  /** The sign-up form was submitted (signup_started fires when the form is shown); outcome = what the server said. */
+  signup_submitted: { plan: ["free", "pro", "business"], outcome: ["sent", "error"] },
   signup_completed: {},
   checkout_started: { plan: ["pro", "business"] },
-  upgrade_clicked: { plan: ["pro", "business"], from: ["pricing", "billing", "limit", "workflows", "team"] },
+  /** An upgrade prompt was shown (so prompts seen vs. clicked can be compared). */
+  upgrade_shown: { plan: ["pro", "business"], from: ["limit", "files", "download", "workflows"] },
+  upgrade_clicked: { plan: ["pro", "business"], from: ["pricing", "billing", "limit", "workflows", "team", "files", "download", "home", "tool_page"] },
+  /** A file was refused before cleaning; reason only, never the file name. */
+  file_rejected: { reason: ["too_big", "too_many_files", "too_many_rows", "unsupported", "memory", "unreadable"] },
+  /** Someone downloaded a messy sample file from a tool page. */
+  sample_downloaded: {},
   tool_used: {
     action: ["clean", "download_csv", "download_xlsx", "download_zip", "download_batch_xlsx"],
     mode: ["single", "merge", "batch"],
     files: "count",
     steps: "count",
     format: ["csv", "tsv", "xlsx", "zip_csv", "zip_xlsx"],
+    /** Whether the cleaned data is the built-in sample or the visitor's own file. */
+    source: ["sample", "file"],
   },
 } as const satisfies Record<string, Record<string, PropSpec>>;
 

@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import { Cleaner } from "@/components/Cleaner";
 import { HowHero } from "@/components/HowHero";
 import { freeProcessingLimits } from "@/server/plans";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "How it works",
   description: "Choose a CSV or Excel file, review every proposed change, and download cleaner data. Your file is processed in your browser and never uploaded.",
-  alternates: { canonical: "/how-it-works" },
-};
+  path: "/how-it-works",
+});
 
 export default function HowItWorks() {
   return (

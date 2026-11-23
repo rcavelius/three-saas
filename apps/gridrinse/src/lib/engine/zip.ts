@@ -84,6 +84,4 @@ export function batchZip(files: { name: string; table: Table }[], format: ZipFor
   );
 }
 
-export function zipFileName(now = new Date()): string {
-  return `gridrinse-batch-${now.toISOString().slice(0, 10)}.zip`;
-}
+export { zipFileName } from "./names";

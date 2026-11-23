@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { ReviewToggle } from "@/components/ReviewToggle";
 import { Shield, SpecimenFigure } from "@/components/SpecimenFigure";
 import { featureSpecimens } from "@/lib/feature-specimens";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Features",
   description: "Trim spaces, remove duplicate and blank rows, standardize dates, turn currency text into numbers, and review every change. All in your browser.",
-  alternates: { canonical: "/features" },
-};
+  path: "/features",
+});
 
 function Arrow({ down = false }: { down?: boolean }) {
   return (

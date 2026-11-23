@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { ArticleList, ArticlesByCategory, HelpSearchForm } from "@repo/support/ui";
 import { PageHero } from "@/components/PageHero";
 import { getPlatform } from "@/server/platform";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Help center",
   description: "Answers about cleaning files with GridRinse, file formats and limits, workflows, plans, billing, your account and privacy.",
-  alternates: { canonical: "/help" },
-};
+  path: "/help",
+});
 
 export default async function HelpPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;

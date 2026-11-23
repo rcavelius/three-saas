@@ -42,6 +42,22 @@ export function defaultSteps(numberColumns: string[]): Step[] {
   ];
 }
 
+/**
+ * The default steps plus a tool page's own steps (for its sample): a tool step replaces the default step of the
+ * same type (e.g. snake_case headers instead of "keep"), any other tool step is added at the end.
+ */
+export function withToolSteps(defaults: Step[], toolSteps: readonly Step[] | undefined): Step[] {
+  if (!toolSteps?.length) return defaults;
+  const out = defaults.slice();
+  for (const s of toolSteps) {
+    const step = { ...s, id: newStepId() } as Step;
+    const i = out.findIndex((d) => d.type === step.type);
+    if (i >= 0) out[i] = step;
+    else out.push(step);
+  }
+  return out;
+}
+
 /** Templates for the "Add a step" menu. */
 export function templateFor(type: StepType, columns: string[]): Step {
   const first = columns[0] ?? "";

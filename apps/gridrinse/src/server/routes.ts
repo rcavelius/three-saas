@@ -275,6 +275,8 @@ export async function eventsRouteHandler(p: Platform, req: Request): Promise<Res
     handle: p.handle,
     clientIp: p.env.clientIp,
     rateLimit: { limit: 60, windowMs: MINUTE },
+    // GridRinse's own event list (the ops default only knows the generic funnel names).
+    allowedNames: Object.keys(EVENT_SPEC),
     allowedOrigins: [p.env.appUrl],
     getUserId: async (r) => (await p.auth.getSession(r.headers))?.user.id ?? null,
     now: p.now,

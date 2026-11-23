@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { GuideBrowser } from "@/components/GuideBrowser";
 import { AUDIENCES } from "@/content/audiences";
 import { GUIDE_CATEGORIES, GUIDES } from "@/content/guides";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Resources",
   description: "Practical guides for cleaner files, smoother imports and fewer formatting headaches: dates, duplicates, number formats, encodings and privacy.",
-  alternates: { canonical: "/guides" },
-};
+  path: "/guides",
+});
 
 const INK = "#111";
 
