@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T08:26:29.806Z",
+  "generated_at": "2026-11-23T08:40:34.289Z",
   "product": "changekite",
   "sources_tracked_since": null,
   "accounts_total": 0,
@@ -36,7 +36,20 @@
         "visitors": 5
       }
     ],
-    "sources_available": false
+    "sources_available": true,
+    "visits": 0,
+    "bot_pageviews": 0,
+    "bot_share": 0,
+    "mobile_share": null,
+    "top_referrers": [],
+    "top_countries": [
+      {
+        "country": "(unknown)",
+        "visitors": 5
+      }
+    ],
+    "top_landing_pages": [],
+    "utm_campaigns": []
   },
   "last_7d": {
     "days": 7,
@@ -61,7 +74,20 @@
         "visitors": 5
       }
     ],
-    "sources_available": false
+    "sources_available": true,
+    "visits": 0,
+    "bot_pageviews": 0,
+    "bot_share": 0,
+    "mobile_share": null,
+    "top_referrers": [],
+    "top_countries": [
+      {
+        "country": "(unknown)",
+        "visitors": 5
+      }
+    ],
+    "top_landing_pages": [],
+    "utm_campaigns": []
   },
   "last_30d": {
     "days": 30,
@@ -120,6 +146,19 @@
         "visitors": 2
       }
     ],
-    "sources_available": false
+    "sources_available": true,
+    "visits": 0,
+    "bot_pageviews": 0,
+    "bot_share": 0,
+    "mobile_share": null,
+    "top_referrers": [],
+    "top_countries": [
+      {
+        "country": "(unknown)",
+        "visitors": 7
+      }
+    ],
+    "top_landing_pages": [],
+    "utm_campaigns": []
   }
 }
