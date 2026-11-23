@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
@@ -7,11 +8,11 @@ import { SupportChat } from "@repo/support/client";
 import { getPlatform } from "@/server/platform";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Support",
   description: "Ask the GridRinse help assistant or send a request to a person.",
-  alternates: { canonical: "/support" },
-};
+  path: "/support",
+});
 
 export default async function SupportPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;

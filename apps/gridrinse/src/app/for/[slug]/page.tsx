@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
@@ -15,7 +16,7 @@ export const dynamicParams = false;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const a = getAudience(slug);
-  return a ? { title: a.title, description: a.summary, alternates: { canonical: `/for/${a.slug}` }, openGraph: { type: "website", title: a.title, description: a.summary } } : {};
+  return a ? pageMeta({ title: a.title, description: a.summary, path: `/for/${a.slug}` }) : {};
 }
 
 function Table({ rows, label }: { rows: string[][]; label: string }) {

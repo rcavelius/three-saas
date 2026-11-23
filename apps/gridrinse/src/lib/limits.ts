@@ -37,6 +37,27 @@ export interface ProcessingLimits {
   maxFiles: number;
 }
 
+/** A paid plan as the upgrade prompts may describe it (server-computed from the catalog). */
+export interface UpgradeOffer {
+  planId: string;
+  planName: string;
+  priceMonthly: number;
+  maxFileBytes: number;
+  maxRows: number;
+  maxFiles: number;
+  /** -1 = unlimited, 0 = none in the account. */
+  savedWorkflows: number;
+}
+
+/** The cheapest paid plan that beats the current one on `need` (or any paid plan above it when no need is given). */
+export function nextOffer(offers: UpgradeOffer[], current: ProcessingLimits, need?: { fileBytes?: number; rows?: number; files?: number }): UpgradeOffer | null {
+  const above = offers.filter((o) => o.planId !== current.planId && o.maxFileBytes >= current.maxFileBytes && o.maxFiles >= current.maxFiles && (o.maxFileBytes > current.maxFileBytes || o.maxFiles > current.maxFiles || o.maxRows > current.maxRows));
+  const fits = above.filter((o) => (need?.fileBytes === undefined || o.maxFileBytes >= need.fileBytes) && (need?.rows === undefined || o.maxRows >= need.rows) && (need?.files === undefined || o.maxFiles >= need.files));
+  // A plan that would still refuse this file is never offered.
+  const sorted = (need ? fits : above).sort((a, b) => a.priceMonthly - b.priceMonthly);
+  return sorted[0] ?? null;
+}
+
 const MB = 1024 * 1024;
 
 /**

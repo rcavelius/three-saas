@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { AccountNav, NavLinks, PageviewTracker } from "@/components/SiteChrome";
+import { ogImage } from "@/lib/seo";
 import { appUrl } from "@/lib/site";
 import "@repo/support/styles.css";
 import "./globals.css";
@@ -17,13 +18,15 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       "Trim spaces, remove blank and duplicate rows, fix dates and numbers, merge files. Runs entirely in your browser; your files are never uploaded.",
     alternates: { canonical: "/" },
+    // Defaults for pages without their own (indexable pages set full metadata with pageMeta in src/lib/seo.ts).
     openGraph: {
       type: "website",
       siteName: "GridRinse",
       title: "GridRinse — clean CSV and Excel files in your browser",
       description: "Clean messy spreadsheets in your browser. Files are never uploaded.",
-      url: "/",
+      images: [ogImage()],
     },
+    twitter: { card: "summary_large_image", images: [ogImage().url] },
   };
 }
 

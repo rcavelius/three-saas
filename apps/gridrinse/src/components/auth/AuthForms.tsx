@@ -101,6 +101,8 @@ export function SignupForm({ plan }: { plan?: string }) {
           setBusy(true);
           const callbackURL = `/verify-email?status=verified${paid ? `&plan=${paid}` : ""}`;
           const { error } = await authClient().signUp.email({ name: name.trim() || email.split("@")[0]!, email: email.trim(), password, callbackURL });
+          // signup_started fires when the form is shown; this is the actual submit, with what the server said.
+          track("signup_submitted", { plan: (paid ?? "free") as "free", outcome: error ? "error" : "sent" });
           setBusy(false);
           if (error) setErr(authErrorMessage(error));
           else setSent(true);

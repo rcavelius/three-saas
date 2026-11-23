@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Cleaner } from "@/components/Cleaner";
 import { JsonLd } from "@/components/JsonLd";
 import { PageHero } from "@/components/PageHero";
+import { ToolSampleBox } from "@/components/ToolSampleBox";
+import { toolSample } from "@/content/tool-samples";
 import { TOOLS, getTool, toolExample } from "@/content/tools";
+import { formatBytes } from "@/lib/limits";
+import { breadcrumbLd } from "@/lib/seo";
 import { appUrl } from "@/lib/site";
-import { freeProcessingLimits } from "@/server/plans";
+import { freeProcessingLimits, upgradeOffers } from "@/server/plans";
 
 export function generateStaticParams() {
   return TOOLS.map((t) => ({ slug: t.slug }));
@@ -18,12 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const t = getTool(slug);
   if (!t) return {};
-  return {
-    title: { absolute: `${t.title} · GridRinse` },
-    description: t.description,
-    alternates: { canonical: `/tools/${t.slug}` },
-    openGraph: { type: "website", title: t.h1, description: t.description },
-  };
+  return pageMeta({ title: `${t.title} · GridRinse`, absoluteTitle: true, description: t.description, path: `/tools/${t.slug}`, toolSlug: t.slug });
 }
 
 function Table({ table, label }: { table: { columns: string[]; rows: string[][] }; label: "Before" | "After" }) {
@@ -65,6 +65,9 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const ex = toolExample(t);
   const others = TOOLS.filter((o) => o.slug !== t.slug);
   const base = appUrl();
+  const sample = toolSample(t);
+  const offers = upgradeOffers();
+  const pro = offers.find((o) => o.planId === "pro");
 
   return (
     <article>
@@ -72,8 +75,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-ink-2">{t.intro}</p>
       </PageHero>
 
-      <div className="pt-8 sm:pt-10">
-        <Cleaner freeLimits={freeProcessingLimits()} />
+      <ToolSampleBox files={sample.files.map((f) => f.name)} xlsxName={sample.xlsx ? sample.files[0]!.name.replace(/\.csv$/, ".xlsx") : undefined} />
+
+      <div className="pt-6 sm:pt-8">
+        <Cleaner freeLimits={freeProcessingLimits()} offers={offers} sample={{ files: sample.files, steps: sample.steps }} />
       </div>
 
       <div className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">
@@ -131,17 +136,21 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               </li>
             ))}
           </ul>
-          {t.guide && (
-            <p className="mt-4 text-[15px]">
-              <Link href={t.guide.href} className="font-semibold underline underline-offset-2">
-                {t.guide.label}
-              </Link>
-              {" · "}
+          <p className="mt-4 text-[15px]">
+            {t.guide && (
+              <>
+                <Link href={t.guide.href} className="font-semibold underline underline-offset-2">
+                  {t.guide.label}
+                </Link>
+                {" · "}
+              </>
+            )}
+            {pro && (
               <Link href="/pricing" className="font-semibold underline underline-offset-2">
-                Pro: bigger files, 20 files at once, saved workflows ($9/month)
+                {pro.planName}: files up to {formatBytes(pro.maxFileBytes).replace(/\.0 /, " ")}, {pro.maxFiles} files at once, {pro.savedWorkflows} saved workflows (${pro.priceMonthly}/month)
               </Link>
-            </p>
-          )}
+            )}
+          </p>
         </section>
       </div>
 
@@ -166,6 +175,11 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               operatingSystem: "Any (web browser)",
               offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
             },
+            breadcrumbLd(base, [
+              ["Home", "/"],
+              ["Tools", "/tools"],
+              [t.h1, `/tools/${t.slug}`],
+            ]),
           ],
         }}
       />

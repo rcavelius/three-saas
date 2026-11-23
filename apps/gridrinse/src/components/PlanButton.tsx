@@ -43,7 +43,7 @@ export async function openPortal(): Promise<string | null> {
   }
 }
 
-export function PlanButton({ planId, planName, primary, label }: { planId: string; planName: string; primary?: boolean; label?: string }) {
+export function PlanButton({ planId, planName, primary, label, from = "pricing" }: { planId: string; planName: string; primary?: boolean; label?: string; from?: "pricing" | "home" | "tool_page" }) {
   const { entitlements } = useEntitlements();
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -58,7 +58,7 @@ export function PlanButton({ planId, planName, primary, label }: { planId: strin
   const e: ClientEntitlements | null = entitlements;
   if (!e?.signedIn) {
     return (
-      <Link href={`/signup?plan=${encodeURIComponent(planId)}`} className={cls} onClick={() => track("upgrade_clicked", { from: "pricing", plan: planId as "pro" })}>
+      <Link href={`/signup?plan=${encodeURIComponent(planId)}`} className={cls} onClick={() => track("upgrade_clicked", { from, plan: planId as "pro" })}>
         {label ?? `Choose ${planName}`}
       </Link>
     );
@@ -71,7 +71,7 @@ export function PlanButton({ planId, planName, primary, label }: { planId: strin
         className={cls}
         disabled={busy}
         onClick={async () => {
-          track("upgrade_clicked", { from: "pricing", plan: planId as "pro" });
+          track("upgrade_clicked", { from, plan: planId as "pro" });
           setBusy(true);
           setMsg(await startCheckout(planId));
           setBusy(false);

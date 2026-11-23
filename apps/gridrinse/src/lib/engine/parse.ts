@@ -1,5 +1,6 @@
 ﻿import Papa from "papaparse";
 import * as XLSX from "xlsx";
+import { detectKind } from "./names";
 import { dedupeNames, type Table } from "./types";
 
 export interface ParseResult {
@@ -177,14 +178,7 @@ export function parseWorkbook(data: ArrayBuffer | Uint8Array, options: XlsxOptio
   return { ...out, warnings: [...warnings, ...out.warnings], sheets, sheet: sheetName };
 }
 
-export type FileKind = "csv" | "workbook" | "unsupported";
-
-export function detectKind(fileName: string): FileKind {
-  const lower = fileName.toLowerCase();
-  if (/\.(csv|tsv|txt)$/.test(lower)) return "csv";
-  if (/\.(xlsx|xlsm|xls|ods)$/.test(lower)) return "workbook";
-  return "unsupported";
-}
+export { detectKind, type FileKind } from "./names";
 
 export interface ParseFileOptions extends CsvOptions {
   sheet?: string;

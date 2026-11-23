@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { TOOLS } from "@/content/tools";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Free CSV and Excel cleanup tools",
-  description:
-    "Free browser tools to remove duplicates and blank rows, trim spaces, fix dates, clean numbers and merge CSV or Excel files. No upload, no account.",
-  alternates: { canonical: "/tools" },
-};
+  description: "Free browser tools to remove duplicates and blank rows, trim spaces, fix dates, clean numbers and merge CSV or Excel files. No upload, no account.",
+  path: "/tools",
+});
 
 export default function ToolsIndex() {
   return (

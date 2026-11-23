@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DataGrid } from "@/components/DataGrid";
 import { StepCard } from "@/components/StepEditor";
+import { UpgradeNotice } from "@/components/UpgradeNotice";
 import { WorkflowPanel } from "@/components/WorkflowPanel";
 import { track } from "@/lib/analytics";
 import { CLEANER_EVENTS, type CleanerStage } from "@/lib/cleaner-events";
@@ -11,14 +12,14 @@ import { baseName, downloadBlob, MIME } from "@/lib/download";
 import { normalizeHeaders } from "@/lib/engine/ops/basic";
 import type { CsvExportOptions } from "@/lib/engine/export";
 import type { DateNeedsChoice } from "@/lib/engine/ops/dates";
-import { detectKind, type XlsxDateMode } from "@/lib/engine/parse";
+import type { XlsxDateMode } from "@/lib/engine/parse";
+import { detectKind, zipFileName } from "@/lib/engine/names";
 import { isCellChanged } from "@/lib/engine/pipeline";
 import type { Step, StepType } from "@/lib/engine/schema";
-import { zipFileName } from "@/lib/engine/zip";
-import { formatBytes, processingLimits, type ClientEntitlements, type ProcessingLimits } from "@/lib/limits";
+import { formatBytes, nextOffer, processingLimits, type ClientEntitlements, type ProcessingLimits, type UpgradeOffer } from "@/lib/limits";
 import { checkBeforeParse, estimateCellsMemory, estimateFileMemory, maxCellsFor, memoryBudget } from "@/lib/memory";
 import { SAMPLE_CSV, SAMPLE_FILE_NAME } from "@/lib/sample";
-import { defaultSteps, renameRefs, STEP_META, templateFor } from "@/lib/steps";
+import { defaultSteps, renameRefs, STEP_META, templateFor, withToolSteps } from "@/lib/steps";
 import { fetchEntitlements, useEntitlements } from "@/lib/useEntitlements";
 import { createEngineClient, isCancelled, type EngineClient } from "@/lib/worker/client";
 import type { ParseResponse, RunResponse } from "@/lib/worker/protocol";
@@ -67,9 +68,23 @@ export interface CleanerProps {
   freeLimits: ProcessingLimits;
   /** Injected in tests; defaults to GET /api/me/entitlements. */
   loadEntitlements?: () => Promise<ClientEntitlements | null>;
+  /** Paid plans as the upgrade prompts may describe them (server-computed from the catalog). */
+  offers?: UpgradeOffer[];
+  /** A tool page's own sample (one or more files) and steps; defaults to the general messy orders export. */
+  sample?: { files: { name: string; csv: string }[]; steps?: Step[] };
+  /** "hidden": no empty-state drop card (the homepage hero is the drop zone and drives this component by event). */
+  emptyState?: "full" | "hidden";
 }
 
-export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: CleanerProps) {
+type RejectReason = "too_big" | "too_many_files" | "too_many_rows" | "unsupported" | "memory" | "unreadable";
+
+interface LimitHit {
+  /** What a paid plan would need to handle, for choosing which plan to offer. */
+  need: { fileBytes?: number; files?: number };
+  kind: "size" | "rows" | "files";
+}
+
+export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offers = [], sample, emptyState = "full" }: CleanerProps) {
   const clientRef = useRef<EngineClient | null>(null);
   const client = useCallback(() => (clientRef.current ??= createEngineClient()), []);
   useEffect(() => () => clientRef.current?.dispose(), []);
@@ -177,16 +192,19 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
   const inputColumns = shown?.input.columns ?? activeFile?.parse.table.columns ?? [];
 
   const planWord = `your plan (${limits.planName})`;
-  const [limitHit, setLimitHit] = useState(false);
+  const [limitHit, setLimitHit] = useState<LimitHit | null>(null);
+  const [source, setSource] = useState<"sample" | "file">("file");
 
-  const addFiles = async (list: File[] | { name: string; bytes: Uint8Array }[]) => {
+  const addFiles = async (list: File[] | { name: string; bytes: Uint8Array }[], opts: { source?: "sample" | "file"; toolSteps?: Step[] } = {}) => {
     const errors: string[] = [];
     const warns: string[] = [];
-    let hit = false;
+    const rejected: RejectReason[] = [];
+    let hit: LimitHit | null = null;
     const room = limits.maxFiles - files.length;
     if (list.length > room) {
       errors.push(`${planWord} handles ${limits.maxFiles} files at once; ${list.length - Math.max(room, 0)} file(s) were not added.`);
-      hit = true;
+      hit = { kind: "files", need: { files: files.length + list.length } };
+      rejected.push("too_many_files");
     }
     const take = list.slice(0, Math.max(room, 0));
     cancelled.current = false;
@@ -204,11 +222,13 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
       const kind = detectKind(name);
       if (kind === "unsupported") {
         errors.push(`${name}: not a CSV or Excel file (.csv, .tsv, .txt, .xlsx, .xls, .ods).`);
+        rejected.push("unsupported");
         continue;
       }
       if (size > limits.maxFileBytes) {
         errors.push(`${name} is ${formatBytes(size)}; ${planWord} handles files up to ${formatBytes(limits.maxFileBytes)}.`);
-        hit = true;
+        hit = { kind: "size", need: { fileBytes: Math.max(size, hit?.need.fileBytes ?? 0), files: hit?.need.files } };
+        rejected.push("too_big");
         continue;
       }
       // Memory guard BEFORE reading: refuse or warn instead of letting the tab crash.
@@ -224,6 +244,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
       });
       if (verdict.level === "refuse") {
         errors.push(verdict.message);
+        rejected.push("memory");
         continue;
       }
       if (verdict.level === "warn") warns.push(verdict.message);
@@ -242,7 +263,10 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
           break;
         }
         const msg = e instanceof Error ? e.message : "could not be read";
-        if (/your plan/.test(msg)) hit = true;
+        if (/your plan/.test(msg)) {
+          hit ??= { kind: "rows", need: {} };
+          rejected.push("too_many_rows");
+        } else rejected.push("unreadable");
         errors.push(msg.startsWith(name) ? msg : `${name}: ${msg}`);
       }
     }
@@ -250,35 +274,71 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
     setLoadErrors(errors);
     setWarnings(warns);
     setLimitHit(hit);
+    for (const reason of new Set(rejected)) track("file_rejected", { reason });
     if (added.length === 0) {
       setStatus(errors.length ? "No file was added." : "");
       return;
     }
-    track("tool_used", { action: "clean", mode: MODE_OF(files.length + added.length, mode), files: files.length + added.length, steps: steps.length });
+    const src = opts.source ?? "file";
+    track("tool_used", { action: "clean", mode: MODE_OF(files.length + added.length, mode), files: files.length + added.length, steps: steps.length, source: src });
     if (files.length === 0) {
       const first = added[0]!;
-      setSteps(defaultSteps(tidyNames(first.parse.table.columns, first.parse.suggestions.numberColumns)));
+      setSteps(withToolSteps(defaultSteps(tidyNames(first.parse.table.columns, first.parse.suggestions.numberColumns)), opts.toolSteps));
       setActiveId(first.id);
       setView("cleaned");
-    }
+      setSource(src);
+      // Arriving from the hero (or a drop anywhere on the page): bring the results into view.
+      setTimeout(() => {
+        const el = document.getElementById("start");
+        const top = el?.getBoundingClientRect().top;
+        if (el && top !== undefined && (top < -40 || top > window.innerHeight * 0.5)) el.scrollIntoView?.({ behavior: "smooth", block: "start" });
+      }, 60);
+    } else if (src === "file") setSource("file");
     setFiles((prev) => [...prev, ...added]);
     setStatus(`Loaded ${added.map((a) => a.name).join(", ")}.`);
   };
 
-  const loadSample = () => void addFiles([{ name: SAMPLE_FILE_NAME, bytes: new TextEncoder().encode(SAMPLE_CSV) }]);
+  const loadSample = () => {
+    if (files.length > 0) return;
+    const list = sample?.files.length ? sample.files : [{ name: SAMPLE_FILE_NAME, csv: SAMPLE_CSV }];
+    void addFiles(
+      list.map((f) => ({ name: f.name, bytes: new TextEncoder().encode(f.csv) })),
+      { source: "sample", toolSteps: sample?.steps },
+    );
+  };
 
   // The homepage hero's buttons ("Clean my spreadsheet", "Try a sample file") drive this component by event.
   const choose = () => (fileInput.current ? fileInput.current.click() : document.getElementById("start")?.scrollIntoView({ behavior: "smooth" }));
-  const heroActions = useRef({ sample: loadSample, choose });
-  heroActions.current = { sample: loadSample, choose };
+  const addDropped = (list: File[]) => void addFiles(list);
+  const heroActions = useRef({ sample: loadSample, choose, add: addDropped });
+  heroActions.current = { sample: loadSample, choose, add: addDropped };
   useEffect(() => {
     const sample = () => heroActions.current.sample();
     const choose = () => heroActions.current.choose();
+    const add = (e: Event) => {
+      const list = (e as CustomEvent<File[]>).detail;
+      if (Array.isArray(list) && list.length) heroActions.current.add(list);
+    };
+    // A file dropped anywhere on the page goes into the cleaner (instead of the browser opening it).
+    const over = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes("Files")) e.preventDefault();
+    };
+    const drop = (e: DragEvent) => {
+      if (e.defaultPrevented || !e.dataTransfer?.files.length) return;
+      e.preventDefault();
+      heroActions.current.add(Array.from(e.dataTransfer.files));
+    };
     window.addEventListener(CLEANER_EVENTS.sample, sample);
     window.addEventListener(CLEANER_EVENTS.choose, choose);
+    window.addEventListener(CLEANER_EVENTS.files, add);
+    window.addEventListener("dragover", over);
+    window.addEventListener("drop", drop);
     return () => {
       window.removeEventListener(CLEANER_EVENTS.sample, sample);
       window.removeEventListener(CLEANER_EVENTS.choose, choose);
+      window.removeEventListener(CLEANER_EVENTS.files, add);
+      window.removeEventListener("dragover", over);
+      window.removeEventListener("drop", drop);
     };
   }, []);
 
@@ -420,6 +480,12 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
   }, [result]);
 
   const ready = !!result && !pending && !runError;
+
+  // Upgrade prompts: only where a paid plan really helps, with that plan's real numbers.
+  const signedIn = !!entitlements?.signedIn;
+  const limitOffer = limitHit && limits.planId !== "business" ? nextOffer(offers, limits, limitHit.need) : null;
+  const filesOffer = !limitHit && files.length >= limits.maxFiles ? nextOffer(offers, limits, { files: limits.maxFiles + 1 }) : null;
+  const repeatOffer = downloaded && source === "file" && limits.planId === "free" ? nextOffer(offers, limits) : null;
 
   // Date columns the "Standardize dates" step left alone because the order is ambiguous: asked above the table.
   const dateIdx = steps.findIndex((s) => s.type === "formatDates" && s.enabled);
@@ -614,7 +680,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
         {status}
       </p>
 
-      {files.length === 0 && dropZone}
+      {files.length === 0 && (emptyState === "full" ? dropZone : fileInputEl)}
 
       {(loading || pending || exporting) && (
         <div className="mt-3 flex items-center justify-between gap-3 border border-rule bg-surface px-3 py-2 text-sm">
@@ -630,13 +696,23 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
           {loadErrors.map((e, i) => (
             <p key={i}>{e}</p>
           ))}
-          {limitHit && limits.planId !== "business" && (
-            <p className="mt-1">
-              <Link href="/pricing" className="font-medium underline" onClick={() => track("upgrade_clicked", { from: "limit", plan: limits.planId === "pro" ? "business" : "pro" })}>
-                See plans with larger limits
-              </Link>
-            </p>
-          )}
+        </div>
+      )}
+      {limitOffer && limitHit && (
+        <div className="mt-3">
+          <UpgradeNotice
+            offer={limitOffer}
+            from={limitHit.kind === "files" ? "files" : "limit"}
+            signedIn={signedIn}
+            title={
+              limitHit.kind === "files"
+                ? `${limitOffer.planName} cleans up to ${limitOffer.maxFiles} files at once`
+                : limitHit.kind === "size"
+                  ? `${limitOffer.planName} opens files up to ${formatBytes(limitOffer.maxFileBytes).replace(/\.0 /, " ")}`
+                  : `${limitOffer.planName} reads up to ${limitOffer.maxRows.toLocaleString("en-US")} rows per file`
+            }
+            body={`The ${limits.planName} plan stops at ${limitHit.kind === "files" ? `${limits.maxFiles} files` : limitHit.kind === "size" ? formatBytes(limits.maxFileBytes).replace(/\.0 /, " ") : `${limits.maxRows.toLocaleString("en-US")} rows`}.`}
+          />
         </div>
       )}
       {warnings.length > 0 && (
@@ -650,7 +726,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
       {files.length > 0 && (
         <div className="grid gap-5 lg:grid-cols-[minmax(320px,400px)_minmax(0,1fr)]">
           {/* ---------- Left: files, mode, steps, workflows ---------- */}
-          <div className="flex min-w-0 flex-col gap-4">
+          <div className="order-2 flex min-w-0 flex-col gap-4 lg:order-none">
             <section aria-labelledby="files-heading" {...dragProps} className={`rounded-[12px] border-2 border-ink bg-surface p-4 ${dragOver ? "!bg-mint-soft" : ""}`}>
               <div className="flex items-center justify-between">
                 <h2 id="files-heading" className="text-[20px] font-extrabold tracking-[-0.01em]">
@@ -727,6 +803,18 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                   </li>
                 ))}
               </ul>
+              {filesOffer && (
+                <p className="mt-3 rounded-lg bg-lemon-soft px-3 py-2 text-[14px] font-medium">
+                  That&apos;s {limits.maxFiles} of {limits.maxFiles} files on the {limits.planName} plan. {filesOffer.planName} cleans {filesOffer.maxFiles} at once.{" "}
+                  <Link
+                    href={signedIn ? "/pricing" : `/signup?plan=${filesOffer.planId}`}
+                    className="font-extrabold underline decoration-2 underline-offset-2"
+                    onClick={() => track("upgrade_clicked", { from: "files", plan: filesOffer.planId as "pro" })}
+                  >
+                    Get {filesOffer.planName}
+                  </Link>
+                </p>
+              )}
               {files.length < limits.maxFiles && (
                 <button
                   type="button"
@@ -842,7 +930,7 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
           </div>
 
           {/* ---------- Right: preview and downloads ---------- */}
-          <section aria-labelledby="preview-heading" className="flex min-w-0 flex-col gap-3">
+          <section aria-labelledby="preview-heading" className="order-1 flex min-w-0 flex-col gap-3 lg:order-none">
             <div className="flex flex-wrap items-center justify-between gap-2 text-[15px]">
               <p className="min-w-0 truncate">
                 <button type="button" className="font-bold underline underline-offset-2" onClick={startOver}>
@@ -884,11 +972,25 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                 );
               })}
             </ol>
-            <div>
-              <h2 id="preview-heading" className="display text-[2rem] sm:text-[2.4rem]">
-                Review your cleaned data
-              </h2>
-              <p className="mt-1 text-[16px] font-medium text-ink-2">{isMerge ? `${files.length} files merged` : activeFile?.name}</p>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div className="min-w-0">
+                <h2 id="preview-heading" className="display text-[2rem] sm:text-[2.4rem]">
+                  Review your cleaned data
+                </h2>
+                <p className="mt-1 text-[16px] font-medium text-ink-2">
+                  {isMerge ? `${files.length} files merged` : activeFile?.name}
+                  {result && !pending && (
+                    <strong className="block font-extrabold text-ink">
+                      {result.changedCount.toLocaleString("en-US")} cells fixed · {result.removed.length.toLocaleString("en-US")} rows removed
+                    </strong>
+                  )}
+                </p>
+              </div>
+              {!isBatch && (
+                <button type="button" className="btn-pop !min-h-11 !px-4 !text-[16px]" onClick={() => void downloadCsv()} disabled={!ready || exporting} aria-describedby="dl-heading">
+                  Download CSV
+                </button>
+              )}
             </div>
 
             {runError && (
@@ -1156,6 +1258,28 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements }: Cl
                     Files are processed in your browser and never uploaded.
                   </p>
                 </section>
+                {repeatOffer && (
+                  <UpgradeNotice
+                    offer={repeatOffer}
+                    from="download"
+                    signedIn={signedIn}
+                    title="Cleaning this export again next month?"
+                    body={
+                      repeatOffer.savedWorkflows !== 0
+                        ? `${repeatOffer.planName} saves these ${steps.length} steps to your account, so the next file takes one click on any device.`
+                        : undefined
+                    }
+                  />
+                )}
+                {source === "sample" && downloaded && (
+                  <p className="rounded-lg border-2 border-ink bg-mint-soft px-4 py-3 text-[16px] font-bold">
+                    That was the sample. Now try your own file: drop it anywhere on this page, or{" "}
+                    <button type="button" className="underline decoration-2 underline-offset-4" onClick={() => { startOver(); requestAnimationFrame(() => fileInput.current?.click()); }}>
+                      choose a file
+                    </button>
+                    .
+                  </p>
+                )}
               </>
             )}
             {!result && !runError && <p className="text-sm text-ink-3">{pending || loading ? "Cleaning…" : ""}</p>}

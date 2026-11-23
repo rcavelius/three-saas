@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
 import { PlanButton } from "@/components/PlanButton";
 import { formatLimit } from "@/lib/limits";
 import { appUrl } from "@/lib/site";
 import { displayPlans, softwareApplicationLd, type DisplayPlan } from "@/server/plans";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Pricing",
   description: "GridRinse is free in your browser. Pro ($9/month) and Business add larger files, bigger batches, workflows saved to your account and team seats.",
-  alternates: { canonical: "/pricing" },
-};
+  path: "/pricing",
+});
 
 const FAQ: { q: string; a: string }[] = [
   {

@@ -3,7 +3,7 @@
  * so prices and limits are never typed twice. Server-only (keeps the billing package out of client bundles).
  */
 import { GRIDRINSE_CATALOG, getFreePlan, type PlanDef } from "@repo/billing";
-import { processingLimits, type ProcessingLimits } from "@/lib/limits";
+import { processingLimits, type ProcessingLimits, type UpgradeOffer } from "@/lib/limits";
 
 export interface DisplayPlan {
   id: string;
@@ -45,6 +45,27 @@ export function displayPlans(): DisplayPlan[] {
 export function freeProcessingLimits(): ProcessingLimits {
   const free = getFreePlan(GRIDRINSE_CATALOG);
   return processingLimits(free.id, free.name, free.limits);
+}
+
+/**
+ * What each paid plan really adds to the cleaner, straight from the catalog, for the upgrade prompts
+ * (file size, rows, files at once, saved workflows). Prompts may only claim these numbers.
+ */
+export function upgradeOffers(): UpgradeOffer[] {
+  return GRIDRINSE_CATALOG.plans
+    .filter((p) => p.priceMonthlyCents > 0)
+    .map((p) => {
+      const l = processingLimits(p.id, p.name, p.limits);
+      return {
+        planId: p.id,
+        planName: p.name,
+        priceMonthly: p.priceMonthlyCents / 100,
+        maxFileBytes: l.maxFileBytes,
+        maxRows: l.maxRows,
+        maxFiles: l.maxFiles,
+        savedWorkflows: p.limits.savedWorkflows ?? 0,
+      };
+    });
 }
 
 export function softwareApplicationLd(url: string) {

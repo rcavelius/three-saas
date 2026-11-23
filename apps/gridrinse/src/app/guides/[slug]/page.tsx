@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
@@ -15,7 +16,7 @@ export const dynamicParams = false;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const g = getGuide(slug);
-  return g ? { title: g.title, description: g.summary, alternates: { canonical: `/guides/${g.slug}` }, openGraph: { type: "article", title: g.title, description: g.summary } } : {};
+  return g ? pageMeta({ title: g.title, description: g.summary, path: `/guides/${g.slug}`, type: "article" }) : {};
 }
 
 export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {

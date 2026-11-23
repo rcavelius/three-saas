@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { notFound } from "next/navigation";
@@ -13,7 +14,7 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const a = await (await getPlatform()).support.getArticle((await params).slug);
   if (!a) return { title: "Not found", robots: { index: false } };
-  return { title: a.title, description: a.summary, alternates: { canonical: `/help/${a.slug}` }, openGraph: { type: "article", title: a.title, description: a.summary } };
+  return pageMeta({ title: a.title, description: a.summary, path: `/help/${a.slug}`, type: "article" });
 }
 
 export default async function HelpArticlePage({ params }: Props) {
