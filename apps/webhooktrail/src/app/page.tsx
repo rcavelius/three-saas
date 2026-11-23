@@ -60,7 +60,7 @@ export default function Home() {
         {/* Hero: the giant word runs edge to edge. */}
         <section aria-labelledby="hero-title" id="create" className="scroll-mt-20">
           <div className="g-fit wt-in border-b border-line px-4 pb-3 pt-5 md:px-5 md:pb-5 md:pt-8">
-            <PixelTitle id="hero-title" text="Catch every hook" lines={["Catch every hook"]} phoneEm={4.5} max={260} maxPhone={110} />
+            <PixelTitle id="hero-title" text="Catch every hook" lines={["Catch every hook"]} phoneEm={4.5} max={260} maxPhone={110} tall />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-b border-line px-4 py-2.5 md:px-5">
             <p className="g-cap">Webhook capture · inspect · replay</p>

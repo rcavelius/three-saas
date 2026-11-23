@@ -25,7 +25,7 @@ export function PageHead({
   art?: ArtName;
   aside?: ReactNode;
 }) {
-  const big = <PixelTitle as={title ? "p" : "h1"} text={word} lines={[word]} phoneEm={Math.max(6, Math.min(9, word.length * 0.9))} max={300} maxPhone={110} />;
+  const big = <PixelTitle as={title ? "p" : "h1"} text={word} lines={[word]} phoneEm={Math.max(6, Math.min(9, word.length * 0.9))} max={title ? 150 : 300} maxPhone={title ? 72 : 110} />;
   return (
     <>
       <div className="g-fit wt-in border-b border-line px-4 pb-3 pt-5 md:px-5 md:pb-5 md:pt-8">

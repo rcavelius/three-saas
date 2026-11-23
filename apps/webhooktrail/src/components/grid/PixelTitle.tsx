@@ -83,6 +83,7 @@ export function PixelTitle({
   maxPhone = 120,
   /** Phone line width target in em before splitting. */
   phoneEm = 5.2,
+  tall = false,
   children,
 }: {
   text: string;
@@ -93,6 +94,8 @@ export function PixelTitle({
   max?: number;
   maxPhone?: number;
   phoneEm?: number;
+  /** Stretch the pixels vertically (hero use). */
+  tall?: boolean;
   children?: ReactNode;
 }) {
   const desk = lines ?? desktopLines(text, 16);
@@ -102,9 +105,11 @@ export function PixelTitle({
   const style = {
     "--px-d": `min(${max}px, calc(100cqi / ${wd.toFixed(3)}))`,
     "--px-m": `min(${maxPhone}px, calc(100cqi / ${wm.toFixed(3)}))`,
+    "--ln-d": desk.length,
+    "--ln-m": phone.flat().length,
   } as CSSProperties;
   return (
-    <Tag id={id} className={`wt-pixel ${className}`} style={style}>
+    <Tag id={id} className={`wt-pixel ${tall ? "wt-pixel-tall" : ""} ${className}`} style={style}>
       {phone.map((subs, i) => (
         <span key={i} className="block">
           {subs.map((s, j) => (
