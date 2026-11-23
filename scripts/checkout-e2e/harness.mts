@@ -6,7 +6,7 @@
 import { createHmac } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { BrowserContext, Page } from "@playwright/test";
+import type { BrowserContext, Frame, Locator, Page } from "@playwright/test";
 import pg from "pg";
 import Stripe from "stripe";
 
@@ -173,47 +173,92 @@ export async function payOnStripe(ctx: Ctx, page: Page, flow: Flow, o: { amountT
   flow.must("redirects to Stripe hosted Checkout (test mode)", page.url().includes("cs_test_"), new URL(page.url()).host);
   await page.locator("body").getByText(o.amountText).first().waitFor({ timeout: 30_000 });
   flow.check(`Stripe shows the price ${o.amountText}`, true);
-  // Anonymous pass buyers type their email on Stripe's page; signed-in buyers arrive with it prefilled.
-  const email = page.locator("#email");
-  if ((await email.isVisible().catch(() => false)) && (await email.isEditable().catch(() => false)) && !(await email.inputValue().catch(() => ""))) {
+  // Stripe renders the form inside iframes (Payment Element): every lookup searches the page and all its frames.
+  const email = await inFrames(page, (f) => f.locator('input[type="email"], input#email, input[name="email"]'), 20_000);
+  if (email && (await email.isEditable().catch(() => false)) && !(await email.inputValue().catch(() => ""))) {
+    // Anonymous pass buyers type their email on Stripe's page; signed-in buyers arrive with it prefilled.
     await email.fill(o.email ?? `checkout-e2e-buyer-${Date.now()}@example.com`);
   }
+  const cardSel = 'input[name="number"], input[name="cardnumber"], input#cardNumber, input[autocomplete="cc-number"]';
+  let card = await inFrames(page, (f) => f.locator(cardSel), 3000);
   // Payment methods are an accordion (Card, Cash App Pay, Klarna, Bank…): open "Card".
-  const card = page.locator("#cardNumber");
-  const tries: (() => Promise<unknown>)[] = [
-    () => page.locator('[data-testid="card-accordion-item-button"], #payment-method-accordion-item-title-card').filter({ visible: true }).first().click({ timeout: 3000 }),
-    () => page.getByRole("radio", { name: /^Card/ }).first().check({ force: true, timeout: 3000 }),
-    () => page.getByText("Card", { exact: true }).filter({ visible: true }).first().click({ timeout: 3000 }),
-    () => page.getByRole("button", { name: /^Card/ }).filter({ visible: true }).first().click({ timeout: 3000 }),
+  const openers: ((f: Frame) => Locator)[] = [
+    (f) => f.locator('[data-testid="card-accordion-item-button"], #payment-method-accordion-item-title-card, [data-value="card"], #card-tab, button[value="card"], input[value="card"]'),
+    (f) => f.getByRole("radio", { name: /^Card/ }),
+    (f) => f.getByRole("button", { name: /^Card/ }),
+    (f) => f.getByText("Card", { exact: true }),
   ];
-  for (const t of tries) {
-    if (await card.isVisible().catch(() => false)) break;
-    await t().catch(() => undefined);
-    await card.waitFor({ state: "visible", timeout: 4000 }).catch(() => undefined);
+  for (const make of openers) {
+    if (card) break;
+    const opener = await inFrames(page, make, 2000);
+    if (opener) await opener.click({ timeout: 3000 }).catch(() => opener.click({ force: true, timeout: 3000 }).catch(() => undefined));
+    card = await inFrames(page, (f) => f.locator(cardSel), 5000);
   }
   await page.screenshot({ path: join(ctx.outDir, `${o.shot}-stripe-form.png`) });
-  if (!(await card.isVisible().catch(() => false))) {
-    // Diagnostics for when Stripe changes its page: frames, inputs and the accessibility tree (no secrets on it).
-    const inputs = await page
-      .locator("input, button, [role=radio], [role=button]")
-      .evaluateAll((els) => els.slice(0, 80).map((e) => `${e.tagName} id=${e.id} name=${e.getAttribute("name")} type=${e.getAttribute("type")} aria=${e.getAttribute("aria-label")} testid=${e.getAttribute("data-testid")} text=${(e.textContent ?? "").trim().slice(0, 40)}`))
-      .catch((e) => [String(e)]);
-    const aria = await page.locator("body").ariaSnapshot().catch((e) => String(e));
-    writeFileSync(join(ctx.outDir, `${o.shot}-stripe-dom.txt`), [`url ${page.url().replace(/#.*/, "")}`, ...page.frames().map((f) => `frame ${f.url().slice(0, 120)}`), ...inputs, aria].join("\n"));
+  if (!card) {
+    await dumpStripe(ctx, page, o.shot);
+    throw new Error("Stripe card number field not found (structure dumped to the artifact)");
   }
-  await card.waitFor({ timeout: 30_000 });
   await card.fill("4242424242424242");
-  await page.locator("#cardExpiry").fill("12 / 34");
-  await page.locator("#cardCvc").fill("123");
-  if (await page.locator("#billingName").count()) await page.locator("#billingName").fill("Checkout Robot");
-  if (await page.locator("#billingCountry").count()) await page.locator("#billingCountry").selectOption("US").catch(() => undefined);
-  if (await page.locator("#billingPostalCode").count()) await page.locator("#billingPostalCode").fill("10001").catch(() => undefined);
-  const link = page.getByRole("checkbox", { name: /Save my information|faster checkout/i });
-  if ((await link.count()) && (await link.first().isChecked().catch(() => false))) await link.first().uncheck({ force: true }).catch(() => undefined);
+  const fillIn = async (sel: string, v: string) => {
+    const l = await inFrames(page, (f) => f.locator(sel), 2000);
+    if (l) await l.fill(v).catch(() => undefined);
+  };
+  await fillIn('input[name="expiry"], input#cardExpiry, input[autocomplete="cc-exp"]', "12 / 34");
+  await fillIn('input[name="cvc"], input#cardCvc, input[autocomplete="cc-csc"]', "123");
+  await fillIn('input#billingName, input[name="billingName"], input[autocomplete="cc-name"], input[name="name"]', "Checkout Robot");
+  const country = await inFrames(page, (f) => f.locator('select#billingCountry, select[name="country"], select[autocomplete="country"], select[autocomplete="billing country"]'), 1500);
+  if (country) await country.selectOption("US").catch(() => undefined);
+  await fillIn('input#billingPostalCode, input[name="postalCode"], input[autocomplete="postal-code"], input[autocomplete="billing postal-code"]', "10001");
+  const link = await inFrames(page, (f) => f.getByRole("checkbox", { name: /Save my information|faster checkout|Link/i }), 1000);
+  if (link && (await link.isChecked().catch(() => false))) await link.uncheck({ force: true }).catch(() => undefined);
   await page.screenshot({ path: join(ctx.outDir, `${o.shot}-stripe.png`) });
-  await page.locator('[data-testid="hosted-payment-submit-button"], button.SubmitButton').first().click();
-  await page.waitForURL((u) => u.toString().startsWith(ctx.base), { timeout: 90_000 });
+  const pay =
+    (await inFrames(page, (f) => f.locator('[data-testid="hosted-payment-submit-button"], button.SubmitButton'), 3000)) ??
+    (await inFrames(page, (f) => f.getByRole("button", { name: /^(Pay|Subscribe|Start trial)( |$)/ }), 5000));
+  if (!pay) {
+    await dumpStripe(ctx, page, o.shot);
+    throw new Error("Stripe Pay button not found");
+  }
+  await pay.click();
+  const ok = await page.waitForURL((u) => u.toString().startsWith(ctx.base), { timeout: 90_000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!ok) {
+    await page.screenshot({ path: join(ctx.outDir, `${o.shot}-stripe-after-pay.png`), fullPage: true }).catch(() => undefined);
+    await dumpStripe(ctx, page, `${o.shot}-after-pay`);
+    throw new Error("Stripe did not return to the app after Pay (see the after-pay screenshot)");
+  }
   flow.check("test card 4242 accepted, Stripe returns to the app", true, page.url().replace(ctx.base, ""));
+}
+
+
+/** The first visible match in the page or any of its frames (Stripe Checkout nests its form in iframes). */
+export async function inFrames(page: Page, make: (f: Frame) => Locator, timeoutMs: number): Promise<Locator | null> {
+  const end = Date.now() + timeoutMs;
+  do {
+    for (const f of page.frames()) {
+      const l = make(f).first();
+      if (await l.isVisible().catch(() => false)) return l;
+    }
+    await new Promise((r) => setTimeout(r, 300));
+  } while (Date.now() < end);
+  return null;
+}
+
+/** Diagnostics for when Stripe changes its page: per frame, its inputs and buttons (no secrets are on this page). */
+async function dumpStripe(ctx: Ctx, page: Page, shot: string): Promise<void> {
+  const lines = [`url ${page.url().replace(/#.*/, "")}`];
+  for (const f of page.frames()) {
+    lines.push(`frame ${f.url().replace(/#.*/, "").slice(0, 120)}`);
+    const els = await f
+      .locator("input, select, button, [role=radio], [role=button], [role=tab]")
+      .evaluateAll((es) => es.slice(0, 60).map((e) => `  ${e.tagName} id=${e.id} name=${e.getAttribute("name")} type=${e.getAttribute("type")} value=${e.getAttribute("type") === "text" ? "" : e.getAttribute("value")} ac=${e.getAttribute("autocomplete")} aria=${e.getAttribute("aria-label")} testid=${e.getAttribute("data-testid")} text=${(e.textContent ?? "").trim().slice(0, 40)}`))
+      .catch((e) => [`  ${String(e).slice(0, 100)}`]);
+    lines.push(...els);
+  }
+  writeFileSync(join(ctx.outDir, `${shot}-stripe-dom.txt`), lines.join("\n"));
 }
 
 /**
