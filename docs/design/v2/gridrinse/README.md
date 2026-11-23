@@ -82,3 +82,14 @@ bright studio lighting with crisp specular highlights", in the owner's single-as
 The Cleaner and every step, the "files never uploaded" promise and its wording, free limits, the $5 24-hour pass and
 Pro/Business checkout (no billing code changed), analytics events, SEO metadata, JSON-LD, sitemap, every `/tools` and
 `/guides` page, the e2e labels ("Clean a messy sample file").
+
+## Review rounds (CI design shots, `.github/workflows/design-shots-gridrinse.yml`)
+
+| Round | Found | Fixed |
+| --- | --- | --- |
+| 1 (`round1-ci/`) | Desktop mascot hid the cleaned names; phone header two rows tall with a clipped menu; phone mascot over the subtitle; footer wordmark clipped; Lighthouse 92 / 89 / 94 | Mascot moved under the card on the meter; compact header; spacing; footer padding |
+| 2 (`round2-ci/`) | Tool-page intro dark on cobalt (Tailwind's utility layer beat the override); How-it-works step dots invisible on cobalt; Features headline on three lines; Lighthouse flaked (NO_NAVSTART) | Override made unlayered; lime/white step dots; smaller Features headline; Lighthouse retried |
+| 3 (`round3-ci/`) | Clean on every page checked; mobile Lighthouse home 89, tool 87, pricing 94; accessibility 100; CLS 0 | Shipped |
+
+The Cleaner in use (sample loaded) is captured by `scripts/design-shots-cleaner.mjs`: the new rinse meter reads
+"34 cells fixed · 4 rows removed — Rinsed!" on the built-in sample.

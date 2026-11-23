@@ -1,0 +1,3 @@
+gr-home performance=89 accessibility=100 best-practices=96 seo=100 LCP=3692ms CLS=0.000
+gr-tool performance=87 accessibility=100 best-practices=96 seo=100 LCP=3448ms CLS=0.000
+gr-pricing performance=94 accessibility=100 best-practices=100 seo=100 LCP=3138ms CLS=0.000
