@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/guides" },
 };
 
-const TONES = ["bg-orange text-ink", "bg-cyan text-ink", "bg-green text-ink"];
+const TONES = ["bg-orange text-ink", "bg-cyan text-ink", "bg-green text-ink", "bg-pink text-ink"];
 
 export default function GuidesPage() {
   return (
@@ -17,10 +17,10 @@ export default function GuidesPage() {
       <PageHero title="Fixing what the report finds" lede="Short, practical write-ups of the problems that hurt sites most often." tone="orange" art="/art/link.webp" wide />
       <div className="mx-auto max-w-[1360px] px-5 pt-20 md:px-8 lg:px-12 lg:pt-28">
         <h2 className="sr-only">All guides</h2>
-        <ul className="grid gap-4 lg:grid-cols-3">
+        <ul className="grid gap-3 md:grid-cols-2">
           {GUIDES.map((g, i) => (
             <li key={g.slug} className="ck-reveal" style={{ ["--d" as string]: `${i * 80}ms` }}>
-              <Link href={`/guides/${g.slug}`} className={`ck-lift group flex h-full min-h-[340px] flex-col justify-between gap-8 rounded-[32px] p-7 sm:p-9 ${TONES[i % 3]}`}>
+              <Link href={`/guides/${g.slug}`} className={`ck-lift group flex h-full min-h-[340px] flex-col justify-between gap-8 rounded-[32px] p-7 sm:p-9 ${TONES[i % TONES.length]}`}>
                 <h3 className="font-display text-[1.875rem] leading-[1.08] sm:text-[2.25rem]">{g.title}</h3>
                 <div>
                   <p className="text-[1.0625rem] leading-relaxed">{g.description}</p>
