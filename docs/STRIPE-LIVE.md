@@ -1,4 +1,4 @@
-# Switching Stripe to live (prepared, NOT enabled)
+# Stripe live mode (all three products)
 
 **Decision 2026-11-17 (owner):** GridRinse, ChangeKite and WebhookTrail all sell as **Media Masters LLC**, the owner's
 only LLC, through its existing Stripe account (already activated, payouts set up). Each product's card-statement
@@ -10,6 +10,17 @@ report splits by price lookup key, so the other business never shows up as produ
 holds the restricted live key, the live webhook secret and `STRIPE_LIVE_MODE_AUTHORIZED=true`; the test-mode values
 are kept in `.secrets/cloudflare-gridrinse.testmode.json`. To go back to test mode, upload that file's uppercase keys
 as `WORKER_SECRETS_GRIDRINSE` (no `STRIPE_LIVE_MODE_AUTHORIZED`) and redeploy.
+
+**2026-11-23: ChangeKite and WebhookTrail are LIVE too** (owner: "all the sites making money"). Live products with
+the product statement descriptors `CHANGEKITE.COM` / `WEBHOOKTRAIL.COM` and tax code `txcd_10103000` (same as
+GridRinse): `changekite_solo` $19, `changekite_agency` $79, `webhooktrail_developer` $9, `webhooktrail_pro` $29
+(prices found by lookup key `<app>_<plan>_monthly`), one billing portal per product (metadata.app), and live webhook
+endpoints `https://changekite.com/api/billing/webhook` (we_1UeqgP1o4f6ICgX7RoBaVyhn) and
+`https://webhooktrail.com/api/billing/webhook` (we_1UeqgQ1o4f6ICgX7lLDnV2Oa) with the 9 events. Their
+`WORKER_SECRETS_<APP>` hold the same restricted live key, their own webhook secret and
+`STRIPE_LIVE_MODE_AUTHORIZED=true`, and no `STAGING_PASSWORD` (public). The test-mode values are kept in
+`.secrets/cloudflare-<app>.testmode.json`. Checkout shows the product name (`branding_settings`) and adds Stripe Tax
+(`STRIPE_AUTOMATIC_TAX=1`); terms and privacy are published (`LEGAL_APPROVED=1`, effective 2026-11-23).
 
 **Customer-facing names (owner decision 2026-11-17):** the account's public business name changed from "Travel
 Snackbox" to **Media Masters**, and the account statement descriptor from TRAVEL SNACKBOX to **MEDIA MASTERS** (Stripe
@@ -31,7 +42,7 @@ statement descriptor), the billing portal and Stripe receipts show Media Masters
 2. **Legal pages** (all three products): company details set 2026-11-17 in the wrangler vars (Media Masters LLC,
    37837 Fenwick Circle, Selbyville, DE 19975; Delaware law; matches the Stripe account). **GridRinse terms and
    privacy approved by the owner 2026-11-17** and published (`LEGAL_APPROVED=1`, effective 2026-11-17).
-   ChangeKite and WebhookTrail texts still have placeholders and need their own approval before launch.
+   ChangeKite and WebhookTrail texts completed and published 2026-11-23 (`LEGAL_APPROVED=1`).
 3. **Done 2026-11-17 (owner approved Stripe Tax):** tax monitoring set up (head office Delaware; fallback category
    Electronically Supplied Services; GridRinse Pro and Business products = `txcd_10103000` SaaS personal use; USD
    prices exclude tax, so it is added on top). GridRinse checkout sends `automatic_tax` (`STRIPE_AUTOMATIC_TAX=1`),
@@ -50,7 +61,7 @@ statement descriptor), the billing portal and Stripe receipts show Media Masters
 3. **Done 2026-11-17:** live key, webhook secret and `STRIPE_LIVE_MODE_AUTHORIZED=true` into
    `WORKER_SECRETS_GRIDRINSE`, deploy, verify Checkout (merchant name, statement name), portal and webhook delivery.
 4. The refunded real purchase (item 4), then announce.
-5. ChangeKite and WebhookTrail follow the same steps when they go public.
+5. **Done 2026-11-23:** ChangeKite and WebhookTrail followed the same steps (see the top of this file).
 
 ## Already verified in test mode
 Checkout (card 4242), entitlements, billing portal, upgrade, downgrade, declined renewal with notice, cancel at period

@@ -24,6 +24,9 @@ export function SiteHeader({ signedIn, operator }: { signedIn: boolean; operator
           <Link className="px-2 py-1 rounded-sm hover:text-fg" href="/pricing">
             Pricing
           </Link>
+          <Link className="hidden min-[420px]:inline px-2 py-1 rounded-sm hover:text-fg" href="/tools">
+            Tools
+          </Link>
           <Link className="hidden sm:inline px-2 py-1 rounded-sm hover:text-fg" href="/guides">
             Guides
           </Link>
@@ -71,6 +74,9 @@ export function SiteFooter() {
         <Link className="hover:text-fg" href="/docs">
           Docs
         </Link>
+        <Link className="hover:text-fg" href="/tools">
+          Tools
+        </Link>
         <Link className="hover:text-fg" href="/guides">
           Guides
         </Link>
@@ -84,10 +90,10 @@ export function SiteFooter() {
           Contact support
         </Link>
         <Link className="hover:text-fg" href="/privacy">
-          Privacy (draft)
+          Privacy
         </Link>
         <Link className="hover:text-fg" href="/terms">
-          Terms (draft)
+          Terms
         </Link>
       </div>
     </footer>

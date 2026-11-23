@@ -39,7 +39,7 @@ Never send your password or card details in a ticket.
 
 Some requests are always handled by a person, not by the assistant:
 
-- **Refunds**: each request is reviewed case by case. We cannot promise a particular outcome.
+- **Refunds**: charges in error and the first 14 days of a paid plan are refunded in full when you ask within 14 days of the charge; other requests are reviewed case by case.
 - **Billing disputes** and questions about specific charges or invoices.
 - **Security reports**: if you think you have found a security problem in ChangeKite, describe it in a ticket.
 - **Legal questions**, including questions about the [terms](/terms) and [privacy policy](/privacy).

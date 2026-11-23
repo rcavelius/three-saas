@@ -1,7 +1,7 @@
 ---
 title: Billing, plan changes and cancellation
 slug: billing-and-cancellation
-summary: Upgrade, change plan, update your card, see invoices or cancel from Plan and billing through Stripe. Refund requests are reviewed by a person.
+summary: Upgrade, change plan, update your card, see invoices or cancel from Plan and billing through Stripe. Charges in error and the first 14 days of a paid plan are refundable in full.
 category: Plans & billing
 updated: 2026-11-11
 ---
@@ -46,6 +46,6 @@ If a payment fails, Plan & billing shows a warning and, where available, the dat
 
 ## Refunds and billing questions
 
-Refunds are not issued automatically. Each refund request is reviewed by a person, case by case, and we cannot promise a particular outcome. To ask, open a support ticket from [Support](/support) and include your workspace name. See [Getting help](/help/getting-help).
+If you were charged in error, or ChangeKite did not work for you in your first 14 days on a paid plan, ask within 14 days of the charge and a person will refund it in full, back to the original payment method through Stripe. Other refund requests are reviewed by a person, case by case. To ask, open a support ticket from [Support](/support) and include your workspace name. See [Getting help](/help/getting-help) and the [terms](/terms).
 
 Note that deleting your account cancels any subscription of workspaces you own alone immediately, without a refund for the rest of the period. See [Deleting your account](/help/delete-your-account).

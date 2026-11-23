@@ -189,6 +189,8 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
     webhookSecret: e.STRIPE_WEBHOOK_SECRET ?? "whsec_not_configured",
     appUrl,
     now,
+    automaticTax: e.STRIPE_AUTOMATIC_TAX,
+    checkoutBranding: { display_name: "ChangeKite", button_color: "#1d3a66", background_color: "#ffffff", border_style: "rounded" },
     paths: {
       checkoutSuccess: "/account/billing?checkout=success",
       checkoutCancel: "/account/billing?checkout=canceled",

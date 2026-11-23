@@ -1,0 +1,87 @@
+{
+  "generated_at": "2026-11-23T06:26:32.216Z",
+  "product": "changekite",
+  "accounts_total": 0,
+  "subscriptions_in_db": {},
+  "stripe": {
+    "available": true,
+    "mode": "live",
+    "active_paid_subscriptions": 0,
+    "mrr_usd": 0,
+    "subscriptions_ever": 0,
+    "canceled": 0,
+    "subscription_start_dates": []
+  },
+  "last_1d": {
+    "days": 1,
+    "visitors": 0,
+    "pageviews": 0,
+    "tool_users": 0,
+    "tool_runs": 0,
+    "pricing_views": 0,
+    "signup_starts": 0,
+    "checkout_starts": 0,
+    "new_accounts": 0,
+    "top_pages": []
+  },
+  "last_7d": {
+    "days": 7,
+    "visitors": 0,
+    "pageviews": 0,
+    "tool_users": 0,
+    "tool_runs": 0,
+    "pricing_views": 0,
+    "signup_starts": 0,
+    "checkout_starts": 0,
+    "new_accounts": 0,
+    "top_pages": []
+  },
+  "last_30d": {
+    "days": 30,
+    "visitors": 2,
+    "pageviews": 14,
+    "tool_users": 0,
+    "tool_runs": 0,
+    "pricing_views": 2,
+    "signup_starts": 2,
+    "checkout_starts": 0,
+    "new_accounts": 0,
+    "top_pages": [
+      {
+        "path": "/",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/help",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/login",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/pricing",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/privacy",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/signup",
+        "views": 2,
+        "visitors": 2
+      },
+      {
+        "path": "/terms",
+        "views": 2,
+        "visitors": 2
+      }
+    ]
+  }
+}

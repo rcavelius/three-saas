@@ -2,7 +2,7 @@
 
 ## Production (live since 2026-11-12): Cloudflare Workers + Containers
 
-All three apps run on Cloudflare (Workers Paid plan), each on its own domain, **behind a site password until the owner approves a public launch**:
+All three apps run on Cloudflare (Workers Paid plan), each on its own domain, **public with live Stripe** (GridRinse since 2026-11-17; ChangeKite and WebhookTrail shut down 2026-11-17, relaunched publicly 2026-11-23):
 https://gridrinse.com, https://changekite.com, https://webhooktrail.com (`www.` redirects to the apex).
 
 ```

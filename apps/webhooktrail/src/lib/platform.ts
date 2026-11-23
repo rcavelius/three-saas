@@ -58,6 +58,8 @@ export interface PlatformOptions {
   /** null = billing not configured (no STRIPE_SECRET_KEY): pricing still renders, checkout answers 503. */
   stripe: StripeGateway | null;
   webhookSecret?: string;
+  /** STRIPE_AUTOMATIC_TAX=1: Stripe Tax on checkout (set up in the Stripe dashboard first). */
+  stripeAutomaticTax?: boolean;
   emailFrom: string;
   resendApiKey?: string;
   ownerEmail?: string;
@@ -151,6 +153,8 @@ export async function createPlatform(o: PlatformOptions): Promise<Platform> {
     stripe: o.stripe ?? UNCONFIGURED_STRIPE,
     webhookSecret: o.webhookSecret || `whsec_unconfigured_${randomBytes(24).toString("hex")}`,
     appUrl,
+    automaticTax: o.stripeAutomaticTax ?? false,
+    checkoutBranding: { display_name: "WebhookTrail", button_color: "#ffb020", background_color: "#ffffff", border_style: "rounded" },
     paths: {
       checkoutSuccess: "/account/billing?checkout=success",
       checkoutCancel: "/account/billing?checkout=canceled",
@@ -265,6 +269,7 @@ export function platformOptionsFromEnv(env: Record<string, string | undefined> =
     sessionSecret: sessionSecret ?? DEV_SESSION_SECRET,
     stripe: env.STRIPE_SECRET_KEY ? stripeGatewayFromEnv(env) : null,
     webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    stripeAutomaticTax: env.STRIPE_AUTOMATIC_TAX === "1",
     emailFrom: env.EMAIL_FROM || "WebhookTrail <noreply@webhooktrail.invalid>",
     resendApiKey: env.RESEND_API_KEY || undefined,
     ownerEmail: env.OWNER_ALERT_EMAIL || undefined,

@@ -7,6 +7,10 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Analytics } from "@/components/Analytics";
 import { env } from "@/lib/env";
+import { CHANGEKITE_CATALOG, paidPlans } from "@repo/billing";
+import { price } from "@/lib/marketing";
+
+const FROM_PRICE = `${price(paidPlans(CHANGEKITE_CATALOG).sort((a, b) => a.priceMonthlyCents - b.priceMonthlyCents)[0]!)}/month`;
 
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap", axes: ["opsz"] });
 const publicSans = Public_Sans({ subsets: ["latin"], variable: "--font-public-sans", display: "swap" });
@@ -23,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       siteName: "ChangeKite",
       title: "ChangeKite — a plain-spoken website inspection",
-      description: "Find broken links, missing titles, sitemap and HTTPS problems in one readable report. Free one-off scans; monitoring from $19/month.",
+      description: `Find broken links, missing titles, sitemap and HTTPS problems in one readable report. Free one-off scans; monitoring from ${FROM_PRICE}.`,
       url: base.origin,
     },
     twitter: { card: "summary" },

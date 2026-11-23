@@ -3,7 +3,7 @@ title: Billing, plan changes and cancellation
 slug: billing-and-cancellation
 summary: Upgrade, change plans, update your card or cancel in the Stripe billing portal from /account/billing. Refunds are reviewed by a person.
 category: Plans & billing
-updated: 2026-11-11
+updated: 2026-11-23
 ---
 Paid plans are monthly subscriptions in US dollars, charged by Stripe. Taxes may apply. Billing belongs to a workspace, and only the workspace **owner** can change the plan or payment details. Admins and members see the plan and usage but cannot change them.
 
@@ -35,7 +35,7 @@ If a payment fails, the billing page shows a warning and a date until which you 
 
 ## Refunds
 
-Refund requests are handled by a person, not automatically. Open a support ticket from [/support](/support) and describe what happened. We cannot promise a particular outcome in advance.
+If you were charged in error, or WebhookTrail did not work for you in your first 14 days of a paid plan, contact us within 14 days of the charge (open a ticket from [/support](/support) or email support) and a person refunds it in full. Other refund requests are reviewed individually by a person. Refunds go back to the original payment method through Stripe. See the [terms](/terms).
 
 ## Deleting your account with an active subscription
 

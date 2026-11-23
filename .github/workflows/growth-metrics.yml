@@ -1,7 +1,8 @@
 name: Growth metrics
 
-# Daily GridRinse numbers (counts only) committed to docs/growth/metrics.json, which the sales agent reads
-# (docs/growth/AGENT.md). Runs an hour before the agent. Commits made with GITHUB_TOKEN do not start CI or deploys.
+# Daily numbers (counts only) per product, committed to docs/growth/metrics.json (GridRinse) and
+# docs/growth/<app>/metrics.json (ChangeKite, WebhookTrail), which each product's sales agents read.
+# Runs an hour before the first agent. Commits made with GITHUB_TOKEN do not start CI or deploys.
 on:
   schedule:
     - cron: "30 13 * * *"
@@ -33,11 +34,30 @@ jobs:
           export STRIPE_SECRET_KEY="$(node -e 'process.stdout.write(JSON.parse(process.env.WORKER_SECRETS_GRIDRINSE).STRIPE_SECRET_KEY||"")')"
           echo "::add-mask::$STRIPE_SECRET_KEY"
           npx tsx scripts/growth-metrics.mts
+      # ChangeKite and WebhookTrail crews (docs/growth/<app>/AGENT.md), relaunched 2026-11-23.
+      - name: Collect ChangeKite
+        continue-on-error: true  # never block GridRinse's numbers
+        env:
+          DATABASE_URL_CHANGEKITE: ${{ secrets.DATABASE_URL_CHANGEKITE }}
+          WORKER_SECRETS_CHANGEKITE: ${{ secrets.WORKER_SECRETS_CHANGEKITE }}
+        run: |
+          export STRIPE_SECRET_KEY="$(node -e 'process.stdout.write(JSON.parse(process.env.WORKER_SECRETS_CHANGEKITE).STRIPE_SECRET_KEY||"")')"
+          echo "::add-mask::$STRIPE_SECRET_KEY"
+          npx tsx scripts/growth-metrics.mts changekite
+      - name: Collect WebhookTrail
+        continue-on-error: true  # never block GridRinse's numbers
+        env:
+          DATABASE_URL_WEBHOOKTRAIL: ${{ secrets.DATABASE_URL_WEBHOOKTRAIL }}
+          WORKER_SECRETS_WEBHOOKTRAIL: ${{ secrets.WORKER_SECRETS_WEBHOOKTRAIL }}
+        run: |
+          export STRIPE_SECRET_KEY="$(node -e 'process.stdout.write(JSON.parse(process.env.WORKER_SECRETS_WEBHOOKTRAIL).STRIPE_SECRET_KEY||"")')"
+          echo "::add-mask::$STRIPE_SECRET_KEY"
+          npx tsx scripts/growth-metrics.mts webhooktrail
       - name: Commit
         run: |
           git config user.name "growth-metrics[bot]"
           git config user.email "growth-metrics@users.noreply.github.com"
-          git add docs/growth/metrics.json
+          git add docs/growth/metrics.json docs/growth/changekite/metrics.json docs/growth/webhooktrail/metrics.json
           git diff --cached --quiet && exit 0
           git commit -m "growth: daily metrics [skip ci]"
           for i in 1 2 3; do git pull --rebase -q && git push -q && exit 0; sleep 5; done

@@ -57,7 +57,7 @@ export const PRICING_FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Do you offer refunds?",
-    a: "Refund requests are handled by a person, case by case: contact support with your workspace name and we will reply.",
+    a: "Yes. If you were charged in error, or ChangeKite did not work for you in your first 14 days on a paid plan, email support within 14 days of the charge and we refund it in full. Other requests are reviewed by a person.",
   },
   {
     q: "How long do you keep my data?",

@@ -20,7 +20,10 @@ const FAQ: [string, string][] = [
     "What happens when I cancel?",
     "Your plan stays active until the end of the period you paid for, then the workspace moves to the Free plan. Endpoints above the Free limit are paused, not deleted; captured requests older than the Free history are removed by the normal retention job.",
   ],
-  ["Do you offer refunds?", "Refund requests are handled by a person: contact support and describe what happened."],
+  [
+    "Do you offer refunds?",
+    "Yes. If you were charged in error, or WebhookTrail did not work for you in your first 14 days of a paid plan, email support within 14 days of the charge and a person refunds it in full. Other refund requests are reviewed individually.",
+  ],
   [
     "How long is data kept?",
     "Captured requests are kept for the plan's history period (1 day on Free, 7 days on Developer, 30 days on Pro) and only the newest requests per endpoint up to the plan's limit. Free endpoints expire after 24 hours unless extended (up to 7 days); paid endpoints do not expire. Deleting an endpoint or your account deletes its requests immediately.",

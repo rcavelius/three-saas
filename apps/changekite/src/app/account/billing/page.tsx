@@ -116,7 +116,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           )}
         </section>
         <p className="text-sm text-muted">
-          Refunds and billing questions are handled by a person: contact support. Prices in US dollars; taxes may apply where required.
+          Charged in error, or ChangeKite did not work for you in your first 14 days? Contact support within 14 days of the charge for a full refund. Other billing questions are handled by a person. Prices in US dollars; taxes may apply where required.
         </p>
       </div>
     </div>
