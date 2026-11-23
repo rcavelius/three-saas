@@ -147,6 +147,53 @@ export const GUIDES: Guide[] = [
       </>
     ),
   },
+  {
+    slug: "not-secure-after-moving-to-https",
+    title: "Why a page says \u201cnot secure\u201d after moving to HTTPS",
+    description: "The usual cause is mixed content: an https page that still loads images, scripts or forms over http://. How to find each one and what the browser does with it.",
+    updated: "2026-11-23",
+    steps: [
+      { name: "Find the http:// resources", text: "Scan the site with a mixed content checker such as ChangeKite, or open the page source and search for src=\"http:// and href=\"http://." },
+      { name: "Switch them to https", text: "Change each URL to https:// (or a relative URL). If the other host does not serve HTTPS, host the file yourself or drop it." },
+      { name: "Check forms", text: "Make sure every form action points to an https:// URL, so submitted data is encrypted." },
+      { name: "Fix the source", text: "Update templates, theme settings, widgets and database content, not just one page, then scan again." },
+    ],
+    body: (
+      <>
+        <p>
+          You installed a certificate and the site loads over <code>https://</code>, yet the browser shows a warning or no padlock. The most common
+          reason is <strong>mixed content</strong>: the page itself is delivered over HTTPS, but something on it is still requested over plain{" "}
+          <code>http://</code>.
+        </p>
+        <h2>What the browser does</h2>
+        <ul>
+          <li><strong>Scripts, stylesheets and frames</strong> over http are active content. Browsers block them on https pages, so the page can lose its layout or features.</li>
+          <li><strong>Images, audio and video</strong> over http are passive content. Browsers may upgrade or block them and can show the page as not fully secure.</li>
+          <li><strong>Forms</strong> whose action is an http:// URL would send what visitors type unencrypted, and browsers can warn about that.</li>
+        </ul>
+        <h2>Where the http:// links hide</h2>
+        <ul>
+          <li>Hard-coded absolute URLs in templates, themes and menus from before the move.</li>
+          <li>Images and embeds inside older articles, stored in the database with <code>http://</code> addresses.</li>
+          <li>Third-party widgets, fonts or scripts added with an http:// address.</li>
+          <li><code>srcset</code> lists and <code>&lt;source&gt;</code> tags, which are easy to miss when searching for <code>src=</code>.</li>
+        </ul>
+        <h2>How to fix it</h2>
+        <p>
+          Change each address to <code>https://</code>, or to a relative URL such as <code>/images/logo.png</code>. If the other host does not serve
+          HTTPS, copy the file to your own server or remove it. Then fix the source (template, theme setting, database content), because fixing
+          one page leaves the rest as they were.
+        </p>
+        <p>
+          ChangeKite reads the HTML of every https page it crawls and lists each http:// resource by page, split into active content (critical),
+          images and media (warning) and form actions (critical). It does not run JavaScript, so resources that scripts add after load are not
+          seen. Try the <Link href="/tools/mixed-content-checker">mixed content checker</Link>. Also confirm that plain http:// requests redirect to
+          https with the <Link href="/tools/http-to-https-redirect-checker">HTTP to HTTPS redirect checker</Link>, and see{" "}
+          <Link href="/docs#https">the HTTPS check</Link>.
+        </p>
+      </>
+    ),
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
