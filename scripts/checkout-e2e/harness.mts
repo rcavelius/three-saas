@@ -174,7 +174,7 @@ export async function payOnStripe(ctx: Ctx, page: Page, flow: Flow, o: { amountT
   await page.locator("body").getByText(o.amountText).first().waitFor({ timeout: 30_000 });
   flow.check(`Stripe shows the price ${o.amountText}`, true);
   // Stripe renders the form inside iframes (Payment Element): every lookup searches the page and all its frames.
-  const email = await inFrames(page, (f) => f.locator('input[type="email"], input#email, input[name="email"]'), 20_000);
+  const email = await inFrames(page, (f) => f.locator('input#linkAuthentication-emailInput, input#email, input[type="email"], input[autocomplete="email"]'), 20_000);
   if (email && (await email.isEditable().catch(() => false)) && !(await email.inputValue().catch(() => ""))) {
     // Anonymous pass buyers type their email on Stripe's page; signed-in buyers arrive with it prefilled.
     await email.fill(o.email ?? `checkout-e2e-buyer-${Date.now()}@example.com`);
@@ -210,12 +210,14 @@ export async function payOnStripe(ctx: Ctx, page: Page, flow: Flow, o: { amountT
   const country = await inFrames(page, (f) => f.locator('select#billingCountry, select[name="country"], select[autocomplete="country"], select[autocomplete="billing country"]'), 1500);
   if (country) await country.selectOption("US").catch(() => undefined);
   await fillIn('input#billingPostalCode, input[name="postalCode"], input[autocomplete="postal-code"], input[autocomplete="billing postal-code"]', "10001");
-  const link = await inFrames(page, (f) => f.getByRole("checkbox", { name: /Save my information|faster checkout|Link/i }), 1000);
-  if (link && (await link.isChecked().catch(() => false))) await link.uncheck({ force: true }).catch(() => undefined);
+  // Never opt the robot into Link (it would open Link's own window instead of paying).
+  for (const f of page.frames()) {
+    const box = f.locator('input#payment-linkOptInInput, input[name="linkOptIn"], input#enableStripePass');
+    if ((await box.count().catch(() => 0)) && (await box.first().isChecked().catch(() => false))) await box.first().uncheck({ force: true }).catch(() => undefined);
+  }
   await page.screenshot({ path: join(ctx.outDir, `${o.shot}-stripe.png`) });
   const pay =
-    (await inFrames(page, (f) => f.locator('[data-testid="hosted-payment-submit-button"], button.SubmitButton'), 3000)) ??
-    (await inFrames(page, (f) => f.getByRole("button", { name: /^(Pay|Subscribe|Start trial)( |$)/ }), 5000));
+    (await inFrames(page, (f) => f.locator('[data-testid="payment-form-submit-button"], [data-testid="hosted-payment-submit-button"], button.SubmitButton, button[type="submit"]'), 5000));
   if (!pay) {
     await dumpStripe(ctx, page, o.shot);
     throw new Error("Stripe Pay button not found");
