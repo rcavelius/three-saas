@@ -345,6 +345,40 @@
   animation: ck-marquee 30s linear infinite;
 }
 
+/* The explainer tile: pins pop and fixes rise once the tile is revealed; the kite bobs along its dotted path. */
+@keyframes ex-march {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+@keyframes ex-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(6deg);
+  }
+}
+.ck-js .ex:not(.is-in) .ex-pin,
+.ck-js .ex:not(.is-in) .ex-fix {
+  opacity: 0;
+}
+.ex.is-in .ex-pin {
+  animation: ck-pop 600ms var(--ease-spring) both;
+  animation-delay: var(--d, 0ms);
+}
+.ex.is-in .ex-fix {
+  animation: ck-rise 500ms var(--ease-out-quint) both;
+  animation-delay: var(--d, 0ms);
+}
+.ex-path path {
+  animation: ex-march 1.4s linear infinite;
+}
+.ex-kite {
+  animation: ex-bob 3.2s var(--ease-float) infinite;
+}
+
 /* Tiles lift and tilt a touch under the pointer; their art bounces. */
 @media (hover: hover) {
   .ck-lift {
