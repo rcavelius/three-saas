@@ -36,3 +36,20 @@ guides, SEO metadata and JSON-LD, analytics events and auth all work as they did
 Style phrase used for every asset: "glossy 3D toy render, soft-touch candy-coloured vinyl, chunky rounded forms, bright studio
 lighting with crisp specular highlights", in the single-asset prompt shape from the owner's pipeline. Files: `apps/changekite/public/art/`.
 Spend for this redesign is listed in the final report.
+
+## Rounds (CI design-shots, production build)
+
+| Round | What changed after looking | Mobile Lighthouse (home) |
+| --- | --- | --- |
+| 1 | First bento build | 96 / 100 / 100 / 100 |
+| 2 | Yellow sticky brand bar like the reference, tighter gutters, striped kite tile, form-first tool pages, monitoring chips, burst sticker fixed | 85 / 100 / 100 / 100 |
+| 3 | Phone-sized kite preloaded (it is the largest paint), cyan monitoring tile (three yellows was too many), icons inside their tiles, 2x2 guides | 91 / 100 / 100 / 100 |
+| 4 | Explainer tile: example site with pinned problems -> kite -> score 86 and 3 fixes (HTML/SVG, score counts up), pin red darkened for contrast | 97 / 100 / 100 / 100 |
+
+Shipped in PR #10 (bento) and PR #12 (explainer), both deployed. Final live screenshots: `final/` (desktop 1440 and phone 390),
+with `final/before-after-home-desktop.jpg` and `final/before-after-home-phone.jpg`.
+
+The explainer shows the example report's own three problems (404 broken link, no description, no canonical URL), not
+"missing title" or "no HTTPS": those are critical issues, and with them the real scoring function could not give 86.
+
+Higgsfield spend for this redesign: 15 GPT Image 2.6 renders (1.25 each) and 7 background removals (1 each), about 26 credits.
