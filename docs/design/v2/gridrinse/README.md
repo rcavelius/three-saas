@@ -94,3 +94,9 @@ Pro/Business checkout (no billing code changed), analytics events, SEO metadata,
 
 The Cleaner in use (sample loaded) is captured by `scripts/design-shots-cleaner.mjs`: the new rinse meter reads
 "34 cells fixed · 4 rows removed — Rinsed!" on the built-in sample.
+
+## Live (2026-11-23)
+
+Merged in rcavelius/three-saas#15 (a909b3c) and deployed by "Deploy to Cloudflare" (all three apps green). All 56
+checked URLs on gridrinse.com answer 200: every sitemap page (all tools and guides), login, signup, health, the OG
+card and the art. Final live screenshots, taken headless from gridrinse.com, are in `final/`.
