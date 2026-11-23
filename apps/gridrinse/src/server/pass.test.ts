@@ -132,9 +132,13 @@ describe("24-hour pass (anonymous, no account)", () => {
     await app.deliverWebhooks();
     const c = await claim(jar, sessionId);
     expect(c.headers.get("location")).toBe("/?pass=unpaid");
-    expect(jar.has(PASS_COOKIE)).toBe(false);
+    // The browser keeps the signed reference, but it grants nothing while the payment is pending.
+    expect(jar.has(PASS_COOKIE)).toBe(true);
+    expect((await ent(jar)).limits.downloadRows).toBe(1000);
     app.fake.succeedAsyncPayment(sessionId);
     await app.deliverWebhooks();
+    // Unlocks in the same browser once the payment clears, without revisiting the claim link.
+    expect((await ent(jar)).limits.downloadRows).toBe(-1);
     expect((await claim(jar, sessionId)).headers.get("location")).toBe("/?pass=active");
     expect((await ent(jar)).limits.downloadRows).toBe(-1);
   });
