@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArticleList, ArticlesByCategory, HelpSearchForm } from "@repo/support/ui";
 import { getPlatform } from "@/lib/platform";
+import { PageHead } from "@/components/grid/PageHead";
 
 export const metadata: Metadata = {
   title: "Help center",
@@ -15,11 +16,10 @@ export default async function HelpPage({ searchParams }: { searchParams: Promise
   const p = await getPlatform();
   const [all, results] = await Promise.all([p.support.listArticles(), q ? p.support.searchArticles(q) : Promise.resolve(null)]);
   return (
-    <div className="sup-root mx-auto w-full max-w-[860px] px-4 py-12">
-      <p className="label">Help</p>
-      <h1 className="mt-2 wt-h2 text-[30px] md:text-[34px]">Help center</h1>
-      <p className="mt-2 text-fg-muted">Endpoints, inspection, replay, plans and what to do when a request does not show up.</p>
-      <div className="mt-6">
+    <div className="g-frame">
+      <PageHead word="Help center" lead={<p>Endpoints, inspection, replay, plans and what to do when a request does not show up.</p>} />
+    <div className="sup-root mx-auto w-full max-w-[860px] px-4 pb-14 pt-8">
+      <div>
         <HelpSearchForm q={q} />
       </div>
       <div className="mt-6">
@@ -41,6 +41,7 @@ export default async function HelpPage({ searchParams }: { searchParams: Promise
         </Link>
         . For the API reference see <Link href="/docs" className="text-signal underline">the docs</Link>.
       </p>
+    </div>
     </div>
   );
 }

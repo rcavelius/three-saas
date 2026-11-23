@@ -35,10 +35,10 @@ export function CreateEndpointButton({ size = "lg", full = false }: { size?: "lg
         type="button"
         onClick={create}
         disabled={busy}
-        className={`btn btn-signal rounded-[10px] ${size === "lg" ? "h-12 px-5 text-[15px] sm:h-11" : ""} ${full ? "justify-center sm:justify-start" : ""}`}
+        className={size === "lg" ? `btn-cut ${full ? "w-full sm:w-auto" : ""}` : "btn btn-signal rounded-[10px]"}
       >
         {busy ? "Creating…" : "Create endpoint"}
-        <span aria-hidden className="font-mono">→</span>
+        <span aria-hidden className="arr font-mono">→</span>
       </button>
       {error && (
         <p role="alert" className="text-[13px] text-err max-w-md">

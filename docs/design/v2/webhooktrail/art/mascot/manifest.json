@@ -1,0 +1,10 @@
+{
+  "asset": "mascot",
+  "tool": "Higgsfield generate_image (gpt_image_2_6, quality high, 1:1) then Higgsfield remove_background",
+  "style_phrase": "glossy retrofuturist 3D toy render, soft studio light, cream-white plastic with warm orange and amber glow",
+  "concept_job": "1beb3825-9a44-490c-9da5-0ba88563d98f",
+  "cutout_job": "99883aa3-85e1-44ae-b13b-2aec4b5bcee6",
+  "served_as": "apps/webhooktrail/public/art/mascot-*.avif|webp (trimmed to alpha bbox, Pillow LANCZOS)",
+  "used_on": "webhooktrail.com home hero (centre grid cell), phone first screen",
+  "created": "2026-11-23"
+}

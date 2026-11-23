@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Space_Grotesk, JetBrains_Mono, Silkscreen } from "next/font/google";
+import { ThemeRoot } from "@/components/grid/ThemeRoot";
 import { Pageview } from "@/components/Pageview";
 import { PassOfferProvider } from "@/components/pass/PassOfferContext";
 import { PassReturnNotice } from "@/components/pass/PassStatus";
@@ -14,6 +15,7 @@ import "./globals.css";
 
 const grotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-grotesk", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
+const pixel = Silkscreen({ subsets: ["latin"], weight: ["700"], variable: "--font-silkscreen", display: "swap" });
 
 // Nonce-based CSP needs per-request rendering of every page.
 export const dynamic = "force-dynamic";
@@ -38,8 +40,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#090d12",
-  colorScheme: "dark",
+  themeColor: "#e6e6e1",
 };
 
 async function headerState(): Promise<{ signedIn: boolean; operator: boolean }> {
@@ -59,8 +60,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Reading request headers makes every page dynamic, which nonce-based CSP requires (proxy.ts).
   const state = await headerState();
   return (
-    <html lang="en" className={`${grotesk.variable} ${mono.variable}`}>
-      <body className="min-h-dvh flex flex-col">
+    <html lang="en" className={`${grotesk.variable} ${mono.variable} ${pixel.variable}`}>
+      <body>
+        <ThemeRoot>
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 btn btn-signal">
           Skip to content
         </a>
@@ -74,6 +76,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <SiteFooter />
         <Pageview />
         <Reveal />
+        </ThemeRoot>
       </body>
     </html>
   );
