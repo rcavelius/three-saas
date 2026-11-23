@@ -192,6 +192,15 @@ export async function payOnStripe(ctx: Ctx, page: Page, flow: Flow, o: { amountT
     await card.waitFor({ state: "visible", timeout: 4000 }).catch(() => undefined);
   }
   await page.screenshot({ path: join(ctx.outDir, `${o.shot}-stripe-form.png`) });
+  if (!(await card.isVisible().catch(() => false))) {
+    // Diagnostics for when Stripe changes its page: frames, inputs and the accessibility tree (no secrets on it).
+    const inputs = await page
+      .locator("input, button, [role=radio], [role=button]")
+      .evaluateAll((els) => els.slice(0, 80).map((e) => `${e.tagName} id=${e.id} name=${e.getAttribute("name")} type=${e.getAttribute("type")} aria=${e.getAttribute("aria-label")} testid=${e.getAttribute("data-testid")} text=${(e.textContent ?? "").trim().slice(0, 40)}`))
+      .catch((e) => [String(e)]);
+    const aria = await page.locator("body").ariaSnapshot().catch((e) => String(e));
+    writeFileSync(join(ctx.outDir, `${o.shot}-stripe-dom.txt`), [`url ${page.url().replace(/#.*/, "")}`, ...page.frames().map((f) => `frame ${f.url().slice(0, 120)}`), ...inputs, aria].join("\n"));
+  }
   await card.waitFor({ timeout: 30_000 });
   await card.fill("4242424242424242");
   await page.locator("#cardExpiry").fill("12 / 34");
