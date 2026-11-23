@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T20:53:32.337Z",
+  "generated_at": "2026-11-23T21:26:55.297Z",
   "product": "changekite",
   "sources_tracked_since": "2026-11-23T08:41:02.669Z",
   "accounts_total": 0,
@@ -11,12 +11,25 @@
     "mrr_usd": 0,
     "subscriptions_ever": 0,
     "canceled": 0,
-    "subscription_start_dates": []
+    "subscription_start_dates": [],
+    "one_time_passes": {
+      "sales_ever": 0,
+      "revenue_usd_ever": 0,
+      "sales_1d": 0,
+      "sales_7d": 0,
+      "sales_30d": 0,
+      "revenue_usd_30d": 0,
+      "refunded": 0,
+      "by_pass": {},
+      "sale_dates": []
+    },
+    "paying_customers_ever": 0,
+    "making_money_now": false
   },
   "last_1d": {
     "days": 1,
     "visitors": 7,
-    "pageviews": 17,
+    "pageviews": 18,
     "tool_users": 1,
     "tool_runs": 1,
     "pricing_views": 1,
@@ -25,7 +38,7 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 17,
+        "count": 18,
         "visitors": 7
       },
       "tool_used": {
@@ -36,7 +49,7 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 11,
+        "views": 12,
         "visitors": 7
       },
       {
@@ -66,14 +79,14 @@
       }
     ],
     "sources_available": true,
-    "visits": 5,
+    "visits": 6,
     "bot_pageviews": 7,
-    "bot_share": 0.292,
+    "bot_share": 0.28,
     "mobile_share": 0.333,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 5,
+        "visits": 6,
         "visitors": 3
       }
     ],
@@ -90,7 +103,7 @@
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 5,
+        "visits": 6,
         "visitors": 3,
         "top_referrer": null
       }
@@ -100,7 +113,7 @@
   "last_7d": {
     "days": 7,
     "visitors": 7,
-    "pageviews": 17,
+    "pageviews": 18,
     "tool_users": 1,
     "tool_runs": 1,
     "pricing_views": 1,
@@ -109,7 +122,7 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 17,
+        "count": 18,
         "visitors": 7
       },
       "tool_used": {
@@ -120,7 +133,7 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 11,
+        "views": 12,
         "visitors": 7
       },
       {
@@ -150,14 +163,14 @@
       }
     ],
     "sources_available": true,
-    "visits": 5,
+    "visits": 6,
     "bot_pageviews": 7,
-    "bot_share": 0.292,
+    "bot_share": 0.28,
     "mobile_share": 0.333,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 5,
+        "visits": 6,
         "visitors": 3
       }
     ],
@@ -174,7 +187,7 @@
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 5,
+        "visits": 6,
         "visitors": 3,
         "top_referrer": null
       }
@@ -184,7 +197,7 @@
   "last_30d": {
     "days": 30,
     "visitors": 9,
-    "pageviews": 31,
+    "pageviews": 32,
     "tool_users": 1,
     "tool_runs": 1,
     "pricing_views": 3,
@@ -193,7 +206,7 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 31,
+        "count": 32,
         "visitors": 9
       },
       "signup_started": {
@@ -208,7 +221,7 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 13,
+        "views": 14,
         "visitors": 9
       },
       {
@@ -258,14 +271,14 @@
       }
     ],
     "sources_available": true,
-    "visits": 5,
+    "visits": 6,
     "bot_pageviews": 7,
-    "bot_share": 0.184,
+    "bot_share": 0.179,
     "mobile_share": 0.333,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 5,
+        "visits": 6,
         "visitors": 3
       }
     ],
@@ -282,7 +295,7 @@
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 5,
+        "visits": 6,
         "visitors": 3,
         "top_referrer": null
       }

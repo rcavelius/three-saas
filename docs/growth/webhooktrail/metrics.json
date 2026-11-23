@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T20:53:33.250Z",
+  "generated_at": "2026-11-23T21:26:57.467Z",
   "product": "webhooktrail",
   "sources_tracked_since": "2026-11-23T08:26:02.921Z",
   "accounts_total": 0,
@@ -11,7 +11,20 @@
     "mrr_usd": 0,
     "subscriptions_ever": 0,
     "canceled": 0,
-    "subscription_start_dates": []
+    "subscription_start_dates": [],
+    "one_time_passes": {
+      "sales_ever": 0,
+      "revenue_usd_ever": 0,
+      "sales_1d": 0,
+      "sales_7d": 0,
+      "sales_30d": 0,
+      "revenue_usd_30d": 0,
+      "refunded": 0,
+      "by_pass": {},
+      "sale_dates": []
+    },
+    "paying_customers_ever": 0,
+    "making_money_now": false
   },
   "last_1d": {
     "days": 1,
