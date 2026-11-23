@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-23T08:40:34.289Z",
+  "generated_at": "2026-11-23T08:41:34.623Z",
   "product": "changekite",
-  "sources_tracked_since": null,
+  "sources_tracked_since": "2026-11-23T08:41:02.669Z",
   "accounts_total": 0,
   "subscriptions_in_db": {},
   "stripe": {
@@ -38,8 +38,8 @@
     ],
     "sources_available": true,
     "visits": 0,
-    "bot_pageviews": 0,
-    "bot_share": 0,
+    "bot_pageviews": 1,
+    "bot_share": 0.167,
     "mobile_share": null,
     "top_referrers": [],
     "top_countries": [
@@ -76,8 +76,8 @@
     ],
     "sources_available": true,
     "visits": 0,
-    "bot_pageviews": 0,
-    "bot_share": 0,
+    "bot_pageviews": 1,
+    "bot_share": 0.167,
     "mobile_share": null,
     "top_referrers": [],
     "top_countries": [
@@ -148,8 +148,8 @@
     ],
     "sources_available": true,
     "visits": 0,
-    "bot_pageviews": 0,
-    "bot_share": 0,
+    "bot_pageviews": 1,
+    "bot_share": 0.05,
     "mobile_share": null,
     "top_referrers": [],
     "top_countries": [
