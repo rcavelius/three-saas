@@ -33,8 +33,30 @@ env:
   NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:
+  prepare:
+    name: Stripe test products and prices
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'live') || github.event.schedule == '30 7 * * 1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse anything but a Stripe TEST key
+        run: |
+          case "$STRIPE_SECRET_KEY" in sk_test_*|rk_test_*) echo "test key ok";; *) echo "STRIPE_TEST_SECRET_KEY is missing or not a test key"; exit 1;; esac
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-fund --no-audit
+      # Once, before the matrix: three jobs creating the same products at once race ("Product already exists").
+      - name: Create or check test products and prices (idempotent; passes included)
+        run: npx tsx packages/billing/scripts/setup-stripe-test.ts
+
   e2e:
     name: Test-mode checkout ${{ matrix.app }}
+    needs: prepare
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'live') || github.event.schedule == '30 7 * * 1'
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -66,8 +88,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci --no-fund --no-audit
-      - name: Stripe test products and prices (idempotent; passes included)
-        run: npx tsx packages/billing/scripts/setup-stripe-test.ts
       - name: Install Stripe CLI and headless Chromium
         env:
           GH_TOKEN: ${{ github.token }}
@@ -152,7 +172,7 @@ jobs:
 
   health:
     name: Record checkout health for the traffic boss
-    needs: [e2e, live]
+    needs: [prepare, e2e, live]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10

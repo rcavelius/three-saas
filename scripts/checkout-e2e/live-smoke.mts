@@ -51,7 +51,8 @@ for (const catalog of ALL_CATALOGS) {
   const pricing = await retry(async () => {
     const r = await fetch(`${origin}/pricing`, { headers: { "user-agent": UA } });
     if (r.status !== 200) throw new Error(`pricing HTTP ${r.status}`);
-    return r.text();
+    // React separates "$" and the number with <!-- --> in server-rendered text.
+    return (await r.text()).replace(/<!-- -->/g, "");
   }).catch(() => "");
 
   for (const pass of catalog.passes ?? []) {

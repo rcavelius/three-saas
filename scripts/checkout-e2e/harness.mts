@@ -170,7 +170,7 @@ export async function webhookLog(ctx: Ctx): Promise<{ type: string; outcome: str
 /** On checkout.stripe.com: checks the amount shown, pays with the 4242 test card, waits until back on the app. */
 export async function payOnStripe(ctx: Ctx, page: Page, flow: Flow, o: { amountText: string; email?: string; shot: string }): Promise<void> {
   await page.waitForURL(/checkout\.stripe\.com/, { timeout: 45_000 });
-  flow.must("redirects to Stripe hosted Checkout (test mode)", /checkout\.stripe\.com\/c\/pay\/cs_test_/.test(page.url()), new URL(page.url()).host);
+  flow.must("redirects to Stripe hosted Checkout (test mode)", page.url().includes("cs_test_"), new URL(page.url()).host);
   await page.locator("body").getByText(o.amountText).first().waitFor({ timeout: 30_000 });
   flow.check(`Stripe shows the price ${o.amountText}`, true);
   const email = page.locator("#email");

@@ -19,7 +19,7 @@ import {
   type Ctx,
 } from "./harness.mts";
 
-const howToFixCount = (page: Page) => page.getByText("How to fix", { exact: false }).count();
+const howToFixCount = (page: Page) => page.getByText("How to fix", { exact: true }).count();
 
 /** Runs a real anonymous scan of example.com and returns the report id. */
 async function scan(page: Page, base: string): Promise<string> {
