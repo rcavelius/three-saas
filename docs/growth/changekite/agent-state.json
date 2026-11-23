@@ -43,6 +43,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-23",
+      "agent": "convert",
+      "generation": 1,
+      "sales": 0,
+      "units": 0,
+      "focus_followed": true,
+      "did": [
+        "No change shipped: the homepage was redesigned on main during the run (scan form in the hero, #scan CTA already present), so my homepage CTA edit conflicted and was dropped"
+      ],
+      "metrics": {
+        "visitors_7d": 7,
+        "tool_users_7d": 1,
+        "pricing_views_7d": 1,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }
