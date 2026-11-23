@@ -1,0 +1,187 @@
+name: Checkout health
+
+# Proves every way to pay works, from the click to the unlock, and records the result for the traffic boss in
+# docs/growth/checkout-health.json (docs/growth/BOSS.md puts a failure at the top of DAILY-REPORT.md).
+#  - weekly (Monday 07:30 UTC) TEST-mode end to end, per app: production build + service Postgres + Stripe TEST
+#    keys + headless Chromium. Free limit → paywall → Stripe hosted Checkout with test card 4242 → webhook via
+#    `stripe listen --forward-to` → pass cookie + unlock link (or plan) → paid limits. Every pass and one monthly plan.
+#  - daily (07:00 UTC) LIVE smoke: opens a live Checkout for every pass (through the site's own route) and plan,
+#    checks price and amount, and EXPIRES each session unpaid. Nothing is ever paid in live mode.
+# A failed run makes GitHub email the repository owner.
+on:
+  push:  # TEMP: run on the PR branch while it is being built (removed before merge)
+    branches: [claude/checkout-qa-1f4718]
+  schedule:
+    - cron: "0 7 * * *"   # live smoke
+    - cron: "30 7 * * 1"  # test-mode end to end
+  workflow_dispatch:
+    inputs:
+      run:
+        description: What to run
+        type: choice
+        options: [all, e2e, live]
+        default: all
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checkout-health-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  e2e:
+    name: Test-mode checkout ${{ matrix.app }}
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'live') || github.event.schedule == '30 7 * * 1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [gridrinse, changekite, webhooktrail]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      APP: ${{ matrix.app }}
+      PORT: "3102"
+      DATABASE_URL: postgres://postgres:ci-only-password@localhost:5432/postgres
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+      OUT_DIR: ${{ github.workspace }}/out/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse anything but a Stripe TEST key
+        run: |
+          case "$STRIPE_SECRET_KEY" in sk_test_*|rk_test_*) echo "test key ok";; *) echo "STRIPE_TEST_SECRET_KEY is missing or not a test key"; exit 1;; esac
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-fund --no-audit
+      - name: Stripe test products and prices (idempotent; passes included)
+        run: npx tsx packages/billing/scripts/setup-stripe-test.ts
+      - name: Install Stripe CLI and headless Chromium
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download -R stripe/stripe-cli --pattern 'stripe_*_linux_x86_64.tar.gz' -D "$RUNNER_TEMP/stripe"
+          tar -xzf "$RUNNER_TEMP"/stripe/stripe_*_linux_x86_64.tar.gz -C "$RUNNER_TEMP/stripe"
+          echo "$RUNNER_TEMP/stripe" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/stripe/stripe" version
+          npx playwright install --with-deps chromium
+      - name: Build ${{ matrix.app }} (production)
+        run: npm run build -w @apps/${{ matrix.app }}
+      - name: Forward Stripe test webhooks to the app (stripe listen)
+        run: |
+          secret=$(stripe listen --api-key "$STRIPE_SECRET_KEY" --print-secret)
+          echo "::add-mask::$secret"
+          echo "STRIPE_WEBHOOK_SECRET=$secret" >> "$GITHUB_ENV"
+          nohup stripe listen --api-key "$STRIPE_SECRET_KEY" --skip-update \
+            --events checkout.session.completed,checkout.session.async_payment_succeeded,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_succeeded,invoice.payment_failed,charge.refunded \
+            --forward-to "localhost:$PORT/api/billing/webhook" > "$RUNNER_TEMP/listen.log" 2>&1 &
+          for i in $(seq 1 30); do grep -q "Ready" "$RUNNER_TEMP/listen.log" && break; sleep 1; done
+          grep -q "Ready" "$RUNNER_TEMP/listen.log" || { sed 's/whsec_[A-Za-z0-9]*/whsec_…/g' "$RUNNER_TEMP/listen.log"; exit 1; }
+          echo "stripe listen is ready"
+      - name: Start the production server
+        working-directory: apps/${{ matrix.app }}
+        env:
+          NODE_ENV: production
+          APP_URL: http://localhost:3102
+          SESSION_SECRET: ci-only-checkout-e2e-session-secret-0123456789
+          CRON_SECRET: ci-only-cron-secret-0123456789
+          TRUSTED_PROXY: none
+          WT_CSP_NO_UPGRADE: "1"
+          RUN_SCHEDULER: "1"
+        run: |
+          nohup npx next start --port "$PORT" > "$RUNNER_TEMP/server.log" 2>&1 &
+          for i in $(seq 1 120); do curl -fsS -o /dev/null "http://localhost:$PORT/api/health" && break; sleep 1; done
+          curl -fsS "http://localhost:$PORT/api/health" | head -c 300; echo
+      - name: Buy every pass and a monthly plan with Stripe test cards
+        run: npx tsx scripts/checkout-e2e/run.mts "$APP"
+      - name: Logs
+        if: always()
+        run: |
+          echo "--- server"; tail -n 120 "$RUNNER_TEMP/server.log" || true
+          echo "--- stripe listen"; sed -E 's/(whsec|evt|cs|cus|sub|pi)_[A-Za-z0-9_]+/\1_…/g' "$RUNNER_TEMP/listen.log" | tail -n 80 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: checkout-e2e-${{ matrix.app }}
+          path: out/${{ matrix.app }}
+          retention-days: 14
+
+  live:
+    name: Live checkout smoke (expired, never paid)
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run != 'e2e') || github.event.schedule == '0 7 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-fund --no-audit
+      - name: Open and expire live Checkout sessions
+        env:
+          WORKER_SECRETS_GRIDRINSE: ${{ secrets.WORKER_SECRETS_GRIDRINSE }}
+          WORKER_SECRETS_CHANGEKITE: ${{ secrets.WORKER_SECRETS_CHANGEKITE }}
+          WORKER_SECRETS_WEBHOOKTRAIL: ${{ secrets.WORKER_SECRETS_WEBHOOKTRAIL }}
+        run: |
+          for app in GRIDRINSE CHANGEKITE WEBHOOKTRAIL; do
+            k="$(node -e 'process.stdout.write(JSON.parse(process.env["WORKER_SECRETS_"+process.argv[1]]||"{}").STRIPE_SECRET_KEY||"")' "$app")"
+            echo "::add-mask::$k"
+            export "STRIPE_LIVE_KEY_$app=$k"
+          done
+          mkdir -p out/live
+          npx tsx scripts/checkout-e2e/live-smoke.mts out/live/live-smoke.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: checkout-live
+          path: out/live
+          retention-days: 14
+
+  health:
+    name: Record checkout health for the traffic boss
+    needs: [e2e, live]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          path: results
+          pattern: checkout-*
+      - name: Write docs/growth/checkout-health.json
+        env:
+          E2E_APPS: ${{ needs.e2e.result != 'skipped' && 'gridrinse,changekite,webhooktrail' || '' }}
+          LIVE_RAN: ${{ needs.live.result != 'skipped' && '1' || '' }}
+        run: |
+          find results -name '*.json' -not -name 'result.json' -not -name 'live-smoke.json' -delete || true
+          npx -y tsx@4 scripts/checkout-e2e/health.mts results "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          cat docs/growth/checkout-health.json
+      - name: Commit (main only)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "checkout-health[bot]"
+          git config user.email "checkout-health@users.noreply.github.com"
+          git add docs/growth/checkout-health.json
+          git diff --cached --quiet && exit 0
+          git commit -m "growth: checkout health [skip ci]"
+          for i in 1 2 3; do git pull --rebase -q && git push -q && exit 0; sleep 5; done
+          exit 1

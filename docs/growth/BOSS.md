@@ -18,6 +18,7 @@ Ronald (the owner) is hands-off. Nobody will answer questions during a run. Deci
 ## 1. Start of every run
 
 1. `git pull --rebase`, then `npm ci` at the repo root (needed for tests if you fix anything).
+   Read `docs/growth/checkout-health.json`: if `ok` is false, or `test_mode.run_at` is over 8 days / `live_smoke.run_at` over 26 hours old, put a **CHECKOUT BROKEN** (or stale) line with the failing app/flow/steps at the very top of `DAILY-REPORT.md`, above the summary.
 2. Read all three `metrics.json` files and `docs/growth/boss-state.json` (your own log).
 3. A metrics file is **stale** if its `generated_at` is more than 26 hours old: say so in the report, use the numbers
    as "last known", and do not draw new conclusions from them.
