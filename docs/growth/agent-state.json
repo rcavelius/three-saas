@@ -314,6 +314,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-23",
+      "agent": "convert",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Homepage: 'Or pick a job' links under the hero drop box to five tool pages (remove-duplicates, trim-spaces, fix-dates, split-column, merge)"
+      ],
+      "metrics": {
+        "visitors_7d": 31,
+        "tool_users_7d": 5,
+        "pricing_views_7d": 9,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }
