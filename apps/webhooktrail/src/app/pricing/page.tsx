@@ -6,6 +6,8 @@ import { PassBuyButton } from "@/components/pass/PassPaywall";
 import { passLimits, passOffer, weekPass } from "@/lib/pass";
 import { CATALOG, formatBytesShort, formatCount, limitsFromPlan, priceLabel } from "@/lib/plans";
 import { serverViewer } from "@/lib/server-session";
+import { Art } from "@/components/grid/Art";
+import { PixelTitle } from "@/components/grid/PixelTitle";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -78,7 +80,7 @@ export default async function PricingPage() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-5 py-12 md:px-8 md:py-16">
+    <div className="g-frame">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -111,14 +113,25 @@ export default async function PricingPage() {
           mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
         }}
       />
-      <p className="label">Pricing</p>
-      <h1 className="mt-4 wt-display text-[40px] leading-[42px] md:text-[60px] md:leading-none">Start free. Pay for history, teams and replay.</h1>
-      <p className="mt-4 max-w-[62ch] text-[16px] leading-[26px] text-fg-muted">
-        The Free plan works without an account. Debugging one integration this week? The {offer.name} is a single {offer.price} payment,
-        no subscription. Monthly plans add longer history, larger payloads, replay to verified destinations and, on Pro, team seats.
-      </p>
+      <div className="g-fit wt-in border-b border-line px-4 pb-3 pt-5 md:px-5 md:pb-5 md:pt-8">
+        <PixelTitle text="Pricing" lines={["Pricing"]} phoneEm={8} max={300} maxPhone={110} />
+      </div>
+      <div className="g-row grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="g-x flex flex-col justify-center gap-4 p-4 md:p-6">
+          <p className="max-w-[46ch] text-[17px] leading-[27px] md:text-[20px] md:leading-[31px]">Start free. Pay for history, teams and replay.</p>
+          <p className="g-read max-w-[60ch] text-[15px] leading-6 text-fg-muted">
+            Free works without an account. One integration to debug this week? The {offer.name} is one {offer.price} payment, no subscription.
+          </p>
+        </div>
+        <div className="g-x-r theme-console relative hidden items-center justify-center bg-black py-6 md:flex">
+          <span aria-hidden="true" className="g-dot -bottom-[4px] -right-[4px]" />
+          <div className="wt-float">
+            <Art name="hook" sizes="120px" priority className="h-[190px] w-auto" />
+          </div>
+        </div>
+      </div>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="g-row grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         {plans.flatMap(({ def, lim }) => {
           const free = def.id === CATALOG.freePlanId;
           const rows: [string, string][] = [
@@ -131,34 +144,36 @@ export default async function PricingPage() {
             ["Replay to verified destinations", lim.replay ? "Yes, with retries" : "No"],
             ["Team seats", String(lim.teamSeats)],
           ];
+          const dev = def.id === "developer";
           const card = (
-            <section key={def.id} aria-labelledby={`plan-${def.id}`} className={`flex flex-col rounded-[14px] border bg-surface p-[26px] ${def.id === "developer" ? "border-signal" : "border-line"}`}>
-              <h2 id={`plan-${def.id}`} className="text-[18px] font-semibold">
+            <section key={def.id} aria-labelledby={`plan-${def.id}`} className="g-x flex flex-col p-4 md:p-6">
+              {dev && <span aria-hidden="true" className="g-dot -right-[4px] -top-[4px]" />}
+              <h2 id={`plan-${def.id}`} className="g-cap">
                 {def.name}
               </h2>
               <p className="mt-3">
-                <span className="text-[40px] font-bold leading-[44px] tracking-[-0.04em] tabular-nums">{priceLabel(def)}</span>
-                <span className="text-fg-dim text-[13px]"> / month</span>
+                <span className="font-[family-name:var(--font-pixel)] text-[56px] font-bold leading-none">{priceLabel(def)}</span>
+                <span className="font-mono text-[13px] text-fg-dim"> / month</span>
               </p>
-              <dl className="mt-5 divide-y divide-line border-y border-line flex-1">
+              <dl className="mt-6 flex-1 divide-y divide-line border-y border-line">
                 {rows.map(([k, v]) => (
-                  <div key={k} className="flex justify-between gap-4 py-2 text-[13px]">
-                    <dt className="text-fg-muted">{k}</dt>
-                    <dd className="font-mono text-[12.5px] text-right">{v}</dd>
+                  <div key={k} className="flex justify-between gap-4 py-2 text-[12.5px]">
+                    <dt className="text-fg-dim">{k}</dt>
+                    <dd className="text-right font-semibold">{v}</dd>
                   </div>
                 ))}
               </dl>
               <div className="mt-6">
                 {free ? (
-                  <Link href="/" className="btn h-11 w-full justify-center rounded-[10px] text-[15px]">
+                  <Link href="/#create" className="btn-cut btn-cut-ghost w-full">
                     Create a free endpoint
                   </Link>
                 ) : viewer.user && isOwner ? (
-                  <CheckoutButton planId={def.id} label={`Choose ${def.name}`} primary={def.id === "developer"} />
+                  <CheckoutButton planId={def.id} label={`Choose ${def.name}`} primary={dev} />
                 ) : viewer.user ? (
                   <p className="text-[12.5px] text-fg-muted">Ask your workspace owner to upgrade.</p>
                 ) : (
-                  <Link href={`/signup?plan=${def.id}`} className={`btn h-11 w-full justify-center rounded-[10px] text-[15px] ${def.id === "developer" ? "btn-signal" : ""}`}>
+                  <Link href={`/signup?plan=${def.id}`} className={`btn-cut w-full ${dev ? "" : "btn-cut-ghost"}`}>
                     Start with {def.name}
                   </Link>
                 )}
@@ -169,47 +184,49 @@ export default async function PricingPage() {
           // The one-time pass sits right after Free: the step up for a single debugging week.
           return [
             card,
-            <section key="pass" aria-labelledby="plan-pass" className="flex flex-col rounded-[14px] border border-line-strong bg-surface-2 p-[26px]">
-              <h2 id="plan-pass" className="text-[18px] font-semibold">
+            <section key="pass" id="plan-pass-card" aria-labelledby="plan-pass" className="g-x theme-console flex flex-col bg-black! p-4 md:p-6">
+              <h2 id="plan-pass" className="g-cap text-signal">
                 {offer.name}
               </h2>
               <p className="mt-3">
-                <span className="text-[40px] font-bold leading-[44px] tracking-[-0.04em] tabular-nums">{offer.price}</span>
-                <span className="text-fg-dim text-[13px]"> once, for {offer.durationLabel}</span>
+                <span className="font-[family-name:var(--font-pixel)] text-[56px] font-bold leading-none">{offer.price}</span>
+                <span className="font-mono text-[13px] text-fg-dim"> once, {offer.durationLabel}</span>
               </p>
-              <p className="mt-1 text-[12.5px] text-fg-muted">One-time, no subscription, no account needed.</p>
-              <dl className="mt-4 divide-y divide-line border-y border-line flex-1">
+              <p className="mt-2 font-mono text-[12px] text-fg-muted">No subscription. No account needed.</p>
+              <dl className="mt-4 flex-1 divide-y divide-line border-y border-line">
                 {passRows.map(([k, v]) => (
-                  <div key={k} className="flex justify-between gap-4 py-2 text-[13px]">
-                    <dt className="text-fg-muted">{k}</dt>
-                    <dd className="font-mono text-[12.5px] text-right">{v}</dd>
+                  <div key={k} className="flex justify-between gap-4 py-2 text-[12.5px]">
+                    <dt className="text-fg-dim">{k}</dt>
+                    <dd className="text-right font-semibold">{v}</dd>
                   </div>
                 ))}
               </dl>
-              <p className="mt-3 text-[12px] text-fg-dim">* Replay goes to a destination you verify, which needs a free account.</p>
+              <p className="mt-3 text-[11.5px] leading-[17px] text-fg-dim">* Replay goes to a destination you verify, which needs a free account.</p>
               <div className="mt-4">
-                <PassBuyButton />
+                <PassBuyButton className="!rounded-none font-mono uppercase tracking-[0.08em]" />
               </div>
             </section>,
           ];
         })}
       </div>
-      <p className="mt-6 text-[12.5px] text-fg-dim max-w-[70ch]">
+      <p className="border-b border-line px-4 py-3 font-mono text-[12px] text-fg-dim md:px-5">
         Plan prices in USD per month; the {offer.name} is a single charge. Taxes may apply.
       </p>
 
-      <section aria-labelledby="faq" className="mt-14 max-w-3xl">
-        <h2 id="faq" className="wt-h2 text-[32px] md:text-[44px]">
-          Questions
-        </h2>
-        <dl className="mt-4 divide-y divide-line border-y border-line">
-          {FAQ.map(([q, a]) => (
-            <div key={q} className="py-4">
-              <dt className="font-medium text-[15px]">{q}</dt>
-              <dd className="mt-1 text-[14px] text-fg-muted leading-relaxed">{a}</dd>
-            </div>
-          ))}
-        </dl>
+      <section aria-labelledby="faq" className="mt-16 border-t border-line md:mt-24">
+        <div className="g-row grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <div className="g-x g-fit p-4 md:p-6">
+            <PixelTitle as="h2" id="faq" text="Questions" lines={["Questions"]} phoneEm={8} max={88} maxPhone={56} />
+          </div>
+          <dl className="g-x">
+            {FAQ.map(([q, a]) => (
+              <div key={q} className="border-b border-line px-4 py-5 last:border-b-0 md:px-6">
+                <dt className="text-[14px] font-bold">{q}</dt>
+                <dd className="g-read mt-2 max-w-[70ch] text-[15px] leading-[25px] text-fg-muted">{a}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </section>
     </div>
   );

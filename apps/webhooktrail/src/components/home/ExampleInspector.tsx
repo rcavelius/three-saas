@@ -122,7 +122,7 @@ export function ExampleInspector() {
 
   return (
     <div
-      className="wt-in overflow-hidden rounded-[16px] border border-line-strong/70 bg-surface shadow-[0_40px_80px_-40px_rgba(0,0,0,0.8)]"
+      className="overflow-hidden border border-line-strong/70 bg-surface"
       style={{ ["--d" as string]: "120ms" }}
       role="region"
       aria-label="Example inspector with sample data (not live)"

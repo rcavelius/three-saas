@@ -1,20 +1,23 @@
 import Link from "next/link";
 import { SignOutButton } from "./auth/AuthForms";
+import { NavLinks } from "./grid/NavLinks";
+import { PixelTitle } from "./grid/PixelTitle";
+import { legalInfo } from "@/lib/legal";
 
 /** The signal mark: a flat line with one recorded event. Monoline, works at 16px. */
 export function SignalMark({ className = "h-[15px] w-[26px]" }: { className?: string }) {
   return (
     <svg viewBox="0 0 28 16" aria-hidden="true" className={className} fill="none">
-      <path d="M1 9h7l2.5-6 4 11 3-8 1.5 3H27" stroke="var(--color-signal)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M1 9h7l2.5-6 4 11 3-8 1.5 3H27" stroke="var(--color-signal)" strokeWidth="2.2" strokeLinecap="square" strokeLinejoin="miter" />
     </svg>
   );
 }
 
 export function Wordmark() {
   return (
-    <span className="inline-flex items-center gap-2.5 text-[17px] font-bold tracking-[-0.025em]">
+    <span className="inline-flex items-center gap-2.5">
       <SignalMark />
-      WebhookTrail
+      <span className="font-mono text-[15px] font-extrabold uppercase leading-none tracking-[0.06em]">WebhookTrail</span>
     </span>
   );
 }
@@ -27,89 +30,95 @@ const NAV: [string, string][] = [
   ["/help", "Help"],
 ];
 
-const navLink = "rounded-md px-3 py-2 text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg";
+const cell = "flex items-stretch border-l border-line";
 
 export function SiteHeader({ signedIn, operator }: { signedIn: boolean; operator?: boolean }) {
   return (
     <header className="relative z-30 shrink-0 border-b border-line bg-bg">
-      <div className="mx-auto flex h-16 max-w-[1320px] items-center gap-6 px-5 md:h-[72px] md:px-8 lg:px-12">
-        <Link href="/" aria-label="WebhookTrail home" className="rounded-sm">
+      <div className="g-frame flex h-14 items-stretch md:h-16">
+        <Link href="/" aria-label="WebhookTrail home" className="flex items-center px-4 md:px-5">
           <Wordmark />
         </Link>
-        <nav aria-label="Main" className="hidden items-center gap-0.5 text-[14px] font-medium md:flex">
-          {NAV.map(([href, label]) => (
-            <Link key={href} className={navLink} href={href}>
-              {label}
-            </Link>
-          ))}
+        <nav aria-label="Main" className={`${cell} hidden md:flex`}>
+          <NavLinks items={NAV} />
         </nav>
-        <div className="ml-auto hidden items-center gap-1 text-[14px] font-medium md:flex">
+        <div className="hidden flex-1 border-l border-line md:block" aria-hidden="true" />
+        <div className="hidden items-stretch md:flex">
           {signedIn ? (
             <>
               {operator && (
-                <Link className={navLink} href="/admin">
+                <Link className="g-nav border-l border-line" href="/admin">
                   Ops
                 </Link>
               )}
-              <Link className={navLink} href="/account">
+              <Link className="g-nav border-l border-line" href="/account">
                 Account
               </Link>
-              <SignOutButton className={navLink} />
-              <Link className="btn btn-signal ml-2 h-11 rounded-[10px] px-5 text-[14px]" href="/app">
-                Dashboard
-              </Link>
+              <SignOutButton className="g-nav cursor-pointer border-l border-line" />
+              <span className="flex items-center border-l border-line px-3">
+                <Link className="btn-cut btn-cut-sm" href="/app">
+                  Dashboard <span aria-hidden="true" className="arr">→</span>
+                </Link>
+              </span>
             </>
           ) : (
             <>
-              <Link className={navLink} href="/login">
+              <Link className="g-nav border-l border-line" href="/login">
                 Log in
               </Link>
-              <Link className="btn btn-signal ml-2 h-11 rounded-[10px] px-5 text-[14px]" href="/#create">
-                Create endpoint <span aria-hidden="true" className="font-mono">→</span>
-              </Link>
+              <span className="flex items-center border-l border-line px-3">
+                <Link className="btn-cut btn-cut-sm" href="/#create">
+                  Create endpoint <span aria-hidden="true" className="arr">→</span>
+                </Link>
+              </span>
             </>
           )}
         </div>
 
         {/* Phone: one Menu control (a disclosure, works without JavaScript). */}
-        <details className="group relative ml-auto md:hidden">
-          <summary aria-label="Menu" className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-[10px] border border-line-strong [&::-webkit-details-marker]:hidden">
-            <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5 group-open:hidden" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-              <path d="M3 6h14M3 10h14M3 14h14" />
-            </svg>
-            <svg viewBox="0 0 20 20" aria-hidden="true" className="hidden h-5 w-5 group-open:block" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-              <path d="M5 5l10 10M15 5 5 15" />
-            </svg>
+        <details className="group relative ml-auto flex border-l border-line md:hidden">
+          <summary aria-label="Menu" className="g-cap flex h-full cursor-pointer list-none items-center gap-2 px-4 [&::-webkit-details-marker]:hidden">
+            <span className="group-open:hidden">Menu</span>
+            <span className="hidden group-open:inline">Close</span>
+            <span aria-hidden="true" className="grid h-[14px] w-[14px] place-items-center">
+              <span className="block h-[2px] w-[14px] bg-fg shadow-[0_5px_0_var(--color-fg),0_-5px_0_var(--color-fg)] group-open:shadow-none" />
+            </span>
           </summary>
-          <div className="absolute right-0 top-[calc(100%+8px)] w-[min(18rem,calc(100vw-2.5rem))] rounded-[14px] border border-line-strong bg-surface p-2 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.6)]">
+          <div className="absolute right-[-1px] top-[calc(100%+1px)] w-[min(20rem,calc(100vw-2rem))] border border-line bg-bg shadow-[0_24px_48px_-16px_rgba(0,0,0,0.35)]">
             <ul>
               {NAV.map(([href, label]) => (
-                <li key={href}>
-                  <Link className="block rounded-lg px-3 py-3 text-[16px] font-semibold hover:bg-surface-2" href={href}>
+                <li key={href} className="border-b border-line">
+                  <Link className="g-cap g-link flex min-h-12 items-center justify-between px-4 !text-[13px]" href={href}>
                     {label}
+                    <span aria-hidden="true" className="arr">→</span>
                   </Link>
                 </li>
               ))}
             </ul>
-            <div className="mt-2 grid gap-2 border-t border-line p-2 pt-3">
+            <div className="grid gap-2 p-3">
               {signedIn ? (
                 <>
-                  <Link className="btn btn-signal h-11 justify-center text-[15px]" href="/app">
+                  <Link className="btn-cut w-full" href="/app">
                     Dashboard
                   </Link>
-                  <Link className="btn h-11 justify-center text-[15px]" href="/account">
+                  <Link className="btn-cut btn-cut-ghost w-full" href="/account">
                     Account
                   </Link>
-                  <SignOutButton className="btn h-11 justify-center text-[15px]" />
+                  <SignOutButton className="btn-cut btn-cut-ghost w-full" />
                 </>
               ) : (
                 <>
-                  <Link className="btn h-11 justify-center text-[15px]" href="/login">
-                    Log in
+                  <Link className="btn-cut w-full" href="/#create">
+                    Create endpoint
                   </Link>
-                  <Link className="btn h-11 justify-center text-[15px]" href="/signup">
-                    Sign up
-                  </Link>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link className="btn-cut btn-cut-ghost" href="/login">
+                      Log in
+                    </Link>
+                    <Link className="btn-cut btn-cut-ghost" href="/signup">
+                      Sign up
+                    </Link>
+                  </div>
                 </>
               )}
             </div>
@@ -132,17 +141,27 @@ const FOOT: [string, string][] = [
 ];
 
 export function SiteFooter() {
+  const entity = legalInfo().entity;
   return (
-    <footer className="border-t border-line text-[13px] text-fg-dim">
-      <div className="mx-auto flex max-w-[1320px] flex-col gap-6 px-5 py-8 md:flex-row md:items-center md:px-8 lg:px-12">
-        <Wordmark />
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2 md:ml-auto">
-          {FOOT.map(([href, label]) => (
-            <Link key={href} className="hover:text-fg" href={href}>
-              {label}
-            </Link>
+    <footer className="border-t border-line">
+      <div className="g-frame">
+        <ul className="g-row grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
+          {FOOT.map(([href, label], i) => (
+            <li key={href} className={i % 2 === 0 ? "g-x" : ""}>
+              <Link className="g-cap g-link flex min-h-12 items-center justify-between px-4" href={href}>
+                {label}
+                <span aria-hidden="true" className="arr text-fg-faint">→</span>
+              </Link>
+            </li>
           ))}
-        </nav>
+        </ul>
+        <div className="g-fit px-4 pb-4 pt-8 md:px-5 md:pt-10" aria-hidden="true">
+          <PixelTitle as="p" text="WebhookTrail" lines={["WebhookTrail"]} phoneEm={20} max={400} maxPhone={400} className="text-fg" />
+        </div>
+        <p className="flex flex-wrap justify-between gap-2 border-t border-line px-4 py-4 font-mono text-[12px] text-fg-dim md:px-5">
+          <span>Webhook capture, inspection and replay.</span>
+          <span>© {new Date().getFullYear()} {entity ?? "WebhookTrail"}</span>
+        </p>
       </div>
     </footer>
   );

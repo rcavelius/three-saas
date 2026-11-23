@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHead } from "@/components/grid/PageHead";
 import { CATALOG, formatBytesShort, formatCount, limits, limitsFromPlan } from "@/lib/plans";
 
 export const metadata: Metadata = {
@@ -29,28 +30,27 @@ function C({ children }: { children: React.ReactNode }) {
 
 export default function DocsPage() {
   return (
-    <div className="mx-auto w-full max-w-[1200px] px-4 py-12 grid gap-10 lg:grid-cols-[200px_1fr]">
-      <nav aria-label="On this page" className="lg:sticky lg:top-6 self-start">
-        <p className="label mb-3">On this page</p>
-        <ul className="grid gap-1.5 text-[13px] text-fg-muted">
+    <div className="g-frame">
+      <PageHead word="Docs" lead={<><h2 className="font-mono text-[15px] font-bold uppercase tracking-[0.04em] text-fg">WebhookTrail reference</h2><p className="mt-3">WebhookTrail gives you a URL that records every HTTP request sent to it, a console to inspect them, and (on paid plans or with the one-time 7-day pass) replay of a
+          captured request to a destination you have verified. This page describes exactly what is implemented.</p></>} />
+      <div className="g-row grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <nav aria-label="On this page" className="g-x p-4 md:p-5">
+        <div className="lg:sticky lg:top-6">
+        <p className="g-cap mb-3 text-fg-dim">On this page</p>
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-[12.5px] lg:grid-cols-1">
           {TOC.map(([id, t]) => (
             <li key={id}>
-              <a href={`#${id}`} className="hover:text-fg">
+              <a href={`#${id}`} className="hover:text-signal">
                 {t}
               </a>
             </li>
           ))}
         </ul>
+        </div>
       </nav>
 
-      <article className="prose-doc max-w-[78ch] min-w-0">
-        <p className="label">Documentation</p>
-        <h1 className="mt-3 wt-display text-[36px] md:text-[52px]">WebhookTrail reference</h1>
-        <p>
-          WebhookTrail gives you a URL that records every HTTP request sent to it, a console to inspect them, and (on paid plans or with the one-time 7-day pass) replay of a
-          captured request to a destination you have verified. This page describes exactly what is implemented.
-        </p>
-
+      <article className="prose-doc g-x min-w-0 px-4 pb-12 md:px-8">
+        <div className="max-w-[78ch]">
         <h2 id="capture-url">Capture URL</h2>
         <pre>
           <code>{`https://<host>/h/<slug>[/<any/sub/path>][?<query>]`}</code>
@@ -467,7 +467,9 @@ app.post("/webhooks", express.json(), (req, res) => {
           (endpoint expired), <C>413</C>, <C>415</C> (not JSON), <C>422</C> (destination URL refused, method not replayable), <C>429</C>{" "}
           (rate limited, with <C>Retry-After</C>), <C>503</C> (<C>billing_not_configured</C>).
         </p>
+        </div>
       </article>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,10 @@
+{
+  "asset": "hook",
+  "tool": "Higgsfield generate_image (gpt_image_2_6, quality high, 1:1) then Higgsfield remove_background",
+  "style_phrase": "glossy retrofuturist 3D toy render, soft studio light, cream-white plastic with warm orange and amber glow",
+  "concept_job": "94236b3d-e9d2-403d-9c1f-b4ef1861c905",
+  "cutout_job": "480a0bb4-6fe9-43fc-9705-21564740b474",
+  "served_as": "apps/webhooktrail/public/art/hook-*.avif|webp (trimmed to alpha bbox, Pillow LANCZOS)",
+  "used_on": "home closing cell, pricing hero cell",
+  "created": "2026-11-23"
+}
