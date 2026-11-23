@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 function Table({ table, label }: { table: { columns: string[]; rows: string[][] }; label: "Before" | "After" }) {
   return (
     <div className="card-pop overflow-hidden">
-      <p className={`border-b-2 border-ink px-4 py-2 text-[15px] font-extrabold ${label === "After" ? "bg-mint-soft" : "bg-lemon-soft"}`}>{label}</p>
+      <p className={`border-b-[3px] border-ink px-4 py-2 text-[17px] font-extrabold ${label === "After" ? "bg-mint" : "bg-pink"}`}>{label}</p>
       <div className="overflow-x-auto p-2.5">
         <table className="w-full border-collapse bg-surface font-mono text-[12.5px]">
           <thead>
@@ -71,7 +71,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
   return (
     <article>
-      <PageHero eyebrow="Free tool · no upload · no account" title={t.h1}>
+      <PageHero eyebrow="Free tool · no upload · no account" title={t.h1} art="mascot-wave">
         <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-ink-2">{t.intro}</p>
       </PageHero>
 
@@ -124,13 +124,13 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         </section>
 
         <section aria-labelledby="more" className="mt-12">
-          <h2 id="more" className="text-[1.3rem] font-extrabold">
+          <h2 id="more" className="display text-[2.2rem]">
             More free cleanup tools
           </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
             {others.map((o) => (
               <li key={o.slug}>
-                <Link href={`/tools/${o.slug}`} className="inline-block rounded-full border-2 border-ink bg-surface px-3 py-1 text-[14px] font-semibold hover:bg-lemon-soft">
+                <Link href={`/tools/${o.slug}`} className="lift inline-block rounded-full border-[3px] border-ink bg-surface px-3.5 py-1.5 text-[15px] font-bold shadow-[3px_3px_0_#0a0a0a] hover:bg-mint">
                   {o.h1}
                 </Link>
               </li>

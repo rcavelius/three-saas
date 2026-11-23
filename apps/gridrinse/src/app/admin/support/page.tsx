@@ -28,7 +28,7 @@ export default async function AdminSupportPage({ searchParams }: { searchParams:
         </Link>{" "}
         / Support
       </p>
-      <h1 className="mt-1 text-2xl font-semibold">Support queue</h1>
+      <h1 className="display mt-1 text-[3rem]">Support queue</h1>
       <p className="mt-2 text-sm text-ink-2">
         {counts.open} active · {counts.waitingOnOperator} waiting on us · {counts.escalated} escalated. Assistant ({p.support.aiEnabled ? p.support.model : "AI off: search fallback"}) spend this month: $
         {(budget.monthMicros / 1e6).toFixed(4)} of ${(budget.monthlyCapMicros / 1e6).toFixed(2)}.

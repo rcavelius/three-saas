@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
 import { ReviewToggle } from "@/components/ReviewToggle";
-import { Shield, SpecimenFigure } from "@/components/SpecimenFigure";
+import { RinseCard } from "@/components/RinseCard";
+import { Shield } from "@/components/Shield";
 import { featureSpecimens } from "@/lib/feature-specimens";
 
 export const metadata: Metadata = pageMeta({
@@ -68,8 +69,8 @@ function Grid({ columns, rows, tint, numbered }: { columns: string[]; rows: { ce
 
 function Card({ title, body, tint, children }: { title: string; body: string; tint: string; children: React.ReactNode }) {
   return (
-    <li className="flex flex-col overflow-hidden rounded-[10px] border-2 border-ink bg-surface">
-      <h3 className={`border-b-2 border-ink px-5 py-3 text-[22px] font-extrabold tracking-[-0.02em] sm:text-[24px] ${tint}`}>{title}</h3>
+    <li className="card-pop flex flex-col overflow-hidden">
+      <h3 className={`border-b-[3px] border-ink px-5 py-3 text-[22px] font-extrabold tracking-[-0.02em] sm:text-[24px] ${tint}`}>{title}</h3>
       <div className="flex flex-1 flex-col px-5 pb-5 pt-3">
         <p className="text-[16px] font-medium leading-snug text-ink-2">{body}</p>
         {children}
@@ -82,15 +83,15 @@ export default function Features() {
   const s = featureSpecimens();
   return (
     <>
-      <section className="mint-grid border-b-2 border-ink">
-        <div className="mx-auto grid max-w-[1400px] items-center gap-10 px-4 pb-12 pt-8 sm:px-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-6">
+      <section className="mint-grid overflow-hidden">
+        <div className="mx-auto grid max-w-[1400px] items-center gap-10 px-4 pb-14 pt-8 sm:px-8 sm:pt-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12">
           <div>
-            <p className="text-[15px] font-extrabold uppercase tracking-[0.04em] sm:text-[17px]">Features</p>
-            <h1 className="display mt-3 text-[2.8rem] sm:text-[3.6rem] lg:text-[3.4rem] xl:text-[4.1rem]">
-              A cleaner spreadsheet. <br className="hidden sm:inline" />
-              Without the manual work.
+            <p className="chip rise">Features</p>
+            <h1 className="display display-out rise mt-5 text-[clamp(3rem,12vw,6.2rem)] leading-[0.92] [animation-delay:60ms] lg:text-[clamp(3.4rem,5.4vw,5.4rem)]">
+              A cleaner sheet. <br />
+              No manual work.
             </h1>
-            <p className="mt-5 max-w-[36rem] text-[18px] font-medium leading-snug sm:text-[21px]">Fix the everyday details that get between you and usable data.</p>
+            <p className="rise mt-5 max-w-[36rem] text-[18px] font-semibold leading-snug [animation-delay:120ms] sm:text-[21px]">Fix the everyday details that get between you and usable data.</p>
             <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
               <Link href="/how-it-works" className="btn-pop">
                 Clean my spreadsheet
@@ -98,17 +99,17 @@ export default function Features() {
                   <path d="M4 12h15M13 6l6 6-6 6" />
                 </svg>
               </Link>
-              <Link href="/how-it-works?sample=1" className="text-[18px] font-extrabold underline decoration-2 underline-offset-4">
+              <Link href="/how-it-works?sample=1" className="text-[18px] font-extrabold underline decoration-[3px] underline-offset-[5px]">
                 Try a sample
               </Link>
             </div>
           </div>
-          <SpecimenFigure compact />
+          <RinseCard />
         </div>
       </section>
 
       <section aria-labelledby="all-features" className="mx-auto max-w-[1400px] px-4 py-12 sm:px-8 sm:py-16">
-        <h2 id="all-features" className="display text-[2.2rem] sm:text-[3rem]">
+        <h2 id="all-features" className="display text-[clamp(2.6rem,7vw,4.6rem)]">
           Everything you need for a fresh start.
         </h2>
         <ul className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">

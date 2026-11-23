@@ -15,7 +15,7 @@ export function HeroDrop({ limitText }: { limitText: string }) {
   };
   return (
     <div
-      className={`card-pop mt-7 p-4 sm:p-5 ${over ? "!bg-mint" : ""}`}
+      className={`card-pop relative p-3 transition-colors duration-150 sm:p-4 ${over ? "!bg-mint" : ""}`}
       onDragOver={(e) => {
         e.preventDefault();
         setOver(true);
@@ -27,14 +27,14 @@ export function HeroDrop({ limitText }: { limitText: string }) {
         send(Array.from(e.dataTransfer.files));
       }}
     >
-      <div className={`flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-accent px-4 py-5 text-center sm:flex-row sm:text-left ${over ? "bg-mint" : "bg-mint-soft"}`}>
-        <svg className="hidden shrink-0 sm:block" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z" />
-          <path d="M14 2.5V8h5.5M12 17.5v-6M9.2 14.2 12 11.4l2.8 2.8" />
-        </svg>
+      <div className={`flex flex-col gap-3 rounded-[10px] border-[3px] border-dashed border-ink px-4 py-4 sm:flex-row sm:items-center sm:gap-5 sm:px-5 sm:py-5 ${over ? "bg-mint" : "bg-surface"}`}>
+        <picture className="hidden shrink-0 sm:block">
+          <source srcSet="/art/sheet.avif" type="image/avif" />
+          <img src="/art/sheet.webp" alt="" width={62} height={80} decoding="async" className="h-auto w-[62px]" />
+        </picture>
         <div className="min-w-0 flex-1">
-          <p className="text-[20px] font-extrabold tracking-[-0.01em] sm:text-[22px]">Drop a CSV or Excel file here</p>
-          <p className="text-[14px] font-medium text-ink-2">{limitText}</p>
+          <p className="text-[21px] font-extrabold leading-tight tracking-[-0.015em] sm:text-[24px]">Drop a CSV or Excel file</p>
+          <p className="mt-1 text-[14px] font-medium text-ink-2">{limitText}</p>
         </div>
         <button type="button" className="btn-pop w-full shrink-0 sm:w-auto" onClick={() => input.current?.click()}>
           Choose a file
@@ -54,18 +54,24 @@ export function HeroDrop({ limitText }: { limitText: string }) {
           }}
         />
       </div>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <p className="text-[16px] font-extrabold">No file handy?</p>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1">
         <button
           type="button"
-          className="inline-flex items-center gap-2 text-[17px] font-extrabold underline decoration-2 underline-offset-4"
+          className="group inline-flex items-center gap-2 text-[17px] font-extrabold underline decoration-[3px] underline-offset-[5px] hover:decoration-pink"
           onClick={() => window.dispatchEvent(new Event(CLEANER_EVENTS.sample))}
         >
           Clean a messy sample file
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg className="transition-transform duration-200 group-hover:translate-x-1" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M4 12h15M13 6l6 6-6 6" />
           </svg>
         </button>
+        <p className="chip">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c6ff3a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="4.5" y="10.5" width="15" height="11" rx="2.5" />
+            <path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />
+          </svg>
+          Never uploaded
+        </p>
       </div>
     </div>
   );

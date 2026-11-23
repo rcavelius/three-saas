@@ -8,13 +8,13 @@ const TABS = [
 
 export function AccountTabs({ current }: { current: string }) {
   return (
-    <nav aria-label="Account" className="mt-4 flex flex-wrap gap-1 border-b border-rule">
+    <nav aria-label="Account" className="mt-5 flex flex-wrap gap-2">
       {TABS.map((t) => (
         <Link
           key={t.href}
           href={t.href}
           aria-current={t.href === current ? "page" : undefined}
-          className={`-mb-px border-b-2 px-3 py-2 text-sm ${t.href === current ? "border-accent font-semibold text-ink" : "border-transparent text-ink-2 hover:text-ink"}`}
+          className={`rounded-full border-[2.5px] border-ink px-4 py-1.5 text-[15px] font-bold transition-colors duration-150 ${t.href === current ? "bg-ink text-white" : "bg-surface hover:bg-mint"}`}
         >
           {t.label}
         </Link>

@@ -14,10 +14,10 @@ export function HowHero() {
   }, []);
   if (stage > 1) return <h1 className="sr-only">Clean up your spreadsheet</h1>;
   return (
-    <section className="border-b-2 border-ink bg-[linear-gradient(to_bottom,var(--color-mint-soft),var(--color-paper))]">
+    <section className="mint-grid">
       <div className="mx-auto max-w-[1400px] px-4 pb-10 pt-10 text-center sm:px-8 sm:pt-14">
-        <h1 className="display text-[2.5rem] sm:text-[3.6rem] lg:text-[4.2rem]">Let&rsquo;s clean up your spreadsheet.</h1>
-        <p className="mx-auto mt-4 max-w-[44rem] text-[18px] font-medium sm:text-[22px]">Choose your file. Review the changes. Download cleaner data.</p>
+        <h1 className="display display-out rise text-[clamp(3rem,12vw,6.4rem)] leading-[0.92]">Let&rsquo;s rinse your spreadsheet.</h1>
+        <p className="rise mx-auto mt-4 max-w-[44rem] text-[18px] font-semibold [animation-delay:80ms] sm:text-[22px]">Choose your file. Review the changes. Download cleaner data.</p>
         <StageSteps />
       </div>
     </section>

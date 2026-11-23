@@ -1,0 +1,14 @@
+{
+  "asset": "mascot",
+  "tool": "Higgsfield generate_image gpt_image_2_6 (quality high, 1:1) + remove_background",
+  "concept_job": "4cc9bd30-4672-4bee-bbf5-bc0365249257",
+  "cutout_job": "8c523428-d12e-4787-a9cb-e0a08cc682b1",
+  "style_phrase": "glossy 3D toy render, iridescent soap-film and soft-touch vinyl, chunky rounded forms, bright studio lighting with crisp specular highlights",
+  "served": [
+    "mascot.webp (640x546, 44 KB)",
+    "mascot.avif 27 KB",
+    "mascot-sm.webp (360x307, 21 KB)",
+    "mascot-sm.avif 14 KB"
+  ],
+  "used_on": "gridrinse.com (apps/gridrinse/public/art)"
+}

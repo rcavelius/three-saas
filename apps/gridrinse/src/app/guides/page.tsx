@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/seo";
 import Link from "next/link";
+import { Art } from "@/components/Art";
 import { GuideBrowser } from "@/components/GuideBrowser";
 import { AUDIENCES } from "@/content/audiences";
 import { GUIDE_CATEGORIES, GUIDES } from "@/content/guides";
@@ -23,7 +24,7 @@ function Doc({ x, label, tag, rotate }: { x: number; label: string; tag: string;
         {label}
       </text>
       <rect x={x + 18} y="96" width="134" height="96" fill="#fff" stroke={INK} strokeWidth="3" />
-      <rect x={x + 18} y="96" width="134" height="20" fill="#6cd99a" stroke={INK} strokeWidth="3" />
+      <rect x={x + 18} y="96" width="134" height="20" fill="#c6ff3a" stroke={INK} strokeWidth="3" />
       {[1, 2].map((c) => (
         <path key={c} d={`M${x + 18 + (134 / 3) * c} 96v96`} stroke={INK} strokeWidth="2" />
       ))}
@@ -34,42 +35,24 @@ function Doc({ x, label, tag, rotate }: { x: number; label: string; tag: string;
   );
 }
 
-function HeroArt() {
-  return (
-    <svg viewBox="0 0 470 260" className="h-auto w-full max-w-[30rem]" role="img" aria-label="A CSV and an Excel file">
-      <Doc x={50} label="CSV" tag="#dcf7e7" rotate={-4} />
-      <Doc x={240} label="XLSX" tag="#fbf38c" rotate={5} />
-      <path d="M440 10c2 11 5 16 20 20-15 4-18 9-20 20-2-11-5-16-20-20 15-4 18-9 20-20z" fill="#fbf38c" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
-      {[
-        [8, 150],
-        [8, 175],
-        [33, 175],
-        [8, 200],
-      ].map(([x, y]) => (
-        <rect key={`${x}-${y}`} x={x} y={y} width="22" height="22" fill="none" stroke={INK} strokeWidth="2.5" />
-      ))}
-    </svg>
-  );
-}
-
 function CalendarArt() {
   return (
     <svg viewBox="0 0 260 200" className="h-auto w-full max-w-[17rem]" role="img" aria-label="A calendar page showing the ambiguous date 03/04/2024">
       <rect x="30" y="30" width="190" height="150" rx="14" fill="#fff" stroke={INK} strokeWidth="5" />
-      <path d="M30 70V44a14 14 0 0 1 14-14h162a14 14 0 0 1 14 14v26z" fill="#6cd99a" stroke={INK} strokeWidth="5" />
+      <path d="M30 70V44a14 14 0 0 1 14-14h162a14 14 0 0 1 14 14v26z" fill="#c6ff3a" stroke={INK} strokeWidth="5" />
       <rect x="70" y="14" width="14" height="34" rx="7" fill="#fff" stroke={INK} strokeWidth="4" />
       <rect x="166" y="14" width="14" height="34" rx="7" fill="#fff" stroke={INK} strokeWidth="4" />
       {[0, 1, 2, 3, 4].map((i) => (
         <rect key={i} x={48 + i * 33} y="84" width="22" height="14" rx="3" fill="#d9d5cc" />
       ))}
-      <rect x="44" y="108" width="140" height="36" rx="6" fill="#fbf38c" stroke={INK} strokeWidth="4" />
+      <rect x="44" y="108" width="140" height="36" rx="6" fill="#ff7ccf" stroke={INK} strokeWidth="4" />
       <text x="114" y="133" textAnchor="middle" fontFamily="var(--font-jakarta), sans-serif" fontWeight="800" fontSize="20" fill={INK}>
         03/04/2024
       </text>
       {[0, 1, 2, 3, 4].map((i) => (
         <rect key={i} x={48 + i * 33} y="154" width="22" height="12" rx="3" fill="#d9d5cc" />
       ))}
-      <circle cx="214" cy="160" r="30" fill="#fbf38c" stroke={INK} strokeWidth="5" />
+      <circle cx="214" cy="160" r="30" fill="#ff7ccf" stroke={INK} strokeWidth="5" />
       <text x="214" y="173" textAnchor="middle" fontFamily="var(--font-jakarta), sans-serif" fontWeight="800" fontSize="36" fill={INK}>
         ?
       </text>
@@ -94,8 +77,8 @@ function LaptopArt() {
   return (
     <svg viewBox="0 0 200 110" className="h-28 w-auto" aria-hidden="true">
       <rect x="40" y="10" width="120" height="78" rx="6" fill="#fff" stroke={INK} strokeWidth="5" />
-      <rect x="50" y="20" width="100" height="58" rx="2" fill="#dcf7e7" />
-      <path d="M100 30 84 36v10c0 9 6.4 15.6 16 18 9.6-2.4 16-9 16-18V36z" fill="#6cd99a" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+      <rect x="50" y="20" width="100" height="58" rx="2" fill="#efffc7" />
+      <path d="M100 30 84 36v10c0 9 6.4 15.6 16 18 9.6-2.4 16-9 16-18V36z" fill="#c6ff3a" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
       <path d="M22 92h156l-8 12H30z" fill="#fff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
     </svg>
   );
@@ -105,20 +88,20 @@ export default function GuidesIndex() {
   const guides = GUIDES.map(({ slug, title, summary, category }) => ({ slug, title, summary, category }));
   return (
     <>
-      <section className="mint-grid border-b-2 border-ink">
-        <div className="mx-auto grid max-w-[1400px] items-center gap-8 px-4 pb-10 pt-8 sm:px-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+      <section className="mint-grid overflow-hidden">
+        <div className="mx-auto grid max-w-[1400px] items-center gap-8 px-4 pb-12 pt-8 sm:px-8 sm:pb-16 sm:pt-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           <div>
-            <p className="text-[15px] font-extrabold uppercase tracking-[0.04em] sm:text-[17px]">The GridRinse resource hub</p>
-            <h1 className="display mt-3 text-[2.6rem] sm:text-[3.6rem] lg:text-[3.5rem] xl:text-[4rem]">
-              Less spreadsheet friction. <br className="hidden sm:inline" />
+            <p className="chip rise">The GridRinse resource hub</p>
+            <h1 className="display display-out rise mt-5 text-[clamp(3rem,12vw,6.4rem)] leading-[0.92] [animation-delay:60ms]">
+              Less friction. <br />
               More know-how.
             </h1>
-            <p className="mt-5 max-w-[38rem] text-[18px] font-medium leading-snug sm:text-[21px]">
+            <p className="rise mt-5 max-w-[38rem] text-[18px] font-semibold leading-snug [animation-delay:120ms] sm:text-[21px]">
               Practical guides for cleaner files, smoother imports, and fewer formatting headaches.
             </p>
           </div>
-          <div className="hidden justify-center sm:flex">
-            <HeroArt />
+          <div className="hidden justify-center lg:flex">
+            <Art name="bubbles" eager className="float h-auto w-[260px]" />
           </div>
         </div>
       </section>
@@ -138,13 +121,13 @@ export default function GuidesIndex() {
         />
 
         <section aria-labelledby="uses-heading" className="mt-14">
-          <h2 id="uses-heading" className="display text-[2rem] sm:text-[2.6rem]">
+          <h2 id="uses-heading" className="display text-[clamp(2.4rem,7vw,4rem)]">
             Made for your exports
           </h2>
           <ul className="mt-6 grid gap-6 md:grid-cols-3">
             {AUDIENCES.map((a) => (
-              <li key={a.slug} className="relative rounded-[10px] border-2 border-ink bg-surface p-5 sm:p-6">
-                <p className="text-[14px] font-extrabold uppercase tracking-[0.04em] text-accent">{a.label}</p>
+              <li key={a.slug} className="card-pop lift relative p-5 sm:p-6">
+                <p className="text-[16px] font-extrabold text-accent">{a.label}</p>
                 <h3 className="mt-2 text-[19px] font-extrabold leading-snug">
                   <Link href={`/for/${a.slug}`} className="decoration-2 underline-offset-4 after:absolute after:inset-0 hover:underline">
                     {a.title}
@@ -155,9 +138,9 @@ export default function GuidesIndex() {
           </ul>
         </section>
 
-        <div className="mt-14 flex flex-col items-start gap-5 rounded-[12px] border-2 border-ink bg-accent px-6 py-6 text-white sm:px-8 md:flex-row md:items-center md:justify-between">
-          <p className="display text-[1.9rem] sm:text-[2.5rem]">Ready to put a cleaner file to work?</p>
-          <Link href="/how-it-works" className="shrink-0 rounded-[10px] border-2 border-ink bg-mint px-7 py-3 text-[19px] font-extrabold text-ink shadow-[4px_4px_0_#111] hover:bg-mint-soft sm:text-[21px]">
+        <div className="card-pop mt-16 flex flex-col items-start gap-5 !bg-accent px-6 py-7 !text-white sm:px-8 md:flex-row md:items-center md:justify-between">
+          <p className="display display-out text-[2.4rem] sm:text-[3.4rem]">Ready to rinse a file?</p>
+          <Link href="/how-it-works" className="btn-pop shrink-0 !bg-mint hover:!bg-pink">
             Try GridRinse free
           </Link>
         </div>

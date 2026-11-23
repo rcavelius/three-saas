@@ -54,7 +54,7 @@ export function GuideBrowser({
       type="button"
       aria-pressed={cat === id}
       onClick={() => setCat(id)}
-      className={`rounded-[10px] border-2 border-ink px-4 py-2 text-[16px] font-extrabold whitespace-nowrap ${cat === id ? "bg-accent text-white" : "bg-surface hover:bg-lemon-soft"}`}
+      className={`rounded-[10px] border-[3px] border-ink px-4 py-2 text-[16px] font-extrabold whitespace-nowrap transition-colors duration-150 ${cat === id ? "bg-ink text-white" : "bg-surface hover:bg-mint"}`}
     >
       {label}
     </button>
@@ -63,9 +63,9 @@ export function GuideBrowser({
   const list = (items: GuideCard[]) => (
     <ul className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
       {items.map((g) => (
-        <li key={g.slug} className="card-pop flex flex-col p-5 sm:p-6">
-          <p className="w-fit rounded-md bg-lemon px-2.5 py-0.5 text-[13px] font-extrabold uppercase tracking-[0.03em]">{catLabel(g.category)}</p>
-          <h3 className="mt-3 text-[21px] font-extrabold leading-snug tracking-[-0.01em]">{g.title}</h3>
+        <li key={g.slug} className="card-pop lift flex flex-col p-5 sm:p-6">
+          <p className="w-fit rounded-full bg-pink px-3 py-0.5 text-[14px] font-extrabold">{catLabel(g.category)}</p>
+          <h3 className="mt-3 text-[22px] font-extrabold leading-snug tracking-[-0.015em]">{g.title}</h3>
           <p className="mt-1.5 text-[16px] font-medium leading-snug text-ink-2">{g.summary}</p>
           <ReadGuide slug={g.slug} title={g.title} />
         </li>
@@ -87,7 +87,7 @@ export function GuideBrowser({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search guides…"
-            className="h-12 w-full rounded-[10px] border-2 border-ink bg-surface pl-12 pr-4 text-[17px] font-medium placeholder:text-ink-3"
+            className="h-13 w-full rounded-[12px] border-[3px] border-ink bg-surface shadow-[4px_4px_0_#0a0a0a] pl-12 pr-4 text-[17px] font-medium placeholder:text-ink-3"
           />
         </label>
         <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:ml-auto lg:px-0">
@@ -114,7 +114,7 @@ export function GuideBrowser({
       ) : (
         <>
           <article className="card-pop mt-8 grid overflow-hidden md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)]">
-            <div className="flex items-center justify-center border-b-2 border-ink bg-mint-soft p-6 md:border-b-0 md:border-r-2">{art[feat.slug]}</div>
+            <div className="flex items-center justify-center border-b-[3px] border-ink bg-mint p-6 md:border-b-0 md:border-r-[3px]">{art[feat.slug]}</div>
             <div className="flex flex-col p-6 sm:p-8">
               <p className="w-fit rounded-md bg-lemon px-3 py-1 text-[14px] font-extrabold uppercase tracking-[0.03em]">{catLabel(feat.category)}</p>
               <h2 className="display mt-3 text-[2rem] sm:text-[2.6rem]">{feat.title}</h2>

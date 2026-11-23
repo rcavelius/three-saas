@@ -55,8 +55,8 @@ export function UpgradeNotice({
   const withPass = pass && passFrom ? pass : null;
   const planCls = withPass ? "text-[15px] font-bold underline decoration-2 underline-offset-4" : "btn-pop !min-h-11 !px-4 !text-[16px]";
   return (
-    <aside aria-label={withPass ? `Unlock with the ${withPass.name} or ${offer.planName}` : `Upgrade to ${offer.planName}`} className="rounded-[12px] border-2 border-ink bg-lemon-soft px-4 py-4 shadow-[4px_4px_0_var(--color-ink)] sm:px-5">
-      <p className="text-[18px] font-extrabold tracking-[-0.01em]">{title}</p>
+    <aside aria-label={withPass ? `Unlock with the ${withPass.name} or ${offer.planName}` : `Upgrade to ${offer.planName}`} className="card-pop rise bg-lemon-soft px-4 py-4 sm:px-6 sm:py-5">
+      <p className="text-[20px] font-extrabold leading-tight tracking-[-0.015em] sm:text-[22px]">{title}</p>
       {body && <p className="mt-1 text-[15px] font-medium">{body}</p>}
       <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[14px] font-bold">
         {(withPass ? passFacts(withPass) : offerFacts(offer)).map((f) => (

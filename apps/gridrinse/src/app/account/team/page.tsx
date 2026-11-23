@@ -12,7 +12,7 @@ export default async function TeamPage() {
   return (
     <div className="mx-auto max-w-[860px] px-4 py-10 sm:px-6">
       <p className="eyebrow">Account</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight">Team</h1>
+      <h1 className="display mt-1 text-[3rem] sm:text-[3.8rem]">Team</h1>
       <AccountTabs current="/account/team" />
       <TeamPanel orgId={org.id} orgName={org.name} myRole={role} myUserId={user.id} seats={ent.limits.teamSeats ?? 1} planName={ent.planName} />
     </div>

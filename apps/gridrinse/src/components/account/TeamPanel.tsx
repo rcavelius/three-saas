@@ -60,7 +60,7 @@ export function TeamPanel({
 
   return (
     <div className="mt-6 grid gap-5">
-      <section className="border border-rule bg-surface px-4 py-4">
+      <section className="panel px-5 py-5">
         <h2 className="text-base font-semibold">{orgName}</h2>
         <p className="mt-1 text-sm text-ink-2">
           {members.length} member{members.length === 1 ? "" : "s"}
@@ -133,7 +133,7 @@ export function TeamPanel({
       </section>
 
       {canManage && (
-        <section className="border border-rule bg-surface px-4 py-4">
+        <section className="panel px-5 py-5">
           <h2 className="text-base font-semibold">Invite a teammate</h2>
           {full ? (
             <p className="mt-2 text-sm text-ink-2">

@@ -6,8 +6,8 @@ import { authClient, authErrorMessage } from "@/lib/authClient";
 function Section({ title, children, tone }: { title: string; children: React.ReactNode; tone?: "danger" }) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className={`border bg-surface px-4 py-4 ${tone === "danger" ? "border-del-ink/40" : "border-rule"}`}>
-      <h2 id={id} className="text-base font-semibold">
+    <section aria-labelledby={id} className={`panel px-5 py-5 ${tone === "danger" ? "bg-del" : ""}`}>
+      <h2 id={id} className="text-[19px] font-extrabold tracking-[-0.01em]">
         {title}
       </h2>
       <div className="mt-3">{children}</div>

@@ -1,0 +1,12 @@
+{
+  "asset": "trophy",
+  "tool": "Higgsfield generate_image gpt_image_2_6 (quality high, 1:1) + remove_background",
+  "concept_job": "ef2488e2-6bb6-41d2-83db-f7adfe4593ca",
+  "cutout_job": "5fe422b5-faf6-4d33-a965-f0ebe06202cf",
+  "style_phrase": "glossy 3D toy render, iridescent soap-film and soft-touch vinyl, chunky rounded forms, bright studio lighting with crisp specular highlights",
+  "served": [
+    "trophy.webp (240x276, 13 KB)",
+    "trophy.avif 9 KB"
+  ],
+  "used_on": "gridrinse.com (apps/gridrinse/public/art)"
+}

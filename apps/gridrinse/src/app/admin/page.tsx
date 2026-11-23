@@ -57,7 +57,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6">
       <p className="eyebrow">Internal</p>
-      <h1 className="mt-1 text-2xl font-semibold">GridRinse ops</h1>
+      <h1 className="display mt-1 text-[3rem]">GridRinse ops</h1>
       {done && (
         <p role="status" className="mt-2 text-sm text-ink-2">
           Action: {done.replace(/[^a-z-]/g, "")}

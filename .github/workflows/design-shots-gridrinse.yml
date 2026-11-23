@@ -1,0 +1,77 @@
+name: Design screenshots (GridRinse)
+
+# Builds GridRinse, serves it on an in-runner PGlite database and saves desktop (1440) and phone (390) screenshots of
+# its main pages plus a mobile Lighthouse report, as a workflow artifact. Kept apart from design-shots.yml (ChangeKite
+# and WebhookTrail) so the redesign sessions do not edit the same file.
+on:
+  push:
+    branches: ["claude/gr-redesign-**"]
+    paths: ["apps/gridrinse/**", "scripts/design-shots.mjs", ".github/workflows/design-shots-gridrinse.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: design-shots-gr-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-fund --no-audit
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build -w @apps/gridrinse
+      - name: Start GridRinse (production build, throwaway PGlite database, CI-only dummy secrets)
+        run: |
+          export SESSION_SECRET=ci-only-session-secret-ci-only-session-secret CRON_SECRET=ci-only-cron-secret-0123456789 TRUSTED_PROXY=none
+          (cd apps/gridrinse && APP_URL=http://localhost:3002 DATABASE_URL=pglite:./.data/ci nohup npx next start --port 3002 > /tmp/gr.log 2>&1 &)
+          for i in $(seq 1 120); do curl -fsS -o /dev/null http://localhost:3002/api/health && break; sleep 0.5; done
+          for u in / /pricing /tools /tools/remove-duplicates-csv /guides /guides/fix-excel-dates /features /how-it-works /login /signup /help /og/default.png; do
+            echo "$u $(curl -s -o /dev/null -w '%{http_code}' http://localhost:3002$u)"
+          done
+      - name: Screenshots
+        run: |
+          B=http://localhost:3002
+          node scripts/design-shots.mjs shots \
+            gr-home=$B/ gr-pricing=$B/pricing gr-tools=$B/tools gr-tool=$B/tools/remove-duplicates-csv \
+            gr-guides=$B/guides gr-guide=$B/guides/fix-excel-dates gr-features=$B/features gr-how=$B/how-it-works \
+            gr-login=$B/login gr-signup=$B/signup gr-help=$B/help gr-404=$B/no-such-page
+          SHOTS_VIEWPORT_ONLY=1 node scripts/design-shots.mjs shots/fold gr-home=$B/ gr-pricing=$B/pricing gr-tool=$B/tools/remove-duplicates-csv
+          SHOTS_VIEWPORT_ONLY=1 SHOTS_REDUCED=1 node scripts/design-shots.mjs shots/reduced gr-home=$B/
+          curl -s -o shots/og-default.png $B/og/default.png
+      - name: Cleaner after loading the sample (phone and desktop)
+        run: node scripts/design-shots-cleaner.mjs http://localhost:3002/ shots/cleaner
+      - name: Mobile Lighthouse (home, a tool page, pricing)
+        continue-on-error: true
+        run: |
+          mkdir -p shots/lighthouse
+          for p in home:/ tool:/tools/remove-duplicates-csv pricing:/pricing; do
+            name=${p%%:*}; path=${p#*:}
+            # Lighthouse sometimes fails to record a trace (NO_NAVSTART) on a cold runner: try up to three times.
+            for try in 1 2 3; do
+              npx --yes lighthouse@12 http://localhost:3002$path --quiet --chrome-flags="--headless=new --no-sandbox" \
+                --only-categories=performance,accessibility,best-practices,seo --output=json --output=html \
+                --output-path=shots/lighthouse/gr-$name && break
+            done
+            node -e "const r=require('./shots/lighthouse/gr-$name.report.json');console.log('gr-$name', Object.values(r.categories).map(c=>c.id+'='+Math.round(c.score*100)).join(' '), 'LCP='+Math.round(r.audits['largest-contentful-paint'].numericValue)+'ms', 'CLS='+r.audits['cumulative-layout-shift'].numericValue.toFixed(3))" | tee -a shots/lighthouse/summary.txt
+          done
+      - name: App log
+        if: always()
+        run: tail -60 /tmp/gr.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: design-shots-gridrinse
+          path: shots
+          retention-days: 7

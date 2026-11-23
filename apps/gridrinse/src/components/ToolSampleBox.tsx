@@ -7,8 +7,8 @@ import { CLEANER_EVENTS } from "@/lib/cleaner-events";
 export function ToolSampleBox({ files, xlsxName }: { files: string[]; xlsxName?: string }) {
   const link = "text-[16px] font-extrabold underline decoration-2 underline-offset-4";
   return (
-    <div className="mx-auto mt-6 flex max-w-[1400px] flex-col gap-3 px-4 sm:px-8">
-      <div className="flex flex-col gap-3 rounded-[12px] border-2 border-ink bg-lemon-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+    <div className="relative mx-auto -mt-7 flex max-w-[1400px] flex-col gap-3 px-4 sm:px-8">
+      <div className="card-pop flex flex-col gap-3 bg-pink px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p className="text-[17px] font-extrabold">No file handy? Use our messy sample{files.length > 1 ? " files" : ""}.</p>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
           <button

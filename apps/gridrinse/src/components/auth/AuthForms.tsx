@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Art } from "@/components/Art";
 import { useEffect, useId, useState } from "react";
 import { startCheckout } from "@/components/PlanButton";
 import { track } from "@/lib/analytics";
@@ -23,7 +24,7 @@ function Field({ label, type = "text", value, onChange, autoComplete, hint, minL
       </label>
       <input
         id={id}
-        className="field !min-h-12 !rounded-lg !border-2 !border-ink !px-3 !text-base"
+        className="field !min-h-12 !rounded-[10px] !border-[3px] !border-ink !px-3 !text-base"
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -43,10 +44,11 @@ function Field({ label, type = "text", value, onChange, autoComplete, hint, minL
 
 function Shell({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
   return (
-    <div className="mint-grid min-h-[75vh] px-4 py-10 sm:py-16">
-      <div className="card-pop mx-auto max-w-[480px] p-6 sm:p-8">
-        <p className="text-[14px] font-extrabold uppercase tracking-[0.04em] text-accent">{eyebrow}</p>
-        <h1 className="display mt-2 text-[2.2rem] sm:text-[2.6rem]">{title}</h1>
+    <div className="mint-grid min-h-[75vh] px-4 pb-14 pt-20 sm:pb-20 sm:pt-24">
+      <div className="card-pop rise relative mx-auto max-w-[480px] p-6 pt-8 sm:p-8 sm:pt-10">
+        <Art name="mascot-wave" eager className="float pointer-events-none absolute -top-[4.6rem] right-3 h-auto w-[112px] sm:-right-16 sm:-top-20 sm:w-[150px]" />
+        <p className="text-[16px] font-extrabold text-accent">{eyebrow}</p>
+        <h1 className="display mt-2 pr-20 text-[2.8rem] sm:pr-0 sm:text-[3.4rem]">{title}</h1>
         <div className="mt-6 text-[16px]">{children}</div>
       </div>
     </div>
