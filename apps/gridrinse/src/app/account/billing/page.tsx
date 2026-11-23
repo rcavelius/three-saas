@@ -19,8 +19,8 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
           {used} / {formatLimit(limit)}
         </span>
       </div>
-      <div className="mt-1 h-2 border border-rule bg-sunken" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={limit < 0 ? used : limit} aria-valuenow={used}>
-        <div className={`h-full ${limit >= 0 && used > limit ? "bg-del-ink" : "bg-accent"}`} style={{ width: `${pct}%` }} />
+      <div className="mt-1 h-3.5 overflow-hidden rounded-full border-2 border-ink bg-surface" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={limit < 0 ? used : limit} aria-valuenow={used}>
+        <div className={`h-full ${limit >= 0 && used > limit ? "bg-del-ink" : "bg-mint"}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -41,7 +41,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
   return (
     <div className="mx-auto max-w-[860px] px-4 py-10 sm:px-6">
       <p className="eyebrow">Account</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight">Billing</h1>
+      <h1 className="display mt-1 text-[3rem] sm:text-[3.8rem]">Billing</h1>
       <AccountTabs current="/account/billing" />
 
       <div className="mt-6 grid gap-5">
@@ -81,7 +81,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           </p>
         )}
 
-        <section className="border border-rule bg-surface px-4 py-4">
+        <section className="panel px-5 py-5">
           <h2 className="text-base font-semibold">Current plan: {ent.planName}</h2>
           <p className="mt-1 text-sm text-ink-2">
             Workspace: {org.name}
@@ -112,7 +112,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           )}
         </section>
 
-        <section className="border border-rule bg-surface px-4 py-4">
+        <section className="panel px-5 py-5">
           <h2 className="text-base font-semibold">Change plan</h2>
           <div className="mt-3">
             <BillingActions isOwner={role === "owner"} currentPlanId={ent.subscribedPlanId} subscribed={subscribed} plans={plans} />

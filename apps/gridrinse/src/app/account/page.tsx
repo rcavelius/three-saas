@@ -10,7 +10,7 @@ export default async function AccountPage() {
   return (
     <div className="mx-auto max-w-[860px] px-4 py-10 sm:px-6">
       <p className="eyebrow">Account</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight">Your account</h1>
+      <h1 className="display mt-1 text-[3rem] sm:text-[3.8rem]">Your account</h1>
       <AccountTabs current="/account" />
       <AccountPanels user={{ name: session.user.name, email: session.user.email }} currentSessionId={session.session.id} />
     </div>

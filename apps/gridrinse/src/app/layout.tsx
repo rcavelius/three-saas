@@ -50,11 +50,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 btn">
           Skip to content
         </a>
-        <header className="mint-grid px-3 pb-1 pt-3 sm:px-6 sm:pt-4">
-          <div className="card-pop mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-x-6 gap-y-2 !rounded-[16px] px-3 py-2.5 sm:px-5 sm:py-3">
+        <header className="mint-grid px-2.5 pb-1 pt-2.5 sm:px-6 sm:pt-4">
+          <div className="card-pop mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-x-6 gap-y-1 !rounded-[16px] px-3 py-2 sm:px-5 sm:py-3">
             <Link href="/" className="flex items-center gap-2.5" aria-label="GridRinse home">
               <Logo />
-              <span className="text-[1.4rem] font-extrabold tracking-[-0.035em] sm:text-[1.85rem]">GridRinse</span>
+              <span className="text-[1.3rem] font-extrabold tracking-[-0.035em] sm:text-[1.85rem]">GridRinse</span>
             </Link>
             <nav aria-label="Main" className="order-3 -mx-1 w-full overflow-x-auto [scrollbar-width:none] lg:order-none lg:mx-0 lg:w-auto">
               <NavLinks items={nav} />
@@ -99,7 +99,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 ))}
               </ul>
             </div>
-            <Link href="/" aria-label="GridRinse home" className="display mt-12 block select-none text-center text-[19vw] leading-[0.8] text-mint lg:text-[17.5rem]">
+            <Link href="/" aria-label="GridRinse home" className="display mt-12 block select-none pb-6 text-center text-[19vw] leading-[0.9] text-mint sm:pb-10 lg:text-[17.5rem]">
               GridRinse
             </Link>
           </div>

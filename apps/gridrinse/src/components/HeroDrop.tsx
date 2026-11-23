@@ -32,7 +32,7 @@ export function HeroDrop({ limitText }: { limitText: string }) {
           <source srcSet="/art/sheet.avif" type="image/avif" />
           <img src="/art/sheet.webp" alt="" width={62} height={80} decoding="async" className="h-auto w-[62px]" />
         </picture>
-        <div className="min-w-0 flex-1 pr-24 sm:pr-0">
+        <div className="min-w-0 flex-1">
           <p className="text-[21px] font-extrabold leading-tight tracking-[-0.015em] sm:text-[24px]">Drop a CSV or Excel file</p>
           <p className="mt-1 text-[14px] font-medium text-ink-2">{limitText}</p>
         </div>

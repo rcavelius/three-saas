@@ -1188,9 +1188,9 @@ export function Cleaner({ freeLimits, loadEntitlements = fetchEntitlements, offe
                     ["Cells changed", result.changedCount.toLocaleString("en-US")],
                     ["Columns", `${input.columns.length} → ${result.table.columns.length}`],
                   ].map(([k, v]) => (
-                    <div key={k} className="rounded-lg border-2 border-rule-strong bg-surface px-4 py-3">
-                      <dt className="text-[14px] font-medium">{k}</dt>
-                      <dd className={`text-[26px] font-extrabold tabular-nums tracking-[-0.02em] ${pending ? "text-ink-3" : ""}`}>{v}</dd>
+                    <div key={k} className="rounded-[12px] border-[3px] border-ink bg-surface px-4 py-3">
+                      <dt className="text-[14px] font-bold">{k}</dt>
+                      <dd className={`display text-[2.2rem] leading-none tabular-nums ${pending ? "text-ink-3" : ""}`}>{v}</dd>
                     </div>
                   ))}
                 </dl>

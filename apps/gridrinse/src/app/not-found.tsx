@@ -1,15 +1,20 @@
 import Link from "next/link";
+import { Art } from "@/components/Art";
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-[640px] px-4 py-16 sm:px-6">
-      <p className="eyebrow">404</p>
-      <h1 className="mt-1 text-2xl font-semibold">That page does not exist.</h1>
-      <p className="mt-4">
-        <Link href="/" className="btn btn-primary">
-          Open the cleaner
-        </Link>
-      </p>
-    </div>
+    <section className="mint-grid">
+      <div className="mx-auto flex max-w-[900px] flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24">
+        <Art name="bubbles" eager className="float h-auto w-[160px]" />
+        <p className="chip mt-6">404</p>
+        <h1 className="display display-out mt-4 text-[clamp(3rem,12vw,6rem)] leading-[0.92]">That page washed away.</h1>
+        <p className="mt-4 text-[19px] font-semibold">This address does not exist. The cleaner is one click away.</p>
+        <p className="mt-8">
+          <Link href="/" className="btn-pop">
+            Open the cleaner
+          </Link>
+        </p>
+      </div>
+    </section>
   );
 }

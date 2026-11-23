@@ -19,7 +19,7 @@ export function PageviewTracker() {
 export function NavLinks({ items }: { items: { href: string; label: string }[] }) {
   const pathname = usePathname() ?? "/";
   return (
-    <ul className="flex items-center gap-x-2 whitespace-nowrap text-[14px] font-bold sm:gap-x-3 sm:text-[15px] lg:gap-x-4 lg:text-[17px]">
+    <ul className="flex items-center justify-between gap-x-0 whitespace-nowrap text-[14px] font-bold sm:justify-start sm:gap-x-3 sm:text-[15px] lg:gap-x-4 lg:text-[17px]">
       {items.map((n) => {
         const active = pathname === n.href || pathname.startsWith(`${n.href}/`) || (n.href === "/guides" && pathname.startsWith("/for/"));
         return (
@@ -27,7 +27,7 @@ export function NavLinks({ items }: { items: { href: string; label: string }[] }
             <Link
               href={n.href}
               aria-current={active ? "page" : undefined}
-              className={`inline-block rounded-lg px-2.5 py-1.5 transition-colors duration-150 decoration-2 underline-offset-4 sm:px-3 ${active ? "bg-ink text-white" : "hover:bg-mint"}`}
+              className={`inline-block rounded-lg px-2 py-1 transition-colors duration-150 decoration-2 underline-offset-4 sm:px-3 ${active ? "bg-ink text-white" : "hover:bg-mint"}`}
             >
               {n.label}
             </Link>

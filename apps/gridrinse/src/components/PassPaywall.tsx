@@ -126,15 +126,15 @@ export function DownloadPaywall({
   }, []);
   const perDay = downloadsPerDay === 1 ? "one a day" : `${formatLimit(downloadsPerDay)} a day`;
   return (
-    <section aria-labelledby="paywall-heading" className="rounded-[12px] border-2 border-ink bg-lemon-soft px-4 py-4 shadow-[4px_4px_0_var(--color-ink)] sm:px-5">
-      <h3 id="paywall-heading" ref={heading} tabIndex={-1} className="text-[20px] font-extrabold tracking-[-0.01em] outline-none">
+    <section aria-labelledby="paywall-heading" className="card-pop rise relative bg-pink px-4 py-5 sm:px-6 sm:py-6">
+      <h3 id="paywall-heading" ref={heading} tabIndex={-1} className="text-[22px] font-extrabold leading-tight tracking-[-0.015em] outline-none sm:text-[26px]">
         Your cleaned file is ready — {rows.toLocaleString("en-US")} rows.
       </h3>
-      <p className="mt-1 text-[15px] font-medium">
+      <p className="mt-1 text-[16px] font-semibold">
         {reason === "download_daily" ? "You have used today's free download. " : ""}Free downloads are up to {formatLimit(downloadRows)} rows ({perDay}).
       </p>
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-        {pass && <PassButton pass={pass} from="download" label={`Download with a ${pass.name} — ${usd(pass.price)}`} beforeCheckout={beforeCheckout} />}
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
+        {pass && <PassButton pass={pass} from="download" label={`Download with a ${pass.name} — ${usd(pass.price)}`} beforeCheckout={beforeCheckout} className="btn-pop !min-h-12 !bg-mint !px-5 !text-[17px]" />}
         {pro && <ProLink offer={pro} from="download" signedIn={signedIn} />}
         {!pass && !pro && (
           <Link href="/pricing" className="text-[15px] font-bold underline decoration-2 underline-offset-4">
@@ -166,7 +166,7 @@ export function DownloadPaywall({
 export function PassActiveNote({ pass }: { pass: { name: string; expiresAt: string; unlockUrl: string } }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div role="note" className="rounded-lg border-2 border-ink bg-mint-soft px-4 py-3 text-[14px] font-medium">
+    <div role="note" className="rounded-[12px] border-[3px] border-ink bg-mint px-4 py-3 text-[14px] font-medium">
       <p className="text-[15px] font-extrabold">
         {pass.name.charAt(0).toUpperCase() + pass.name.slice(1)} active until {formatPassTime(pass.expiresAt)}.
       </p>
