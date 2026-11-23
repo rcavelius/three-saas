@@ -14,35 +14,47 @@
 }
 
 /*
- * WebhookTrail: dark "flight deck" console. Graphite surfaces, one amber signal colour,
- * method colours only on badges. Contrast checked against --color-bg / --color-surface.
+ * WebhookTrail 2026: "Flight Recorder" (direction from ChatGPT round 1).
+ * Near-black graphite with a cool undertone, one amber signal ("amber means pay attention"),
+ * method colours only on badges. Contrast: fg on surface-2 15.9:1, fg-muted 11:1, fg-dim 6.8:1,
+ * fg-faint 4.9:1, amber on bg 11:1, signal-ink on amber 10.5:1.
  */
 @theme {
-  --color-bg: #0a0b0c;
-  --color-surface: #101214;
-  --color-surface-2: #16191c;
-  --color-surface-3: #1d2125;
-  --color-line: #262b31;
-  --color-line-strong: #39404a;
-  --color-fg: #eceef0;
-  --color-fg-muted: #b0b7be;
-  --color-fg-dim: #8a939c;
-  --color-signal: #ffb020;
-  --color-signal-ink: #1b1300;
-  --color-ok: #5fd88f;
-  --color-warn: #ffcf5c;
-  --color-err: #ff7a70;
+  --color-bg: #090d12;
+  --color-surface: #10161d;
+  --color-surface-2: #161f28;
+  --color-surface-3: #1e2833;
+  --color-line: #232f39;
+  --color-line-strong: #4b5a67;
+  --color-fg: #f7fafc;
+  --color-fg-muted: #c3cdd7;
+  --color-fg-dim: #a7b5c2;
+  --color-fg-faint: #7b8d9c;
+  --color-code: #c7d9e9;
+  --color-signal: #ffb44d;
+  --color-signal-hover: #ffc46d;
+  --color-signal-ink: #1b1206;
+  --color-ok: #69dfb1;
+  --color-warn: #ffd07b;
+  --color-err: #ff8995;
 
-  --color-m-get: #62c6ff;
-  --color-m-post: #6fe3a1;
-  --color-m-put: #c6a6ff;
-  --color-m-patch: #f3d36b;
-  --color-m-delete: #ff8c82;
-  --color-m-head: #a3adb7;
+  --color-m-get: #68e1aa;
+  --color-m-post: #ffc169;
+  --color-m-put: #82c6ff;
+  --color-m-patch: #d3a8ff;
+  --color-m-delete: #ff8c92;
+  --color-m-head: #c3cdd7;
   --color-m-options: #7fd8d0;
 
   --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+}
+
+:root {
+  /* Motion tokens live outside @theme so Tailwind always emits them. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
@@ -54,8 +66,13 @@
     background: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
-    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
   ::selection {
     background: var(--color-signal);
@@ -64,6 +81,7 @@
   :focus-visible {
     outline: 2px solid var(--color-signal);
     outline-offset: 2px;
+    border-radius: 4px;
   }
   a {
     color: inherit;
@@ -78,17 +96,25 @@
     height: 2rem;
     padding: 0 0.75rem;
     border: 1px solid var(--color-line-strong);
-    border-radius: 4px;
+    border-radius: 8px;
     background: var(--color-surface-2);
     color: var(--color-fg);
     font-size: 0.8125rem;
     font-weight: 500;
+    letter-spacing: -0.01em;
     white-space: nowrap;
     cursor: pointer;
+    transition:
+      background-color 120ms var(--ease-standard),
+      border-color 120ms var(--ease-standard),
+      transform 90ms var(--ease-standard);
   }
   .btn:hover {
     background: var(--color-surface-3);
-    border-color: #4a525c;
+    border-color: var(--color-fg-faint);
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.985);
   }
   .btn:disabled {
     opacity: 0.5;
@@ -101,8 +127,8 @@
     font-weight: 600;
   }
   .btn-signal:hover {
-    background: #ffc04d;
-    border-color: #ffc04d;
+    background: var(--color-signal-hover);
+    border-color: var(--color-signal-hover);
   }
   .btn-danger {
     color: var(--color-err);
@@ -127,13 +153,19 @@
     height: 2rem;
     padding: 0 0.625rem;
     border: 1px solid var(--color-line-strong);
-    border-radius: 4px;
+    border-radius: 8px;
     background: var(--color-bg);
     color: var(--color-fg);
     font-size: 0.8125rem;
   }
   .field::placeholder {
     color: var(--color-fg-dim);
+  }
+  @media (pointer: coarse) {
+    .btn,
+    .field {
+      min-height: 2.5rem;
+    }
   }
   textarea.field {
     height: auto;
@@ -142,7 +174,8 @@
   .label {
     font-family: var(--font-mono);
     font-size: 0.6875rem;
-    letter-spacing: 0.08em;
+    font-weight: 500;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--color-fg-dim);
   }
@@ -156,11 +189,11 @@
     color: var(--color-fg-muted);
   }
   .prose-doc h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-top: 2.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 2.75rem;
     margin-bottom: 0.75rem;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.035em;
   }
   .prose-doc h3 {
     font-size: 1rem;
@@ -196,7 +229,7 @@
     font-size: 0.8125rem;
     background: var(--color-surface);
     border: 1px solid var(--color-line);
-    border-radius: 4px;
+    border-radius: 12px;
     padding: 0.875rem 1rem;
     /* Wrap instead of a horizontal scroll region (keyboard-accessible, no overflow on phones). */
     white-space: pre-wrap;
@@ -257,6 +290,64 @@
 }
 .wt-pulse {
   animation: wt-pulse 1.6s ease-in-out infinite;
+}
+
+/* Visible, quiet scrollbars on code viewports so clipped content reads as scrollable. */
+.wt-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+/* Display type and the instrument motif. */
+.wt-display {
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+.wt-h2 {
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.09;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+@keyframes wt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.wt-in {
+  animation: wt-rise 350ms var(--ease-enter) both;
+  animation-delay: var(--d, 0ms);
+}
+/* Once-only section reveals (components/Reveal.tsx). Hidden only when the script is running. */
+.wt-js .wt-reveal:not(.is-in) {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.wt-js .wt-reveal {
+  transition:
+    opacity 350ms var(--ease-enter),
+    transform 350ms var(--ease-enter);
+}
+/* The trace: one amber signal that draws once on load (450 ms) and then stays still. */
+@keyframes wt-trace {
+  from {
+    stroke-dashoffset: var(--trace-len, 1200);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.wt-trace {
+  stroke-dasharray: var(--trace-len, 1200);
+  animation: wt-trace 900ms var(--ease-enter) 250ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {

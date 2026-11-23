@@ -81,9 +81,9 @@ export function PassPaywall({
   }
 
   return (
-    <section aria-labelledby={`${id}-h`} className={`border border-signal/40 rounded-[6px] bg-surface p-4 ${className}`}>
+    <section aria-labelledby={`${id}-h`} className={`rounded-[14px] border border-signal bg-surface-2 p-5 ${className}`}>
       <div className="flex items-start gap-3">
-        <h3 id={`${id}-h`} className="text-[14.5px] font-semibold">
+        <h3 id={`${id}-h`} className="text-[16px] font-semibold tracking-[-0.02em]">
           {headline(reason, offer)}
         </h3>
         {onClose && (
@@ -112,7 +112,7 @@ export function PassPaywall({
       </ul>
       {note && <p className="mt-3 text-[12.5px] text-fg-dim">{note}</p>}
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <button type="button" className="btn btn-signal h-9" onClick={() => void buy()} disabled={busy}>
+        <button type="button" className="btn btn-signal h-10 rounded-[10px] px-4" onClick={() => void buy()} disabled={busy}>
           {busy ? "Opening checkout…" : `Get the ${offer.name} — ${offer.price}`}
         </button>
         <Link className="text-[12.5px] text-fg-muted underline underline-offset-2 hover:text-fg" href="/pricing">
@@ -138,7 +138,7 @@ export function PassBuyButton({ className = "" }: { className?: string }) {
     <div className="grid gap-2">
       <button
         type="button"
-        className={`btn btn-signal w-full justify-center h-10 ${className}`}
+        className={`btn btn-signal h-11 w-full justify-center rounded-[10px] text-[15px] ${className}`}
         disabled={busy}
         onClick={async () => {
           setBusy(true);

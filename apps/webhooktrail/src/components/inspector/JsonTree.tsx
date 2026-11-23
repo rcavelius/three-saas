@@ -18,10 +18,10 @@ function Primitive({ value }: { value: unknown }) {
   }
 }
 
-function Node({ name, value, depth, isLast }: { name: string | null; value: unknown; depth: number; isLast: boolean }) {
+function Node({ name, value, depth, isLast, openDepth = 2 }: { name: string | null; value: unknown; depth: number; isLast: boolean; openDepth?: number }) {
   const isArr = Array.isArray(value);
   const isObj = value !== null && typeof value === "object";
-  const [open, setOpen] = useState(depth < 2);
+  const [open, setOpen] = useState(depth < openDepth);
   const [shown, setShown] = useState(PAGE);
   const comma = isLast ? "" : ",";
   const key =
@@ -72,7 +72,7 @@ function Node({ name, value, depth, isLast }: { name: string | null; value: unkn
       {open ? (
         <>
           {entries.slice(0, shown).map(([k, v], i) => (
-            <Node key={k} name={isArr ? k : k} value={v} depth={depth + 1} isLast={i === entries.length - 1} />
+            <Node key={k} name={isArr ? k : k} value={v} depth={depth + 1} isLast={i === entries.length - 1} openDepth={openDepth} />
           ))}
           {entries.length > shown && (
             <div className="pl-4">
@@ -97,10 +97,10 @@ function Node({ name, value, depth, isLast }: { name: string | null; value: unkn
   );
 }
 
-export function JsonTree({ value }: { value: unknown }) {
+export function JsonTree({ value, openDepth = 2, className = "text-[12.5px]" }: { value: unknown; openDepth?: number; className?: string }) {
   return (
-    <div className="font-mono text-[12.5px] leading-[1.65] -ml-4">
-      <Node name={null} value={value} depth={0} isLast />
+    <div className={`font-mono leading-[1.65] -ml-4 ${className}`}>
+      <Node name={null} value={value} depth={0} isLast openDepth={openDepth} />
     </div>
   );
 }

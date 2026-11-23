@@ -20,7 +20,7 @@ export default async function AccountPage() {
     <div className="mx-auto w-full max-w-[1100px] px-4 py-10">
       <AccountNav current="account" />
       <div className="flex items-center gap-3">
-        <h1 className="text-[26px] font-semibold tracking-[-0.02em]">Account</h1>
+        <h1 className="wt-h2 text-[30px] md:text-[34px]">Account</h1>
         <div className="ml-auto">
           <SignOutButton className="btn" />
         </div>

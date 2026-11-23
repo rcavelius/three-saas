@@ -33,7 +33,7 @@ export function GuideShell({ guide, steps, children }: { guide: Guide; steps?: s
         </Link>
       </p>
       <article className="prose-doc mt-3">
-        <h1 className="text-[30px] font-semibold tracking-[-0.02em]">{guide.title}</h1>
+        <h1 className="wt-display text-[36px] md:text-[52px]">{guide.title}</h1>
         <p className="font-mono text-[12px] !text-fg-dim">Updated {guide.updated}</p>
         {children}
       </article>

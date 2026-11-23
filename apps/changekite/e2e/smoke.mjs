@@ -55,7 +55,7 @@ try {
     // Real anonymous scan (needs internet; example.com is IANA's reserved example site).
     await page.goto(base + "/");
     await page.getByLabel(/website|url|address/i).first().fill("example.com");
-    await page.getByRole("button", { name: "Inspect site" }).click();
+    await page.getByRole("button", { name: "Scan free" }).click();
     await page.getByText(/out of 100|Score/i).first().waitFor({ timeout: 90_000 });
     ok("anonymous scan of example.com produced a report", true);
     await axe("/ (report shown)");

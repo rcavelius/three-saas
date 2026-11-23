@@ -65,7 +65,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   return (
     <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
       <p className="eyebrow">Internal · {maskEmail(operator.email)}</p>
-      <h1 className="mt-3 font-display text-4xl font-semibold">Operations</h1>
+      <h1 className="mt-3 display text-[2.6rem]">Operations</h1>
       {msg && (
         <div className="mt-6">
           <Notice tone="info" role="status">

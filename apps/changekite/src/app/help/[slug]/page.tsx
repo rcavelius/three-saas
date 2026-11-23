@@ -39,7 +39,7 @@ export default async function HelpArticlePage({ params }: Props) {
         </Link>{" "}
         / {a.category}
       </nav>
-      <h1 className="mt-3 font-display text-4xl font-semibold leading-tight tracking-tight">{a.title}</h1>
+      <h1 className="mt-3 display text-[2.6rem]">{a.title}</h1>
       <p className="mt-4 text-lg leading-relaxed text-ink-soft">{a.summary}</p>
       <p className="mt-2 text-sm text-muted">Updated {a.updated_on}</p>
       <article className="mt-8">

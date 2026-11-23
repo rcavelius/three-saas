@@ -1,0 +1,72 @@
+name: Design screenshots
+
+# Builds ChangeKite and WebhookTrail, serves them on an in-runner PGlite database and saves desktop (1440)
+# and phone (390) screenshots of the main pages plus a mobile Lighthouse report, as a workflow artifact.
+# Used for design review rounds without running browsers on a developer machine.
+on:
+  push:
+    branches: ["claude/ck-wt-redesign-**"]
+    paths: ["apps/changekite/**", "apps/webhooktrail/**", "scripts/design-shots.mjs", ".github/workflows/design-shots.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: design-shots-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-fund --no-audit
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build -w @apps/changekite -w @apps/webhooktrail
+      - name: Start both apps (production build, throwaway PGlite databases, CI-only dummy secrets)
+        run: |
+          export SESSION_SECRET=ci-only-session-secret-ci-only-session-secret CRON_SECRET=ci-only-cron-secret-0123456789 TRUSTED_PROXY=none
+          (cd apps/changekite && APP_URL=http://localhost:3001 DATABASE_URL=pglite:./.data/ci nohup npx next start --port 3001 > /tmp/ck.log 2>&1 &)
+          (cd apps/webhooktrail && APP_URL=http://localhost:3003 DATABASE_URL=pglite:./.data/ci nohup npx next start --port 3003 > /tmp/wt.log 2>&1 &)
+          for p in 3001 3003; do for i in $(seq 1 120); do curl -fsS -o /dev/null http://localhost:$p/api/health && break; sleep 0.5; done; done
+          for u in 3001/ 3001/pricing 3001/tools 3001/docs 3001/login 3003/ 3003/pricing 3003/tools 3003/docs 3003/login; do
+            echo "$u $(curl -s -o /dev/null -w '%{http_code}' http://localhost:$u)"
+          done
+      - name: Screenshots
+        run: |
+          node scripts/design-shots.mjs shots \
+            ck-home=http://localhost:3001/ ck-pricing=http://localhost:3001/pricing ck-tools=http://localhost:3001/tools \
+            ck-tool=http://localhost:3001/tools/broken-link-checker ck-docs=http://localhost:3001/docs ck-guide=http://localhost:3001/guides/find-and-fix-broken-links \
+            ck-login=http://localhost:3001/login ck-signup=http://localhost:3001/signup \
+            wt-home=http://localhost:3003/ wt-pricing=http://localhost:3003/pricing wt-tools=http://localhost:3003/tools \
+            wt-docs=http://localhost:3003/docs wt-guides=http://localhost:3003/guides wt-login=http://localhost:3003/login wt-signup=http://localhost:3003/signup
+          SHOTS_VIEWPORT_ONLY=1 SHOTS_REDUCED=1 node scripts/design-shots.mjs shots/reduced ck-home=http://localhost:3001/ wt-home=http://localhost:3003/
+      - name: Mobile Lighthouse (home pages)
+        continue-on-error: true
+        run: |
+          mkdir -p shots/lighthouse
+          for app in ck:3001 wt:3003; do
+            name=${app%%:*}; port=${app##*:}
+            npx --yes lighthouse@12 http://localhost:$port/ --quiet --chrome-flags="--headless=new --no-sandbox" \
+              --only-categories=performance,accessibility,best-practices,seo --output=json --output=html \
+              --output-path=shots/lighthouse/$name-home
+            node -e "const r=require('./shots/lighthouse/$name-home.report.json');console.log('$name', Object.values(r.categories).map(c=>c.id+'='+Math.round(c.score*100)).join(' '))" | tee -a shots/lighthouse/summary.txt
+          done
+      - name: App logs
+        if: always()
+        run: tail -40 /tmp/ck.log; tail -40 /tmp/wt.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: design-shots
+          path: shots
+          retention-days: 7

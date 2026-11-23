@@ -7,7 +7,7 @@ export function CopyLink({ path, label = "Copy link" }: { path: string; label?: 
   return (
     <button
       type="button"
-      className="border border-ink px-3 py-1.5 hover:bg-paper-deep"
+      className="btn-secondary !min-h-9 !px-3 text-sm"
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(new URL(path, window.location.origin).href);

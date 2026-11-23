@@ -160,7 +160,7 @@ export default async function SitePage({ params }: { params: Promise<{ id: strin
               <div className="relative mt-4 overflow-x-auto">
                 <table className="w-full min-w-[34rem] text-left text-sm">
                   <caption className="sr-only">Scans of {host}</caption>
-                  <thead className="border-b border-ink">
+                  <thead className="border-b border-rule-strong">
                     <tr>
                       <th scope="col" className="py-2 pr-3 font-semibold">When</th>
                       <th scope="col" className="py-2 pr-3 font-semibold">Score</th>

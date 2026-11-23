@@ -18,7 +18,11 @@ export function countBySeverity(issues: Issue[]): Record<Severity, number> {
 }
 
 export function computeScore(issues: Issue[]): { score: number; grade: "good" | "fair" | "poor"; counts: Record<Severity, number> } {
-  const counts = countBySeverity(issues);
+  return scoreFromCounts(countBySeverity(issues));
+}
+
+/** The same formula from severity counts alone (used by the home page's score explainer). */
+export function scoreFromCounts(counts: Record<Severity, number>): { score: number; grade: "good" | "fair" | "poor"; counts: Record<Severity, number> } {
   let score = 100;
   for (const sev of ["critical", "warning", "notice"] as const) {
     score -= Math.min(SCORE_RULES[sev].cap, counts[sev] * SCORE_RULES[sev].points);

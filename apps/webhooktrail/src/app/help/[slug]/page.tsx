@@ -36,7 +36,7 @@ export default async function HelpArticlePage({ params }: Props) {
         </Link>{" "}
         / {a.category}
       </nav>
-      <h1 className="mt-2 text-[26px] font-semibold">{a.title}</h1>
+      <h1 className="mt-2 wt-h2 text-[30px] md:text-[34px]">{a.title}</h1>
       <p className="mt-2 text-fg-muted">{a.summary}</p>
       <p className="mt-1 text-[13px] text-fg-dim">Updated {a.updated_on}</p>
       <article className="mt-8 max-w-[72ch]">

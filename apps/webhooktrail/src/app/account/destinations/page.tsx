@@ -14,7 +14,7 @@ export default async function DestinationsPage() {
     <div className="mx-auto w-full max-w-[1100px] px-4 py-10">
       <AccountNav current="destinations" />
       <p className="label">{org.name}</p>
-      <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.02em]">Replay destinations</h1>
+      <h1 className="mt-2 wt-h2 text-[30px] md:text-[34px]">Replay destinations</h1>
       <div className="mt-6 max-w-3xl">
         <DestinationsManager canManage={canManage(org.role)} replayEnabled={lim.replay} />
       </div>

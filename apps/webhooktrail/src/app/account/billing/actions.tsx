@@ -34,7 +34,7 @@ export function BillingActions({
           {plans
             .filter((pl) => pl.id !== freePlanId && pl.id !== currentPlanId)
             .map((pl, i) => (
-              <div key={pl.id} className="border border-line rounded-[6px] p-4 grid gap-2">
+              <div key={pl.id} className="border border-line rounded-[14px] p-4 grid gap-2">
                 <p className="font-semibold">
                   {pl.name} · ${(pl.priceMonthlyCents / 100).toFixed(0)}/month
                 </p>

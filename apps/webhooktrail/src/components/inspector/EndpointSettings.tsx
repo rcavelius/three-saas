@@ -190,7 +190,7 @@ export function EndpointSettings({
       {!endpoint.permissions.canDelete ? (
         <p className="text-[13px] text-fg-muted">Only workspace owners and admins can delete this endpoint.</p>
       ) : (
-      <section aria-labelledby="s-del" className="border border-err/30 rounded-[6px] p-4">
+      <section aria-labelledby="s-del" className="border border-err/30 rounded-[14px] p-4">
         <h2 id="s-del" className="text-[15px] font-semibold text-err">
           Delete endpoint
         </h2>

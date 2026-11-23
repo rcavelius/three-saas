@@ -9,7 +9,7 @@ export function PassBuyButton({
   label,
   returnPath,
   from,
-  className = "inline-flex min-h-12 items-center bg-accent px-6 font-medium text-white hover:bg-accent-hover disabled:opacity-60",
+  className = "btn-primary disabled:opacity-60",
 }: {
   passId: string;
   label: string;
@@ -49,7 +49,7 @@ export function PassBuyButton({
         {busy ? "Opening checkout…" : label}
       </button>
       {error && (
-        <p role="alert" className="mt-3 w-full border-l-2 border-fail bg-fail-wash px-3 py-2 text-sm text-ink">
+        <p role="alert" className="mt-3 w-full rounded-xl border-l-4 border-fail bg-fail-wash px-3 py-2 text-sm text-ink">
           {error}
         </p>
       )}

@@ -28,7 +28,7 @@ export function PassReturnNotice({ status, expiresAt, context = "report" }: { st
 
   if (status === "canceled") {
     return (
-      <p role="status" className="no-print mb-5 border-l-2 border-rule-strong bg-paper-deep px-4 py-3 text-ink-soft">
+      <p role="status" className="no-print mb-5 rounded-xl border-l-4 border-rule-strong bg-paper-deep px-4 py-3 text-ink-soft">
         Checkout was cancelled. Nothing was charged.
       </p>
     );
@@ -46,7 +46,7 @@ export function PassReturnNotice({ status, expiresAt, context = "report" }: { st
   };
   const m = msg[status];
   return (
-    <p role="status" className={`no-print mb-5 border-l-2 px-4 py-3 text-ink ${m.cls}`}>
+    <p role="status" className={`no-print mb-5 rounded-xl border-l-4 px-4 py-3 text-ink ${m.cls}`}>
       {m.text}
     </p>
   );
@@ -55,7 +55,7 @@ export function PassReturnNotice({ status, expiresAt, context = "report" }: { st
 /** Small note for pass holders: when it ends and the reusable unlock link for another device. */
 export function PassActiveNote({ name, expiresAt, unlockPath }: { name: string; expiresAt: string; unlockPath: string }) {
   return (
-    <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3 border border-rule bg-sheet px-4 py-3 text-sm">
+    <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white px-4 py-3 text-sm shadow-[0_0_0_1px_var(--color-rule)]">
       <p className="text-ink-soft">
         <span className="font-medium text-ink">{name}</span> pass active until <span className="num">{fmt(expiresAt)}</span>. Use this link to
         unlock on another device; keep it private.

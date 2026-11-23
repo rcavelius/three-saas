@@ -2,18 +2,18 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 export const inputClass =
-  "num min-h-11 w-full rounded-none border border-ink bg-sheet px-3 text-base text-ink placeholder:text-muted/70 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60";
+  "min-h-12 w-full rounded-xl border border-rule-strong bg-white px-4 text-base text-ink placeholder:text-muted/70 focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 disabled:opacity-60";
 export const primaryButton =
-  "inline-flex min-h-11 items-center justify-center bg-accent px-5 font-medium text-white hover:bg-accent-hover disabled:opacity-60";
+  "btn-primary disabled:opacity-60";
 export const secondaryButton =
-  "inline-flex min-h-11 items-center justify-center border border-ink px-5 font-medium text-ink hover:bg-paper-deep disabled:opacity-60";
+  "btn-secondary disabled:opacity-60";
 export const dangerButton =
-  "inline-flex min-h-11 items-center justify-center border border-fail px-5 font-medium text-fail hover:bg-fail-wash disabled:opacity-60";
+  "inline-flex min-h-12 items-center justify-center rounded-xl bg-fail-wash px-5 font-semibold text-fail transition-colors hover:bg-[#fbd3d6] disabled:opacity-60";
 
 export function Field({ label, hint, id, ...props }: { label: string; hint?: string; id: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-ink">
+      <label htmlFor={id} className="block text-sm font-bold text-ink">
         {label}
       </label>
       <input id={id} aria-describedby={hint ? `${id}-hint` : undefined} className={`mt-1 ${inputClass}`} {...props} />
@@ -34,7 +34,7 @@ export function Notice({ tone = "info", children, role }: { tone?: "info" | "ok"
     error: "border-fail bg-fail-wash",
   }[tone];
   return (
-    <div role={role} className={`border-l-2 px-4 py-3 text-ink ${cls}`}>
+    <div role={role} className={`rounded-xl border-l-4 px-4 py-3 text-ink ${cls}`}>
       {children}
     </div>
   );
@@ -44,7 +44,7 @@ export function PageTitle({ eyebrow, title, lede }: { eyebrow: string; title: st
   return (
     <>
       <p className="eyebrow">{eyebrow}</p>
-      <h1 className="mt-3 font-display text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{title}</h1>
+      <h1 className="display mt-3 text-[2.6rem] sm:text-6xl">{title}</h1>
       {lede && <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-soft">{lede}</p>}
     </>
   );

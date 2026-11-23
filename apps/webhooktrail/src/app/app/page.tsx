@@ -17,13 +17,13 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-end gap-4">
         <div>
           <p className="label">{org.name}</p>
-          <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.02em]">Endpoints</h1>
+          <h1 className="mt-2 wt-h2 text-[30px] md:text-[34px]">Endpoints</h1>
         </div>
         <div className="ml-auto">
           <CreateEndpointButton size="sm" />
         </div>
       </div>
-      <section aria-label="Usage" className="mt-6 grid gap-4 md:grid-cols-2 border border-line rounded-[6px] bg-surface p-4">
+      <section aria-label="Usage" className="mt-6 grid gap-4 md:grid-cols-2 border border-line rounded-[14px] bg-surface p-4">
         <Meter label={`Captured requests in ${u.period} (UTC)`} used={u.requestsUsed} limit={u.limits.requestsPerMonth} />
         <Meter label="Active endpoints" used={u.activeEndpoints} limit={u.limits.endpoints} />
         <p className="md:col-span-2 text-[12.5px] text-fg-dim">

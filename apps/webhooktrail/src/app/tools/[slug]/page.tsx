@@ -40,10 +40,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           Tools
         </Link>
       </p>
-      <h1 className="mt-3 text-[30px] font-semibold tracking-[-0.02em]">{t.h1}</h1>
+      <h1 className="mt-3 wt-display text-[36px] md:text-[52px]">{t.h1}</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-fg-muted">{t.intro}</p>
 
-      <section aria-label="Get started" className="mt-6 border border-line rounded-[6px] bg-surface p-5">
+      <section aria-label="Get started" className="mt-6 border border-line rounded-[14px] bg-surface p-5">
         <p className="font-mono text-[12px] text-fg-dim">
           uses · <span className="text-signal">{t.featureName}</span>
           {paidOnly ? ` · ${replayPlanNames} plans, from ${replayFromPrice}${replayPassNote ? `, or ${replayPassNote}` : ""}` : " · free, no account needed"}

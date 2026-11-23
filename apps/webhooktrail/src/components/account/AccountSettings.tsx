@@ -121,7 +121,7 @@ export function AccountSettings({ name: initialName, email, currentSessionId, ow
         {sessions === null ? (
           <p className="mt-2 font-mono text-[12px] text-fg-dim">Loading…</p>
         ) : (
-          <ul className="mt-3 divide-y divide-line border border-line rounded-[6px]">
+          <ul className="mt-3 divide-y divide-line border border-line rounded-[14px]">
             {sessions.map((s) => (
               <li key={s.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-[12.5px]">
                 <span className="font-mono text-fg-muted truncate max-w-[22rem]">{s.userAgent || "Unknown device"}</span>
@@ -157,7 +157,7 @@ export function AccountSettings({ name: initialName, email, currentSessionId, ow
         </button>
       </section>
 
-      <section aria-labelledby="a-delete" className="border border-err/30 rounded-[6px] p-4">
+      <section aria-labelledby="a-delete" className="border border-err/30 rounded-[14px] p-4">
         <h2 id="a-delete" className="text-[16px] font-semibold text-err">
           Delete account
         </h2>

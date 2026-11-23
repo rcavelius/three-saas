@@ -21,7 +21,7 @@ export default async function TicketPage({ params, searchParams }: Props) {
   return (
     <div className="sup-root mx-auto max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
       <p className="eyebrow">Support request #{ticket.id.slice(0, 8)}</p>
-      <h1 className="mt-3 font-display text-3xl font-semibold leading-tight">{ticket.subject}</h1>
+      <h1 className="mt-3 display text-[2rem] sm:text-[2.6rem]">{ticket.subject}</h1>
       <p className="mt-3 text-sm text-muted">
         <StatusBadge status={ticket.status} /> {CATEGORY_LABELS[ticket.category]}
         {ticket.escalated ? " · a person on our team handles this request" : ""}

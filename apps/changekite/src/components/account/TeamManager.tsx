@@ -53,7 +53,7 @@ export function TeamManager(props: {
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[32rem] text-left text-[0.95rem]">
           <caption className="sr-only">Members</caption>
-          <thead className="border-b border-ink">
+          <thead className="border-b border-rule-strong">
             <tr>
               <th scope="col" className="py-2 pr-4 font-semibold">Member</th>
               <th scope="col" className="py-2 pr-4 font-semibold">Role</th>

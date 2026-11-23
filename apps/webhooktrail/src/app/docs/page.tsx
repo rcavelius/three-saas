@@ -45,7 +45,7 @@ export default function DocsPage() {
 
       <article className="prose-doc max-w-[78ch] min-w-0">
         <p className="label">Documentation</p>
-        <h1 className="mt-3 text-[32px] font-semibold tracking-[-0.02em]">WebhookTrail reference</h1>
+        <h1 className="mt-3 wt-display text-[36px] md:text-[52px]">WebhookTrail reference</h1>
         <p>
           WebhookTrail gives you a URL that records every HTTP request sent to it, a console to inspect them, and (on paid plans or with the one-time 7-day pass) replay of a
           captured request to a destination you have verified. This page describes exactly what is implemented.

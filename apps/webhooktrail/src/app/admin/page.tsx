@@ -17,7 +17,7 @@ function fmt(m: Metric): string {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border border-line rounded-[6px] bg-surface p-4 min-w-0">
+    <section className="border border-line rounded-[14px] bg-surface p-4 min-w-0">
       <h2 className="label mb-3">{title}</h2>
       {children}
     </section>
