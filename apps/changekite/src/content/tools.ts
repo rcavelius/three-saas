@@ -325,6 +325,49 @@ export const TOOLS: ToolPage[] = [
     ],
   },
   {
+    slug: "http-to-https-redirect-checker",
+    title: "HTTP to HTTPS redirect checker: does http:// go to https://?",
+    h1: "HTTP to HTTPS redirect checker",
+    description:
+      "Check that your site's http:// address redirects to https://. Free scan: it requests the plain-http homepage without following redirects and reports what comes back.",
+    intro:
+      "If someone types your domain or follows an old http:// link, your server should answer with a permanent redirect to the https:// address. ChangeKite requests http://your-host/ without following redirects and checks that it points to https://; if it does not, it reports the status code your server returned instead.",
+    checks: ["https"],
+    rules: ["http-no-redirect", "https-missing", "redirect-chain", "internal-link-redirect"],
+    howTo: [
+      "Enter your homepage above and run the scan.",
+      "Open HTTPS & certificate in the report: a finding appears if http:// does not redirect to https://.",
+      "Add a permanent (301/308) redirect from every http:// URL to its https:// equivalent in your server, CDN or host settings.",
+      "Scan again to confirm the finding is gone.",
+    ],
+    faq: [
+      { q: "What does it test exactly?", a: "It requests http://your-host/ without following redirects and checks that the response points to https://. If it does not, the finding shows the status your server returned." },
+      { q: "How serious is a missing redirect?", a: "It is a warning. A site with no HTTPS at all is critical." },
+      { q: "Does it check every http:// URL?", a: "No. It tests the homepage address. Redirect chains that need two or more hops and internal links whose target redirects are reported separately from the pages it crawls." },
+    ],
+  },
+  {
+    slug: "hsts-header-checker",
+    title: "HSTS header checker: Strict-Transport-Security on your site",
+    h1: "HSTS header checker",
+    description:
+      "Check whether your homepage sends a Strict-Transport-Security (HSTS) header and whether its max-age is long enough. Free scan, no account needed.",
+    intro:
+      "HSTS tells browsers to never try plain http for your site again, closing the window where someone on public Wi-Fi could tamper with the very first request. ChangeKite reads the Strict-Transport-Security header on your homepage and tells you if it is missing or if its max-age is short.",
+    checks: ["https"],
+    rules: ["hsts-missing", "hsts-short"],
+    howTo: [
+      "Enter your https homepage above and run the scan.",
+      "Open HTTPS & certificate in the report: a finding appears if the header is missing or its max-age is short.",
+      "Send \"Strict-Transport-Security: max-age=31536000\" on your HTTPS responses, once https works everywhere on the site.",
+    ],
+    faq: [
+      { q: "What counts as too short?", a: "A max-age below 15,552,000 seconds (six months) is flagged as a notice. A missing header is a warning." },
+      { q: "Which page is checked?", a: "The header is read on your homepage response." },
+      { q: "Is it safe to turn on?", a: "Only once https works on every page and subdomain you serve, because browsers will refuse plain http for the whole max-age. That is why the report suggests it as a fix once https works everywhere." },
+    ],
+  },
+  {
     slug: "monitor-website-for-broken-links",
     title: "Monitor your website for broken links, with email alerts",
     h1: "Monitor your website for broken links",

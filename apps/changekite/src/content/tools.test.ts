@@ -20,9 +20,9 @@ const diffSource = readFileSync(join(src, "lib/monitoring/diff.ts"), "utf8");
 const copy = (t: (typeof TOOLS)[number]) => [t.title, t.h1, t.description, t.intro, ...t.howTo, ...t.faq.flatMap((f) => [f.q, f.a])].join("\n");
 
 describe("tool landing pages", () => {
-  it("have 8-12 pages with unique slugs and search-sized titles and descriptions", () => {
+  it("have 8-14 pages with unique slugs and search-sized titles and descriptions", () => {
     expect(TOOLS.length).toBeGreaterThanOrEqual(8);
-    expect(TOOLS.length).toBeLessThanOrEqual(12);
+    expect(TOOLS.length).toBeLessThanOrEqual(14);
     expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(TOOLS.length);
     expect(new Set(TOOLS.map((t) => t.title)).size).toBe(TOOLS.length);
     for (const t of TOOLS) {
@@ -105,6 +105,16 @@ describe("tool landing pages", () => {
       // No claim that the free scan lists everything.
       expect(text, t.slug).not.toMatch(/free scan (that )?lists every/i);
     }
+  });
+
+  it("the HTTPS pages quote the real HSTS threshold and severities", () => {
+    const site = readFileSync(join(src, "lib/scanner/checks/site.ts"), "utf8");
+    expect(site).toContain("15_552_000");
+    const hsts = copy(TOOLS.find((t) => t.slug === "hsts-header-checker")!);
+    expect(hsts).toContain("15,552,000");
+    expect(hsts).toContain("max-age=31536000");
+    expect(copy(TOOLS.find((t) => t.slug === "http-to-https-redirect-checker")!)).toContain("301/308");
+    expect(site).toContain("301/308");
   });
 
   it("every tool page and the index are in the sitemap", () => {
