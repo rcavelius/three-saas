@@ -2,6 +2,36 @@
   "name": "Traffic boss",
   "born": "2026-11-23",
   "rulebook": "docs/growth/BOSS.md",
-  "last_run": null,
-  "log": []
+  "last_run": "2026-11-23T08:43:00Z",
+  "log": [
+    {
+      "date": "2026-11-23",
+      "visitors_24h": {
+        "gridrinse": 6,
+        "changekite": 5,
+        "webhooktrail": 4
+      },
+      "visits_7d": {
+        "gridrinse": null,
+        "changekite": null,
+        "webhooktrail": null
+      },
+      "paid": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "focus": {
+        "gridrinse": "Lead homepage/guides to tool pages; add neighbours of remove-duplicates and split-column",
+        "changekite": "Homepage to first scan; narrow long-tail pages",
+        "webhooktrail": "Homepage to first capture; narrow long-tail pages"
+      },
+      "fixed": [],
+      "indexnow": {
+        "gridrinse": "failed: site unreachable from environment",
+        "changekite": "failed: site unreachable from environment",
+        "webhooktrail": "failed: site unreachable from environment"
+      }
+    }
+  ]
 }
