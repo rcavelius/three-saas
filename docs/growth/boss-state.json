@@ -2,7 +2,7 @@
   "name": "Traffic boss",
   "born": "2026-11-23",
   "rulebook": "docs/growth/BOSS.md",
-  "last_run": "2026-11-23T08:43:00Z",
+  "last_run": "2026-11-23T09:05:00Z",
   "log": [
     {
       "date": "2026-11-23",
@@ -31,6 +31,36 @@
         "gridrinse": "failed: site unreachable from environment",
         "changekite": "failed: site unreachable from environment",
         "webhooktrail": "failed: site unreachable from environment"
+      }
+    },
+    {
+      "date": "2026-11-23",
+      "run": "09:05 UTC",
+      "visitors_24h": {
+        "gridrinse": 6,
+        "changekite": 5,
+        "webhooktrail": 4
+      },
+      "visits_7d": {
+        "gridrinse": null,
+        "changekite": null,
+        "webhooktrail": null
+      },
+      "paid": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "focus": {
+        "gridrinse": "Homepage/guides to tool pages; neighbours of rename-columns, split-column, remove-duplicates",
+        "changekite": "Homepage to first scan; narrow long-tail pages",
+        "webhooktrail": "Homepage to first capture; narrow long-tail pages"
+      },
+      "fixed": [],
+      "indexnow": {
+        "gridrinse": "accepted (HTTP 200, 48 URLs)",
+        "changekite": "accepted (HTTP 200, 37 URLs)",
+        "webhooktrail": "accepted (HTTP 200, 35 URLs)"
       }
     }
   ]
