@@ -109,10 +109,17 @@ A task must be something the crew's rulebook allows (its section 4 and 7). Never
 
 ## 5. Get visitors: sitemaps and technical SEO
 
+Your cloud sandbox cannot reach the live sites (DNS is blocked there), so the Growth metrics workflow (13:30 UTC,
+GitHub Actions) does the network part for you every day and commits the results:
+- `docs/growth/site-check/<app>.json` — output of `node scripts/site-check.mjs <app>`, a read-only check of the live
+  site: sitemap URLs that are not 200, broken internal links, linked pages missing from the sitemap,
+  missing/duplicate titles, missing descriptions, wrong canonicals, noindex on sitemap pages (`checked_at` says when).
+- `docs/growth/site-check/indexnow.txt` — one line per app: the IndexNow sitemap submission result
+  ("accepted" = HTTP 200/202). Report these lines; your fixes are submitted by the next day's workflow.
+
 For each app (`gridrinse`, `changekite`, `webhooktrail`):
-1. `node scripts/site-check.mjs <app>` — read-only check of the live site: sitemap URLs that are not 200, broken
-   internal links, linked pages missing from the sitemap, missing/duplicate titles, missing descriptions, wrong
-   canonicals, noindex on sitemap pages.
+1. Read `docs/growth/site-check/<app>.json`. If it is missing or older than 26 hours, say so in the report. (If
+   `node scripts/site-check.mjs <app>` happens to work from your sandbox, you may run it for fresher data.)
 2. Fix **small** faults in the code (at most ~150 changed lines per run in total, all apps together):
    a broken internal link, a missing sitemap entry, a missing title/description, a wrong canonical. Look first
    at `apps/<app>/src/app/sitemap.ts` (or `apps/changekite/src/lib/sitemap-paths.ts`), the page's route under
@@ -122,8 +129,9 @@ For each app (`gridrinse`, `changekite`, `webhooktrail`):
    message ("boss: fix …"), `git pull --rebase`, push to `main` (if refused, push a branch and open a PR). CI deploys.
    If tests fail and you cannot fix them in the run, revert the code change, report the fault for the crew in
    FOCUS.md, and carry on.
-4. `node scripts/indexnow.mjs <app>` for all three apps every run (it submits the live sitemap; a non-accepted
-   answer goes into the report).
+4. IndexNow: copy each app's line from `docs/growth/site-check/indexnow.txt` into the report and `boss-state.json`.
+   A line that is not "accepted" is a fault to report. Do not treat an unreachable site from your sandbox as a fault
+   of the site.
 
 ## 6. Log and commit
 
