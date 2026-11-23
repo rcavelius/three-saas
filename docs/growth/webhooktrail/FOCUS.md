@@ -1,8 +1,8 @@
 # WebhookTrail focus — 2026-11-23
-Data: generated 2026-11-23 08:41 UTC; visitors 7 d 41; visits 7 d unknown (source tracking began today); paid 0.
+Data: generated 2026-11-23 08:41 UTC; visitors 7 d 4; visits 7 d unknown (source tracking began today); paid 0.
 
 ## Diagnosis
-Only 41 visitors in 7 d, all on / and nowhere else: sample too small to conclude. Referrers and landing pages are unknown until source data accumulates. The site has almost no indexed entry points besides the homepage.
+Only 4 visitors in 7 d, all on / and nowhere else: sample too small to conclude. Referrers and landing pages are unknown until source data accumulates. The site has almost no indexed entry points besides the homepage.
 
 ## pages
 - Add 1–2 narrow long-tail landing pages for specific searches; link them from the homepage and each other.
