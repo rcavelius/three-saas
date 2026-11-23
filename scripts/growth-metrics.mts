@@ -31,10 +31,11 @@ const n = (v: unknown) => Number(v ?? 0);
 
 // Visit-source columns (migration ops_0005_analytics_sources). Until that migration has run on an app's
 // database the source breakdowns are reported as unavailable instead of failing.
-const sourceCols = await q<{ column_name: string }>(
-  `SELECT column_name FROM information_schema.columns WHERE table_name = 'analytics_events' AND column_name IN ('is_bot', 'is_landing')`,
+// Probed directly (information_schema can hide columns depending on the connecting role).
+const hasSources = await q(`SELECT is_bot, is_landing, referrer_host, device FROM analytics_events LIMIT 0`).then(
+  () => true,
+  () => false,
 );
-const hasSources = sourceCols.length === 2;
 const human = hasSources ? "AND NOT is_bot" : "";
 const share = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 1000) / 1000 : null);
 
