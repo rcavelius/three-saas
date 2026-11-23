@@ -48,6 +48,22 @@ They share no layout, palette or type, only engineering rules (tokens in `global
 
 ## Process
 
-Design direction and critique rounds were run with ChatGPT (chatgpt.com, signed in, via Claude in Chrome).
-Each round's prompt, ChatGPT's answer and the screenshots it reviewed are in `docs/design/rounds/`.
+Design direction and critique rounds were run with ChatGPT (chatgpt.com, signed in, via Claude in Chrome, "Extra High"
+thinking). Each round's prompt, ChatGPT's answer and the screenshots it reviewed are in `docs/design/rounds/`.
+Screenshots of every round came from the production build in CI (`.github/workflows/design-shots.yml`), so no browser or
+build ran on the owner's machine while he was gaming.
+
+| Round | ChangeKite | WebhookTrail |
+| --- | --- | --- |
+| before | `rounds/before/` (live site, 2026-11-23) | same |
+| 1: direction + mockups | "Editorial Signal" (`ck-r1/`) | "Flight Recorder" (`wt-r1/`) |
+| 2: critique of the build | 8 changes, ratings 6-8.5 (`ck-r2/`) | 7.5/10, 8 changes (`wt-r2/`) |
+| 3: final critique | 8.8/10, "approve the art direction", 6 polish items (`ck-r3/`) | 8.7/10, "stop exploring", 6 polish items (`wt-r3/`) |
+| after round 3 + pricing/paywall merge | `rounds/after-r3/` | same |
+
+ChatGPT's final advice for both: freeze the visual design now; further experimentation risks making it worse.
+
+Mobile Lighthouse (CI, production build, home pages) after round 3: ChangeKite 87-92 performance / 100 accessibility /
+100 best practices / 100 SEO; WebhookTrail 91 / 100 / 100 / 100.
+
 Final live screenshots are in `docs/design/final/`.
