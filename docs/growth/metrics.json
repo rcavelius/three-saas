@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T21:26:53.457Z",
+  "generated_at": "2026-11-24T01:02:42.197Z",
   "product": "gridrinse",
   "sources_tracked_since": "2026-11-23T08:26:00.448Z",
   "accounts_total": 0,
@@ -23,23 +23,34 @@
       "by_pass": {},
       "sale_dates": []
     },
+    "one_time_products": {
+      "sales_ever": 0,
+      "revenue_usd_ever": 0,
+      "sales_1d": 0,
+      "sales_7d": 0,
+      "sales_30d": 0,
+      "revenue_usd_30d": 0,
+      "refunded": 0,
+      "by_product": {},
+      "sale_dates": []
+    },
     "paying_customers_ever": 0,
     "making_money_now": false
   },
   "last_1d": {
     "days": 1,
-    "visitors": 7,
-    "pageviews": 9,
+    "visitors": 27,
+    "pageviews": 38,
     "tool_users": 3,
     "tool_runs": 3,
-    "pricing_views": 0,
+    "pricing_views": 5,
     "signup_starts": 0,
     "checkout_starts": 0,
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 9,
-        "visitors": 7
+        "count": 38,
+        "visitors": 27
       },
       "tool_used": {
         "count": 3,
@@ -49,8 +60,18 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 6,
-        "visitors": 5
+        "views": 25,
+        "visitors": 19
+      },
+      {
+        "path": "/pricing",
+        "views": 5,
+        "visitors": 3
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "views": 5,
+        "visitors": 3
       },
       {
         "path": "/for/ecommerce-exports",
@@ -69,31 +90,43 @@
       }
     ],
     "sources_available": true,
-    "visits": 5,
-    "bot_pageviews": 1,
-    "bot_share": 0.1,
-    "mobile_share": 0.25,
+    "visits": 34,
+    "bot_pageviews": 29,
+    "bot_share": 0.433,
+    "mobile_share": 0.875,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 5,
-        "visitors": 4
+        "visits": 34,
+        "visitors": 24
       }
     ],
     "top_countries": [
       {
-        "country": "(unknown)",
-        "visitors": 4
+        "country": "US",
+        "visitors": 24
       },
       {
-        "country": "US",
+        "country": "(unknown)",
         "visitors": 4
       }
     ],
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 3,
+        "visits": 22,
+        "visitors": 17,
+        "top_referrer": null
+      },
+      {
+        "path": "/pricing",
+        "visits": 5,
+        "visitors": 3,
+        "top_referrer": null
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "visits": 5,
         "visitors": 3,
         "top_referrer": null
       },
@@ -114,18 +147,18 @@
   },
   "last_7d": {
     "days": 7,
-    "visitors": 31,
-    "pageviews": 88,
+    "visitors": 50,
+    "pageviews": 116,
     "tool_users": 5,
     "tool_runs": 5,
-    "pricing_views": 9,
+    "pricing_views": 14,
     "signup_starts": 2,
     "checkout_starts": 0,
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 88,
-        "visitors": 31
+        "count": 116,
+        "visitors": 50
       },
       "signup_started": {
         "count": 5,
@@ -139,13 +172,18 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 42,
-        "visitors": 25
+        "views": 60,
+        "visitors": 38
       },
       {
         "path": "/pricing",
-        "views": 9,
-        "visitors": 4
+        "views": 14,
+        "visitors": 7
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "views": 7,
+        "visitors": 5
       },
       {
         "path": "/how-it-works",
@@ -153,12 +191,12 @@
         "visitors": 2
       },
       {
-        "path": "/features",
+        "path": "/signup",
         "views": 5,
         "visitors": 2
       },
       {
-        "path": "/signup",
+        "path": "/features",
         "views": 5,
         "visitors": 2
       },
@@ -178,17 +216,7 @@
         "visitors": 2
       },
       {
-        "path": "/tools/remove-duplicates-csv",
-        "views": 2,
-        "visitors": 2
-      },
-      {
         "path": "/tools/split-column-csv",
-        "views": 1,
-        "visitors": 1
-      },
-      {
-        "path": "/guides/dedupe-strategies",
         "views": 1,
         "visitors": 1
       },
@@ -201,34 +229,51 @@
         "path": "/for/ecommerce-exports",
         "views": 1,
         "visitors": 1
+      },
+      {
+        "path": "/guides/dedupe-strategies",
+        "views": 1,
+        "visitors": 1
       }
     ],
     "sources_available": true,
-    "visits": 5,
-    "bot_pageviews": 1,
-    "bot_share": 0.011,
-    "mobile_share": 0.25,
+    "visits": 34,
+    "bot_pageviews": 29,
+    "bot_share": 0.2,
+    "mobile_share": 0.875,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 5,
-        "visitors": 4
+        "visits": 34,
+        "visitors": 24
       }
     ],
     "top_countries": [
       {
         "country": "(unknown)",
-        "visitors": 28
+        "visitors": 27
       },
       {
         "country": "US",
-        "visitors": 4
+        "visitors": 24
       }
     ],
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 3,
+        "visits": 22,
+        "visitors": 17,
+        "top_referrer": null
+      },
+      {
+        "path": "/pricing",
+        "visits": 5,
+        "visitors": 3,
+        "top_referrer": null
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "visits": 5,
         "visitors": 3,
         "top_referrer": null
       },
@@ -249,18 +294,18 @@
   },
   "last_30d": {
     "days": 30,
-    "visitors": 80,
-    "pageviews": 170,
+    "visitors": 100,
+    "pageviews": 199,
     "tool_users": 7,
     "tool_runs": 12,
-    "pricing_views": 14,
+    "pricing_views": 19,
     "signup_starts": 4,
     "checkout_starts": 0,
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 170,
-        "visitors": 80
+        "count": 199,
+        "visitors": 100
       },
       "signup_started": {
         "count": 7,
@@ -274,13 +319,18 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 97,
-        "visitors": 72
+        "views": 116,
+        "visitors": 86
       },
       {
         "path": "/pricing",
-        "views": 14,
-        "visitors": 8
+        "views": 19,
+        "visitors": 11
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "views": 7,
+        "visitors": 5
       },
       {
         "path": "/signup",
@@ -313,12 +363,12 @@
         "visitors": 4
       },
       {
-        "path": "/for/ecommerce-exports",
+        "path": "/privacy",
         "views": 3,
         "visitors": 3
       },
       {
-        "path": "/privacy",
+        "path": "/for/ecommerce-exports",
         "views": 3,
         "visitors": 3
       },
@@ -329,11 +379,6 @@
       },
       {
         "path": "/tools",
-        "views": 2,
-        "visitors": 2
-      },
-      {
-        "path": "/tools/remove-duplicates-csv",
         "views": 2,
         "visitors": 2
       },
@@ -349,15 +394,15 @@
       }
     ],
     "sources_available": true,
-    "visits": 5,
-    "bot_pageviews": 1,
-    "bot_share": 0.006,
-    "mobile_share": 0.25,
+    "visits": 34,
+    "bot_pageviews": 29,
+    "bot_share": 0.127,
+    "mobile_share": 0.875,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 5,
-        "visitors": 4
+        "visits": 34,
+        "visitors": 24
       }
     ],
     "top_countries": [
@@ -367,13 +412,25 @@
       },
       {
         "country": "US",
-        "visitors": 4
+        "visitors": 24
       }
     ],
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 3,
+        "visits": 22,
+        "visitors": 17,
+        "top_referrer": null
+      },
+      {
+        "path": "/pricing",
+        "visits": 5,
+        "visitors": 3,
+        "top_referrer": null
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "visits": 5,
         "visitors": 3,
         "top_referrer": null
       },

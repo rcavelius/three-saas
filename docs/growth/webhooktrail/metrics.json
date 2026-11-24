@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T21:26:57.467Z",
+  "generated_at": "2026-11-24T01:02:46.471Z",
   "product": "webhooktrail",
   "sources_tracked_since": "2026-11-23T08:26:02.921Z",
   "accounts_total": 0,
@@ -23,13 +23,24 @@
       "by_pass": {},
       "sale_dates": []
     },
+    "one_time_products": {
+      "sales_ever": 0,
+      "revenue_usd_ever": 0,
+      "sales_1d": 0,
+      "sales_7d": 0,
+      "sales_30d": 0,
+      "revenue_usd_30d": 0,
+      "refunded": 0,
+      "by_product": {},
+      "sale_dates": []
+    },
     "paying_customers_ever": 0,
     "making_money_now": false
   },
   "last_1d": {
     "days": 1,
-    "visitors": 4,
-    "pageviews": 5,
+    "visitors": 10,
+    "pageviews": 15,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
@@ -38,44 +49,48 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 5,
-        "visitors": 4
+        "count": 15,
+        "visitors": 10
       }
     },
     "top_pages": [
       {
         "path": "/",
-        "views": 5,
-        "visitors": 4
+        "views": 15,
+        "visitors": 10
       }
     ],
     "sources_available": true,
-    "visits": 1,
-    "bot_pageviews": 7,
-    "bot_share": 0.583,
-    "mobile_share": 0,
+    "visits": 11,
+    "bot_pageviews": 10,
+    "bot_share": 0.4,
+    "mobile_share": 0.714,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 1,
-        "visitors": 1
+        "visits": 11,
+        "visitors": 7
       }
     ],
     "top_countries": [
+      {
+        "country": "US",
+        "visitors": 6
+      },
       {
         "country": "(unknown)",
         "visitors": 4
       },
       {
-        "country": "US",
+        "country": "FR",
         "visitors": 1
       }
     ],
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 1,
-        "visitors": 1,
+        "visits": 11,
+        "visitors": 7,
         "top_referrer": null
       }
     ],
@@ -83,8 +98,8 @@
   },
   "last_7d": {
     "days": 7,
-    "visitors": 4,
-    "pageviews": 5,
+    "visitors": 10,
+    "pageviews": 15,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
@@ -93,44 +108,48 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 5,
-        "visitors": 4
+        "count": 15,
+        "visitors": 10
       }
     },
     "top_pages": [
       {
         "path": "/",
-        "views": 5,
-        "visitors": 4
+        "views": 15,
+        "visitors": 10
       }
     ],
     "sources_available": true,
-    "visits": 1,
-    "bot_pageviews": 7,
-    "bot_share": 0.583,
-    "mobile_share": 0,
+    "visits": 11,
+    "bot_pageviews": 10,
+    "bot_share": 0.4,
+    "mobile_share": 0.714,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 1,
-        "visitors": 1
+        "visits": 11,
+        "visitors": 7
       }
     ],
     "top_countries": [
+      {
+        "country": "US",
+        "visitors": 6
+      },
       {
         "country": "(unknown)",
         "visitors": 4
       },
       {
-        "country": "US",
+        "country": "FR",
         "visitors": 1
       }
     ],
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 1,
-        "visitors": 1,
+        "visits": 11,
+        "visitors": 7,
         "top_referrer": null
       }
     ],
@@ -138,8 +157,8 @@
   },
   "last_30d": {
     "days": 30,
-    "visitors": 6,
-    "pageviews": 19,
+    "visitors": 12,
+    "pageviews": 29,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 2,
@@ -148,15 +167,15 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 19,
-        "visitors": 6
+        "count": 29,
+        "visitors": 12
       }
     },
     "top_pages": [
       {
         "path": "/",
-        "views": 7,
-        "visitors": 6
+        "views": 17,
+        "visitors": 12
       },
       {
         "path": "/help",
@@ -190,15 +209,15 @@
       }
     ],
     "sources_available": true,
-    "visits": 1,
-    "bot_pageviews": 7,
-    "bot_share": 0.269,
-    "mobile_share": 0,
+    "visits": 11,
+    "bot_pageviews": 10,
+    "bot_share": 0.256,
+    "mobile_share": 0.714,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 1,
-        "visitors": 1
+        "visits": 11,
+        "visitors": 7
       }
     ],
     "top_countries": [
@@ -208,14 +227,18 @@
       },
       {
         "country": "US",
+        "visitors": 6
+      },
+      {
+        "country": "FR",
         "visitors": 1
       }
     ],
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 1,
-        "visitors": 1,
+        "visits": 11,
+        "visitors": 7,
         "top_referrer": null
       }
     ],
