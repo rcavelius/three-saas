@@ -86,4 +86,11 @@ describe("tool landing pages", () => {
       ["ann@example.com", "Ann Lee-Smith", "2024-03-12"],
     ]);
   });
+
+  it("dedupe by Order ID keeps the last row for each order", () => {
+    expect(ex("remove-duplicates-by-column-csv").after.rows).toEqual([
+      ["1002", "paid", "40.00"],
+      ["1001", "paid", "25.00"],
+    ]);
+  });
 });

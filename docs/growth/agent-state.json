@@ -340,6 +340,25 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-24",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "New tool page /tools/remove-duplicates-by-column-csv (dedupe on Order ID/key column, keep last) with pinned test, linked from every tool page and /tools",
+        "Tool pages: hero now shows only the first intro sentence so the drop box sits higher on phones; the rest of the intro moved to 'How to do it'"
+      ],
+      "metrics": {
+        "visitors_7d": 50,
+        "tool_users_7d": 5,
+        "pricing_views_7d": 14,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

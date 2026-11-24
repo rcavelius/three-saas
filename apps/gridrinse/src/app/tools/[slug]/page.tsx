@@ -69,12 +69,15 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const base = appUrl();
   const sample = toolSample(t);
   const offers = upgradeOffers();
+  const cut = t.intro.search(/[.!?]\s/);
+  const introFirst = cut === -1 ? t.intro : t.intro.slice(0, cut + 1);
+  const introRest = cut === -1 ? "" : t.intro.slice(cut + 1).trim();
   const pro = offers.find((o) => o.planId === "pro");
 
   return (
     <article>
       <PageHero eyebrow="Free tool · no upload · no account" title={t.h1} art="mascot-wave">
-        <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-ink-2">{t.intro}</p>
+        <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-ink-2">{introFirst}</p>
       </PageHero>
 
       <ToolSampleBox files={sample.files.map((f) => f.name)} xlsxName={sample.xlsx ? sample.files[0]!.name.replace(/\.csv$/, ".xlsx") : undefined} />
@@ -88,6 +91,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           <h2 id="howto" className="display text-[1.9rem] sm:text-[2.3rem]">
             How to do it
           </h2>
+          {introRest && <p className="mt-3 text-[16px] leading-relaxed text-ink-2">{introRest}</p>}
           <ol className="mt-4 list-decimal space-y-2 pl-6 text-[16px] leading-relaxed">
             {t.howTo.map((s) => (
               <li key={s}>{s}</li>

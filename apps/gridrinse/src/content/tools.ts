@@ -409,6 +409,39 @@ export const TOOLS: ToolPage[] = [
     ],
     guide: { href: "/guides/dedupe-strategies", label: "Guide: ways to deduplicate a spreadsheet" },
   },
+  {
+    slug: "remove-duplicates-by-column-csv",
+    title: "Remove duplicates based on one column in a CSV or Excel file (free)",
+    h1: "Remove duplicates based on one column",
+    description:
+      "Keep one row per Order ID, SKU, Customer ID or any column you choose in a CSV or Excel file, even when other cells differ. Free, in your browser, no upload.",
+    intro:
+      "Whole-row duplicate checks miss rows that share an ID but differ elsewhere, such as an order exported twice with a different status. GridRinse compares only the column or columns you pick and shows which rows go before you download.",
+    stepName: "Remove duplicate rows",
+    howTo: [
+      "Choose your file above.",
+      "Open the step \"Remove duplicate rows\" and pick the column that identifies a row (Order ID, SKU, Customer ID) as the key. Pick several columns to match on the combination.",
+      "Choose whether the first or the last row for each key is kept, check the highlighted rows in the review, then download.",
+    ],
+    example: {
+      input: {
+        columns: ["Order ID", "Status", "Total"],
+        rows: [
+          ["1001", "pending", "25.00"],
+          ["1002", "paid", "40.00"],
+          ["1001", "paid", "25.00"],
+        ],
+      },
+      steps: [makeStep({ type: "dedupe", keys: ["Order ID"], keep: "last" })],
+      note: "Order 1001 appears twice with a different Status; matching on Order ID keeps the later, paid row.",
+    },
+    faq: [
+      { q: "Why does a whole-row check not remove these?", a: "Rows only count as duplicates when every cell matches. If one cell differs, such as Status, pick the key column instead so only that column is compared." },
+      { q: "Can I match on more than one column?", a: "Yes. Pick several key columns and rows count as duplicates only when all of them match." },
+      { q: "Which row is kept?", a: "Your choice: the first row for each key (default) or the last, for example when later rows are more up to date. Removed rows are listed in the review." },
+    ],
+    guide: { href: "/guides/dedupe-strategies", label: "Guide: ways to deduplicate a spreadsheet" },
+  },
 ];
 
 export function getTool(slug: string): ToolPage | undefined {
