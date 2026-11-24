@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T01:02:42.197Z",
+  "generated_at": "2026-11-24T23:08:33.688Z",
   "product": "gridrinse",
   "sources_tracked_since": "2026-11-23T08:26:00.448Z",
   "accounts_total": 0,
@@ -39,18 +39,95 @@
   },
   "last_1d": {
     "days": 1,
-    "visitors": 27,
-    "pageviews": 38,
-    "tool_users": 3,
-    "tool_runs": 3,
+    "visitors": 19,
+    "pageviews": 26,
+    "tool_users": 0,
+    "tool_runs": 0,
     "pricing_views": 5,
     "signup_starts": 0,
     "checkout_starts": 0,
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 38,
-        "visitors": 27
+        "count": 26,
+        "visitors": 19
+      }
+    },
+    "top_pages": [
+      {
+        "path": "/",
+        "views": 16,
+        "visitors": 13
+      },
+      {
+        "path": "/pricing",
+        "views": 5,
+        "visitors": 3
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "views": 5,
+        "visitors": 3
+      }
+    ],
+    "sources_available": true,
+    "visits": 26,
+    "bot_pageviews": 5,
+    "bot_share": 0.161,
+    "mobile_share": 0.895,
+    "top_referrers": [
+      {
+        "host": "(direct or hidden)",
+        "visits": 26,
+        "visitors": 19
+      }
+    ],
+    "top_countries": [
+      {
+        "country": "US",
+        "visitors": 18
+      },
+      {
+        "country": "DE",
+        "visitors": 1
+      }
+    ],
+    "top_landing_pages": [
+      {
+        "path": "/",
+        "visits": 16,
+        "visitors": 13,
+        "top_referrer": null
+      },
+      {
+        "path": "/pricing",
+        "visits": 5,
+        "visitors": 3,
+        "top_referrer": null
+      },
+      {
+        "path": "/tools/remove-duplicates-csv",
+        "visits": 5,
+        "visitors": 3,
+        "top_referrer": null
+      }
+    ],
+    "utm_campaigns": []
+  },
+  "last_7d": {
+    "days": 7,
+    "visitors": 48,
+    "pageviews": 60,
+    "tool_users": 3,
+    "tool_runs": 3,
+    "pricing_views": 7,
+    "signup_starts": 0,
+    "checkout_starts": 0,
+    "new_accounts": 0,
+    "events": {
+      "pageview": {
+        "count": 60,
+        "visitors": 48
       },
       "tool_used": {
         "count": 3,
@@ -60,170 +137,18 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 25,
-        "visitors": 19
-      },
-      {
-        "path": "/pricing",
-        "views": 5,
-        "visitors": 3
-      },
-      {
-        "path": "/tools/remove-duplicates-csv",
-        "views": 5,
-        "visitors": 3
-      },
-      {
-        "path": "/for/ecommerce-exports",
-        "views": 1,
-        "visitors": 1
-      },
-      {
-        "path": "/guides/dedupe-strategies",
-        "views": 1,
-        "visitors": 1
-      },
-      {
-        "path": "/tools/split-column-csv",
-        "views": 1,
-        "visitors": 1
-      }
-    ],
-    "sources_available": true,
-    "visits": 34,
-    "bot_pageviews": 29,
-    "bot_share": 0.433,
-    "mobile_share": 0.875,
-    "top_referrers": [
-      {
-        "host": "(direct or hidden)",
-        "visits": 34,
-        "visitors": 24
-      }
-    ],
-    "top_countries": [
-      {
-        "country": "US",
-        "visitors": 24
-      },
-      {
-        "country": "(unknown)",
-        "visitors": 4
-      }
-    ],
-    "top_landing_pages": [
-      {
-        "path": "/",
-        "visits": 22,
-        "visitors": 17,
-        "top_referrer": null
-      },
-      {
-        "path": "/pricing",
-        "visits": 5,
-        "visitors": 3,
-        "top_referrer": null
-      },
-      {
-        "path": "/tools/remove-duplicates-csv",
-        "visits": 5,
-        "visitors": 3,
-        "top_referrer": null
-      },
-      {
-        "path": "/for/ecommerce-exports",
-        "visits": 1,
-        "visitors": 1,
-        "top_referrer": null
-      },
-      {
-        "path": "/guides/dedupe-strategies",
-        "visits": 1,
-        "visitors": 1,
-        "top_referrer": null
-      }
-    ],
-    "utm_campaigns": []
-  },
-  "last_7d": {
-    "days": 7,
-    "visitors": 50,
-    "pageviews": 116,
-    "tool_users": 5,
-    "tool_runs": 5,
-    "pricing_views": 14,
-    "signup_starts": 2,
-    "checkout_starts": 0,
-    "new_accounts": 0,
-    "events": {
-      "pageview": {
-        "count": 116,
-        "visitors": 50
-      },
-      "signup_started": {
-        "count": 5,
-        "visitors": 2
-      },
-      "tool_used": {
-        "count": 5,
-        "visitors": 5
-      }
-    },
-    "top_pages": [
-      {
-        "path": "/",
-        "views": 60,
+        "views": 45,
         "visitors": 38
       },
       {
         "path": "/pricing",
-        "views": 14,
-        "visitors": 7
-      },
-      {
-        "path": "/tools/remove-duplicates-csv",
         "views": 7,
         "visitors": 5
       },
       {
-        "path": "/how-it-works",
-        "views": 6,
-        "visitors": 2
-      },
-      {
-        "path": "/signup",
+        "path": "/tools/remove-duplicates-csv",
         "views": 5,
-        "visitors": 2
-      },
-      {
-        "path": "/features",
-        "views": 5,
-        "visitors": 2
-      },
-      {
-        "path": "/guides",
-        "views": 4,
-        "visitors": 2
-      },
-      {
-        "path": "/help",
-        "views": 3,
-        "visitors": 2
-      },
-      {
-        "path": "/tools",
-        "views": 2,
-        "visitors": 2
-      },
-      {
-        "path": "/tools/split-column-csv",
-        "views": 1,
-        "visitors": 1
-      },
-      {
-        "path": "/login",
-        "views": 1,
-        "visitors": 1
+        "visitors": 3
       },
       {
         "path": "/for/ecommerce-exports",
@@ -234,35 +159,44 @@
         "path": "/guides/dedupe-strategies",
         "views": 1,
         "visitors": 1
+      },
+      {
+        "path": "/tools/split-column-csv",
+        "views": 1,
+        "visitors": 1
       }
     ],
     "sources_available": true,
-    "visits": 34,
+    "visits": 36,
     "bot_pageviews": 29,
-    "bot_share": 0.2,
-    "mobile_share": 0.875,
+    "bot_share": 0.326,
+    "mobile_share": 0.808,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 34,
-        "visitors": 24
+        "visits": 36,
+        "visitors": 26
       }
     ],
     "top_countries": [
       {
-        "country": "(unknown)",
-        "visitors": 27
+        "country": "US",
+        "visitors": 25
       },
       {
-        "country": "US",
-        "visitors": 24
+        "country": "(unknown)",
+        "visitors": 23
+      },
+      {
+        "country": "DE",
+        "visitors": 1
       }
     ],
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 22,
-        "visitors": 17,
+        "visits": 24,
+        "visitors": 19,
         "top_referrer": null
       },
       {
@@ -294,8 +228,8 @@
   },
   "last_30d": {
     "days": 30,
-    "visitors": 100,
-    "pageviews": 199,
+    "visitors": 102,
+    "pageviews": 201,
     "tool_users": 7,
     "tool_runs": 12,
     "pricing_views": 19,
@@ -304,8 +238,8 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 199,
-        "visitors": 100
+        "count": 201,
+        "visitors": 102
       },
       "signup_started": {
         "count": 7,
@@ -319,8 +253,8 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 116,
-        "visitors": 86
+        "views": 118,
+        "visitors": 88
       },
       {
         "path": "/pricing",
@@ -394,15 +328,15 @@
       }
     ],
     "sources_available": true,
-    "visits": 34,
+    "visits": 36,
     "bot_pageviews": 29,
-    "bot_share": 0.127,
-    "mobile_share": 0.875,
+    "bot_share": 0.126,
+    "mobile_share": 0.808,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 34,
-        "visitors": 24
+        "visits": 36,
+        "visitors": 26
       }
     ],
     "top_countries": [
@@ -412,14 +346,18 @@
       },
       {
         "country": "US",
-        "visitors": 24
+        "visitors": 25
+      },
+      {
+        "country": "DE",
+        "visitors": 1
       }
     ],
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 22,
-        "visitors": 17,
+        "visits": 24,
+        "visitors": 19,
         "top_referrer": null
       },
       {

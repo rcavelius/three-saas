@@ -1,9 +1,9 @@
 {
   "site": "webhooktrail.com",
-  "checked_at": "2026-11-24T01:03:36.858Z",
+  "checked_at": "2026-11-24T23:09:13.843Z",
   "sitemap_status": 200,
-  "sitemap_urls": 38,
-  "internal_links_checked": 40,
+  "sitemap_urls": 40,
+  "internal_links_checked": 42,
   "sitemap_non_200": [],
   "broken_links": [],
   "missing_from_sitemap": [],
