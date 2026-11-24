@@ -61,6 +61,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-24",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added /tools/noindex-canonical-conflict-checker (claims pinned in tools.test.ts; page cap raised 14->15). FOCUS asked for 2 pages but generation 1 = 1 unit."
+      ],
+      "metrics": {
+        "visitors_7d": 10,
+        "tool_users_7d": 1,
+        "pricing_views_7d": 1,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

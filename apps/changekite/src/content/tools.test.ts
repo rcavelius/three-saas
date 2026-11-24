@@ -20,9 +20,9 @@ const diffSource = readFileSync(join(src, "lib/monitoring/diff.ts"), "utf8");
 const copy = (t: (typeof TOOLS)[number]) => [t.title, t.h1, t.description, t.intro, ...t.howTo, ...t.faq.flatMap((f) => [f.q, f.a])].join("\n");
 
 describe("tool landing pages", () => {
-  it("have 8-14 pages with unique slugs and search-sized titles and descriptions", () => {
+  it("have 8-15 pages with unique slugs and search-sized titles and descriptions", () => {
     expect(TOOLS.length).toBeGreaterThanOrEqual(8);
-    expect(TOOLS.length).toBeLessThanOrEqual(14);
+    expect(TOOLS.length).toBeLessThanOrEqual(15);
     expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(TOOLS.length);
     expect(new Set(TOOLS.map((t) => t.title)).size).toBe(TOOLS.length);
     for (const t of TOOLS) {
@@ -115,6 +115,15 @@ describe("tool landing pages", () => {
     expect(hsts).toContain("max-age=31536000");
     expect(copy(TOOLS.find((t) => t.slug === "http-to-https-redirect-checker")!)).toContain("301/308");
     expect(site).toContain("301/308");
+  });
+
+  it("the noindex/canonical page matches the canonical check", () => {
+    const canon = readFileSync(join(src, "lib/scanner/checks/canonical.ts"), "utf8");
+    expect(canon).toContain("if (noindex && !self)");
+    expect(canon).toContain('severity: "critical"');
+    const page = copy(TOOLS.find((t) => t.slug === "noindex-canonical-conflict-checker")!);
+    expect(page).toContain("noindex");
+    expect(page).toContain("self-referencing");
   });
 
   it("every tool page and the index are in the sitemap", () => {

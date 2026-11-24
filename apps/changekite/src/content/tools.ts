@@ -368,6 +368,28 @@ export const TOOLS: ToolPage[] = [
     ],
   },
   {
+    slug: "noindex-canonical-conflict-checker",
+    title: "Noindex and canonical conflict checker: mixed signals to Google",
+    h1: "Noindex and canonical conflict checker",
+    description:
+      "Find pages that are noindex but also canonicalise to another URL, and canonicals that point at redirecting or broken pages. Free scan, no account needed.",
+    intro:
+      "A page that says noindex and also names a different canonical URL sends search engines two opposite instructions, and the mixed signal can drop the target page too. ChangeKite reads the robots directives and the canonical on every page it crawls and reports each page where they disagree.",
+    checks: ["canonical"],
+    rules: ["canonical-noindex-conflict", "canonical-redirects", "canonical-broken"],
+    howTo: [
+      "Enter your homepage above and run the scan.",
+      "Open Canonical URLs in the report: a finding appears for each noindex page whose canonical points at a different URL.",
+      "Pick one signal for each page: keep noindex and drop the canonical, or make the page indexable and let the canonical consolidate it.",
+      "Scan again to confirm the finding is gone.",
+    ],
+    faq: [
+      { q: "What exactly is flagged?", a: "A page marked noindex whose canonical resolves to a different URL than the page itself. A noindex page with a self-referencing canonical is not flagged." },
+      { q: "How serious is it?", a: "It is a warning. A canonical whose target returns 4xx or 5xx is critical, and one whose target redirects is a warning." },
+      { q: "Where is the canonical read from?", a: "From <head> and from the Link HTTP header of each crawled page." },
+    ],
+  },
+  {
     slug: "monitor-website-for-broken-links",
     title: "Monitor your website for broken links, with email alerts",
     h1: "Monitor your website for broken links",
