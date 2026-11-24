@@ -1,16 +1,13 @@
-# WebhookTrail focus — 2026-11-23
-Data: metrics generated 2026-11-23T08:57Z; visitors 7 d 4; visits 7 d unknown (tracking began today); paid 0.
+# WebhookTrail focus — 2026-11-24
+Data: metrics generated 2026-11-24T01:02Z; visitors 7 d 10; visits 7 d 11 (tracking began 2026-11-23, partial window); paid 0.
 
 ## Diagnosis
-Only 4 visitors in 7 d, all on / and nowhere else: sample too small to conclude. Referrers and landing pages are unknown until source data accumulates. Site-check is clean; the site has almost no entry points besides the homepage.
-
+All 11 visits are (direct or hidden) and all landed on /. 10 visitors in 7 d, 0 tool users, 0 pricing views, 0 signups, 0 checkout. Mobile 71.4%. Biggest leak: visitors do not create an endpoint. Sample too small to conclude. Site-check is clean.
 ## pages
-- Add 1–2 narrow long-tail landing pages for specific searches; link them from the homepage and each other.
+- Add 2 more narrow long-tester pages (neighbours of the Twilio and Slack testers, e.g. other common webhook senders) and list them on /tools.
 ## guides
-- Write one how-to guide on a specific problem, linking to the product's main action and to two related pages.
+- Link each guide to two tester pages with a "create an endpoint and try it" call; link guides from /guides.
 ## convert
-- Make the homepage's first screen lead to a first webhook capture (copy and links on your own pages only).
-- Check the first screen at phone width (mobile share unknown).
+- On /, show an example captured request one step from "Create endpoint", and add a "Create endpoint" link on each tester page (copy and links on your own pages only).
 ## Don't
 - No work on pricing pages, billing or paywall code.
-- Do not read "visits 0" as "no search traffic": source data only started today, so it is missing data.

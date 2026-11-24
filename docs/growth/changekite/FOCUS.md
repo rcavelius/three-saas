@@ -1,16 +1,13 @@
-# ChangeKite focus — 2026-11-23
-Data: metrics generated 2026-11-23T08:57Z; visitors 7 d 5; visits 7 d unknown (tracking began today); paid 0.
+# ChangeKite focus — 2026-11-24
+Data: metrics generated 2026-11-24T01:02Z; visitors 7 d 10; visits 7 d 12 (tracking began 2026-11-23, partial window); paid 0.
 
 ## Diagnosis
-Only 5 visitors in 7 d, all on / and nowhere else: sample too small to conclude. Referrers and landing pages are unknown until source data accumulates. Site-check is clean; the site has almost no entry points besides the homepage.
-
+All 12 visits are (direct or hidden) and all landed on /. 10 visitors in 7 d, 1 used the tool, 1 viewed /pricing, 0 signup, 0 checkout. Mobile 50%. No one lands on tool pages or guides yet, so search is not sending anyone. Biggest leak: visitors do not scan. Sample too small to conclude. Site-check is clean.
 ## pages
-- Add 1–2 narrow long-tail landing pages for specific searches; link them from the homepage and each other.
+- Target 2 more narrow long-tail checker pages (e.g. neighbours of the HTTPS/HSTS pages), each with the scan form first; list them on /tools.
 ## guides
-- Write one how-to guide on a specific problem, linking to the product's main action and to two related pages.
+- Link each guide to two tool pages with a "scan your site now" call; link the guides from /guides and /docs.
 ## convert
-- Make the homepage's first screen lead to a first website scan (copy and links on your own pages only).
-- Check the first screen at phone width (mobile share unknown).
+- On /, show what a finished scan result looks like (use only features that exist) one step from the scan box. Copy and links on your own pages only; the homepage was redesigned on main, re-read it before editing.
 ## Don't
-- No work on pricing pages, billing or paywall code.
-- Do not read "visits 0" as "no search traffic": source data only started today, so it is missing data.
+- No work on pricing pages, billing or paywall code. No homepage edits without re-reading the current file.
