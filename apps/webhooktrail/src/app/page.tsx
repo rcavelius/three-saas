@@ -214,7 +214,7 @@ export default function Home() {
           </h2>
           <div className="g-row grid-cols-1 md:grid-cols-2">
             {[
-              { title: "Tools", href: "/tools", items: TOOLS.slice(0, 5).map((t) => [t.h1, `/tools/${t.slug}`] as const) },
+              { title: "Tools", href: "/tools", items: TOOLS.map((t) => [t.h1, `/tools/${t.slug}`] as const) },
               { title: "Guides", href: "/guides", items: GUIDES.map((g) => [g.title, `/guides/${g.slug}`] as const) },
             ].map((col) => (
               <div key={col.title} className="g-x">
