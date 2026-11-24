@@ -1,8 +1,8 @@
 {
   "about": "Checkout health. test_mode = weekly real-browser purchase of every pass and one monthly plan per app with Stripe TEST cards (free limit → paywall → Stripe Checkout → webhook → unlock cookie/link → paid limits). live_smoke = daily live Checkout sessions opened through the live sites and expired unpaid. Written by .github/workflows/checkout-e2e.yml.",
-  "updated_at": "2026-11-23T21:27:32.152Z",
+  "updated_at": "2026-11-24T18:37:12.615Z",
   "ok": true,
-  "last_run": "https://github.com/rcavelius/three-saas/actions/runs/45269176029",
+  "last_run": "https://github.com/rcavelius/three-saas/actions/runs/45461263297",
   "test_mode": {
     "run_at": "2026-11-23T21:27:32.152Z",
     "ok": true,
@@ -46,7 +46,7 @@
     ]
   },
   "live_smoke": {
-    "run_at": "2026-11-23T21:24:09.019Z",
+    "run_at": "2026-11-24T18:36:51.575Z",
     "ok": true,
     "checks": [
       {
@@ -70,6 +70,72 @@
       {
         "app": "gridrinse",
         "flow": "pass day $5",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template annual-budget-planner $7.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template paycheck-budget-planner $6.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template debt-payoff-planner $5.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template savings-challenge-tracker $4.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template small-business-bookkeeping $12.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template inventory-tracker $9.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template etsy-seller-profit-tracker $14.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template wedding-budget-planner $14.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template rental-property-manager $16.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template airbnb-host-tracker $14.99",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "app": "gridrinse",
+        "flow": "template bundle $39",
         "ok": true,
         "failed": []
       },
