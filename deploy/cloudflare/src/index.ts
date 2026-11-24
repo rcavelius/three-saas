@@ -6,6 +6,8 @@
  *     authenticate themselves (signed webhooks, cron bearer, health, WebhookTrail capture URLs) are exempt
  *   - forward every request to the app's container (our existing Docker image, port 8080)
  *   - Cron Trigger -> POST /api/cron/tick inside the container (wakes it if asleep)
+ *   - GridRinse template downloads: signed /api/templates/file links answered from the private KV namespace
+ *     (TEMPLATE_FILES binding) without waking the container
  * The container receives its configuration as environment variables at start. When a secret changes
  * (wrangler secret bulk), the next request notices the fingerprint changed and restarts the container.
  */
@@ -64,6 +66,9 @@ export interface Env {
   EMAIL?: { send(message: unknown): Promise<{ messageId?: string }> };
   EMAIL_FROM?: string;
   EMAIL_RELAY_SECRET?: string;
+  /** GridRinse only: private KV namespace holding the paid template files (keys t/<slug>/<file>). */
+  TEMPLATE_FILES?: KVNamespace;
+  SESSION_SECRET?: string;
   [key: string]: unknown;
 }
 
@@ -119,6 +124,59 @@ async function emailRelay(request: Request, env: Env): Promise<Response> {
     console.error(JSON.stringify({ level: "error", msg: "email send failed", app: env.APP_NAME, code }));
     return json(retryable ? 503 : 400, { code });
   }
+}
+
+const TEMPLATE_FILE_PATH = "/api/templates/file";
+const TEMPLATE_KEY_RE = /^t\/[a-z0-9-]{1,60}\/[A-Za-z0-9][A-Za-z0-9._-]{0,90}\.(xlsx|pdf)$/;
+const TEMPLATE_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,90}\.(xlsx|pdf)$/;
+
+function base64url(bytes: ArrayBuffer): string {
+  let s = "";
+  for (const b of new Uint8Array(bytes)) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function hmac(key: ArrayBuffer | Uint8Array, data: string): Promise<ArrayBuffer> {
+  const k = await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return crypto.subtle.sign("HMAC", k, new TextEncoder().encode(data));
+}
+
+/**
+ * Signed template download (made by the app's download page, apps/gridrinse/src/server/templateShop.ts):
+ * s = HMAC-SHA256(HMAC-SHA256(SESSION_SECRET, "template-files-v1"), k + LF + n + LF + e). Expired or forged links
+ * get 403; the file streams from private KV with no-store caching.
+ */
+async function templateFile(request: Request, env: Env, url: URL): Promise<Response> {
+  if (request.method !== "GET" && request.method !== "HEAD") return json(405, { code: "method_not_allowed" });
+  const secret = env.SESSION_SECRET;
+  if (!env.TEMPLATE_FILES || !secret) return json(503, { code: "storage_unavailable" });
+  const k = url.searchParams.get("k") ?? "";
+  const n = url.searchParams.get("n") ?? "";
+  const e = Number(url.searchParams.get("e"));
+  const s = url.searchParams.get("s") ?? "";
+  const denied = () => json(403, { error: "link_invalid_or_expired", message: "This download link has expired. Open your download page again for a fresh one." });
+  if (!TEMPLATE_KEY_RE.test(k) || !TEMPLATE_NAME_RE.test(n) || !Number.isSafeInteger(e) || s.length > 100) return denied();
+  if (e * 1000 < Date.now()) return denied();
+  const key = await hmac(new TextEncoder().encode(secret), "template-files-v1");
+  const want = base64url(await hmac(key, `${k}\n${n}\n${e}`));
+  if (!constantTimeEqual(s, want)) return denied();
+  const obj = await env.TEMPLATE_FILES.get(k, "arrayBuffer");
+  if (!obj) {
+    console.error(JSON.stringify({ level: "error", msg: "template file missing", app: env.APP_NAME, key: k }));
+    return json(404, { code: "not_found" });
+  }
+  console.log(JSON.stringify({ level: "info", msg: "template file served", app: env.APP_NAME, key: k, bytes: obj.byteLength }));
+  return new Response(request.method === "HEAD" ? null : obj, {
+    status: 200,
+    headers: {
+      "content-type": n.endsWith(".pdf") ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "content-disposition": `attachment; filename="${n}"`,
+      "content-length": String(obj.byteLength),
+      "cache-control": "private, no-store",
+      "x-content-type-options": "nosniff",
+      "x-robots-tag": "noindex",
+    },
+  });
 }
 
 function containerEnv(env: Env): Record<string, string> {
@@ -258,6 +316,7 @@ export default {
     });
     const denied = gate(request);
     if (denied) return denied;
+    if (url.pathname === TEMPLATE_FILE_PATH && env.TEMPLATE_FILES) return templateFile(request, env, url);
     const res = await env.APP.getByName(INSTANCE).fetch(forwardable(request, url));
     if (env.STAGING_PASSWORD && env.STAGING_PASSWORD.length >= 12) {
       const out = new Response(res.body, res);

@@ -11,7 +11,7 @@ import Stripe from "stripe";
 import { createDb, type DbHandle } from "@repo/database";
 import { CORE_MIGRATIONS } from "@repo/database";
 import type { Billing } from "./billing";
-import type { Catalog } from "./catalog";
+import type { Catalog, ProductDef } from "./catalog";
 import {
   normalizeCheckoutSession,
   normalizeEvent,
@@ -48,6 +48,8 @@ export interface FakeStripeOptions {
   catalogs?: Catalog[];
   /** Artificial latency for customers.create (widens race windows in tests). */
   latencyMs?: number;
+  /** One-time digital products: a Stripe price is created for each one's lookup key. */
+  products?: ProductDef[];
 }
 
 const PERIOD_SECONDS = 30 * 86_400;
@@ -86,6 +88,7 @@ export class FakeStripe implements StripeGateway {
       for (const p of c.plans) if (p.stripeLookupKey) this.addPrice(p.stripeLookupKey, p.priceMonthlyCents, `${c.app} ${p.name}`);
       for (const p of c.passes ?? []) this.addPrice(p.stripeLookupKey, p.priceCents, `${c.app} ${p.name}`, { oneTime: true });
     }
+    for (const p of opts.products ?? []) this.addPrice(p.stripeLookupKey, p.priceCents, p.name, { oneTime: true });
   }
 
   // ---- utilities ------------------------------------------------------------------------------
@@ -216,6 +219,10 @@ export class FakeStripe implements StripeGateway {
           throw new FakeStripeError("No such customer", 404, "resource_missing");
         }
         for (const li of params.line_items) {
+          if ("price_data" in li) {
+            if (params.mode !== "payment" || !(li.price_data.unit_amount > 0)) throw new FakeStripeError("Invalid price_data", 400, "invalid_request");
+            continue;
+          }
           const price = this.pricesById.get(li.price);
           if (!price) throw new FakeStripeError(`No such price: '${li.price}'`, 404, "resource_missing");
           if ((params.mode === "payment") !== (price.type === "one_time")) {
@@ -336,7 +343,8 @@ export class FakeStripe implements StripeGateway {
     const session = this.sessionsById.get(sessionId);
     if (!session) throw new Error(`FakeStripe: no session ${sessionId}`);
     if (session.status !== "open") throw new Error("FakeStripe: session already completed");
-    const price = this.pricesById.get(session.line_items[0].price)!;
+    const li = session.line_items[0];
+    const price = li.price_data ? { unit_amount: li.price_data.unit_amount } : this.pricesById.get(li.price)!;
     const now = this.nowSec();
     const sub = {
       id: this.id("sub"),
@@ -384,7 +392,8 @@ export class FakeStripe implements StripeGateway {
     if (!session) throw new Error(`FakeStripe: no session ${sessionId}`);
     if (session.status !== "open") throw new Error("FakeStripe: session already completed");
     if (session.mode !== "payment") throw new Error("FakeStripe: not a payment session");
-    const price = this.pricesById.get(session.line_items[0].price)!;
+    const li = session.line_items[0];
+    const price = li.price_data ? { unit_amount: li.price_data.unit_amount } : this.pricesById.get(li.price)!;
     const customer = this.id("cus");
     const email = opts.email ?? session.customer_email ?? "buyer@example.test";
     this.customersById.set(customer, { id: customer, object: "customer", email, metadata: {}, created: this.nowSec() });

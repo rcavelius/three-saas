@@ -12,10 +12,11 @@
  * - Entitlements are computed server-side from billing_subscriptions only.
  */
 import type { DbHandle, SqlExecutor } from "@repo/database";
-import { applyPassGrants, getFreePlan, getPass, getPlan, planByLookupKey, type Catalog, type PassDef, type PlanDef } from "./catalog";
+import { applyPassGrants, defineProducts, getFreePlan, getPass, getPlan, planByLookupKey, type Catalog, type PassDef, type PlanDef, type ProductDef } from "./catalog";
 import { BillingNotConfiguredError,
   invoiceSubscriptionId,
   type GatewayCheckoutSession,
+  type PaymentCheckoutSessionParams,
   normalizeSubscription,
   type GatewayEvent,
   type GatewaySubscription,
@@ -53,6 +54,8 @@ export interface BillingHooks {
   onCancellationScheduled?(orgId: string, info: { planId: string; endsAt: Date | null }): Promise<void>;
   /** A one-time pass was paid and recorded (fires once per pass). */
   onPassPurchased?(pass: ActivePass): Promise<void>;
+  /** A one-time product was paid and recorded (fires once per order): send the receipt with the download link. */
+  onOrderPaid?(order: Order): Promise<void>;
   /** Extension: incident-worthy problems (wire to @repo/ops raiseIncident). */
   onAnomaly?(a: BillingAnomaly): Promise<void>;
 }
@@ -94,7 +97,29 @@ export interface BillingOptions {
   passCookie?: { name: string; secret: string };
   /** Card statement suffix for one-time payments (e.g. "GRIDRINSE.COM"); subscriptions use the product descriptor. */
   passStatementDescriptorSuffix?: string;
+  /** One-time digital products sold by this app (see ProductDef). */
+  products?: ProductDef[];
+  /** Stripe Tax code for products whose price is created inline. Default txcd_10000000 (general electronically supplied). */
+  productTaxCode?: string;
 }
+
+/** A paid, recorded order of a one-time product. */
+export interface Order {
+  /** Stripe Checkout Session id (also the bearer reference in the buyer's download link). */
+  id: string;
+  productId: string;
+  name: string;
+  email: string | null;
+  amountCents: number | null;
+  currency: string | null;
+  paidAt: Date;
+  /** Downloads work until then (unless refunded). */
+  accessUntil: Date;
+}
+
+export type OrderClaim =
+  | { status: "active" | "expired" | "revoked"; order: Order }
+  | { status: "unpaid" | "invalid" };
 
 /** A paid, recorded pass that has not expired or been refunded. */
 export interface ActivePass {
@@ -164,6 +189,18 @@ export interface Billing {
   passIdsFromCookieHeader(cookieHeader: string | null): string[];
   /** Set-Cookie header value carrying the pass until it expires (null without passCookie configured). */
   passSetCookie(pass: Pick<ActivePass, "id"> & { expiresAt: Date | null }, opts?: { secure?: boolean }): string | null;
+  /** The app's one-time products. */
+  readonly products: readonly ProductDef[];
+  /**
+   * Stripe Checkout (mode "payment") for a one-time product. No account needed. successPath must contain
+   * {CHECKOUT_SESSION_ID} (Stripe fills it in); cancelPath is where "back" on Checkout leads.
+   */
+  createProductCheckout(
+    productId: string,
+    opts: { successPath: string; cancelPath?: string; email?: string | null },
+  ): Promise<{ url: string; id: string }>;
+  /** Verifies a Checkout Session with Stripe and records the order (idempotent; also done by the webhook). */
+  claimOrder(sessionId: string): Promise<OrderClaim>;
   consumeUsage(orgId: string, metric: string, amount: number, opts?: { period?: string }): Promise<UsageResult>;
   releaseUsage(orgId: string, metric: string, amount: number, opts?: { period?: string }): Promise<void>;
   getUsage(orgId: string, metric: string, opts?: { period?: string }): Promise<number>;
@@ -289,6 +326,8 @@ const MAX_PASS_IDS = 5;
 const EMAIL_RE = /^[^\s@]{1,200}@[^\s@]{1,200}$/;
 
 const PASS_COLUMNS = `id, pass_id, org_id, email, starts_at, expires_at, revoked_at`;
+const ORDER_COLUMNS = `id, product_id, email, amount_cents, currency, paid_at, access_until, revoked_at`;
+const DEFAULT_PRODUCT_TAX_CODE = "txcd_10000000";
 
 /** A same-site path to come back to after Checkout ("/tools/x?y=1"); anything else becomes "/". */
 export function safeReturnPath(p: unknown): string {
@@ -306,6 +345,7 @@ export function createBilling(opts: BillingOptions): Billing {
   const graceMs = (opts.gracePeriodDays ?? 7) * DAY_MS;
   const freePlan = getFreePlan(catalog);
   const configured = stripe.mode !== "none";
+  const products = defineProducts(opts.products ?? []);
   if (configured && !opts.webhookSecret) throw new Error("createBilling: webhookSecret is required");
   if (opts.passCookie && (opts.passCookie.secret.length < 32 || !/^[A-Za-z0-9_-]{1,40}$/.test(opts.passCookie.name))) {
     throw new Error("createBilling: passCookie needs a cookie name and a secret of at least 32 characters");
@@ -656,6 +696,7 @@ export function createBilling(opts: BillingOptions): Billing {
   type Prepared =
     | { kind: "subscription"; sub: GatewaySubscription; payment?: PaymentFailedInfo; expectOrg?: string }
     | { kind: "pass"; session: GatewayCheckoutSession }
+    | { kind: "order"; session: GatewayCheckoutSession }
     | { kind: "refund"; paymentIntent: string }
     | { kind: "ignore"; reason: string };
 
@@ -676,9 +717,12 @@ export function createBilling(opts: BillingOptions): Billing {
       case "checkout.session.async_payment_succeeded": {
         if (o.mode === "payment") {
           const md = (o.metadata ?? {}) as Record<string, unknown>;
-          if (md.app !== catalog.app || md.kind !== "pass") return { kind: "ignore", reason: "payment checkout of another product" };
+          if (md.app !== catalog.app || (md.kind !== "pass" && md.kind !== "product")) {
+            return { kind: "ignore", reason: "payment checkout of another product" };
+          }
           // Source of truth: re-fetch the session (payment status) from Stripe.
-          return { kind: "pass", session: await stripe.checkout.sessions.retrieve(String(o.id)) };
+          const session = await stripe.checkout.sessions.retrieve(String(o.id));
+          return md.kind === "product" ? { kind: "order", session } : { kind: "pass", session };
         }
         if (event.type !== "checkout.session.completed") return { kind: "ignore", reason: "async payment of a subscription checkout" };
         if (o.mode !== "subscription") return { kind: "ignore", reason: "not a subscription checkout" };
@@ -762,6 +806,7 @@ export function createBilling(opts: BillingOptions): Billing {
         let error: string | null = null;
         let orgId: string | null = null;
         let newPass: ActivePass | null = null;
+        let newOrder: Order | null = null;
         if (prepared.kind === "ignore") {
           label = "ignored";
           error = null;
@@ -775,13 +820,26 @@ export function createBilling(opts: BillingOptions): Billing {
             orgId = r.pass.orgId;
             if (r.kind === "created") newPass = r.pass;
           }
+        } else if (prepared.kind === "order") {
+          const r = await recordOrderTx(tx, prepared.session);
+          if (r.kind === "rejected") {
+            label = "ignored";
+            error = r.reason;
+          } else {
+            label = "processed";
+            if (r.kind === "created") newOrder = r.order;
+          }
         } else if (prepared.kind === "refund") {
           const { rows } = await tx.query<{ id: string; org_id: string | null }>(
             `UPDATE billing_passes SET revoked_at = $2 WHERE payment_intent_id = $1 AND app = $3 AND revoked_at IS NULL
              RETURNING id, org_id`,
             [prepared.paymentIntent, now(), catalog.app],
           );
-          label = rows.length ? "processed" : "ignored";
+          const orders = await tx.query<{ id: string }>(
+            `UPDATE billing_orders SET revoked_at = $2 WHERE payment_intent_id = $1 AND app = $3 AND revoked_at IS NULL RETURNING id`,
+            [prepared.paymentIntent, now(), catalog.app],
+          );
+          label = rows.length || orders.rows.length ? "processed" : "ignored";
           orgId = rows[0]?.org_id ?? null;
         } else {
           result = await applySubscription(tx, prepared.sub, event.created);
@@ -805,7 +863,7 @@ export function createBilling(opts: BillingOptions): Billing {
           `UPDATE billing_events SET processed_at = $2, outcome = $3, error = $4, org_id = $5 WHERE id = $1`,
           [event.id, now(), label, error, orgId],
         );
-        return { duplicate: false as const, result, label, orgId, error, newPass };
+        return { duplicate: false as const, result, label, orgId, error, newPass, newOrder };
       });
       if (outcome.duplicate) return text(200, JSON.stringify({ received: true, duplicate: true }));
 
@@ -818,6 +876,11 @@ export function createBilling(opts: BillingOptions): Billing {
           orgId: pass.orgId ?? undefined,
           eventId: event.id,
         });
+        if (e) hookErrors.push(e);
+      }
+      if (outcome.newOrder) {
+        const order = outcome.newOrder;
+        const e = await safeHook("onOrderPaid", hooks.onOrderPaid && (() => hooks.onOrderPaid!(order)), { eventId: event.id });
         if (e) hookErrors.push(e);
       }
       if (outcome.error && outcome.label === "processed" && outcome.orgId) {
@@ -992,6 +1055,151 @@ export function createBilling(opts: BillingOptions): Billing {
     if (raw.revoked_at) return { status: "revoked", pass };
     if (pass.expiresAt.getTime() <= now().getTime()) return { status: "expired", pass };
     return { status: "active", pass };
+  }
+
+  // ---- one-time products (orders) ----------------------------------------------------------
+
+  function productDefOf(productId: string): ProductDef | undefined {
+    return products.find((p) => p.id === productId);
+  }
+
+  function orderOf(r: Record<string, unknown>): Order {
+    const productId = String(r.product_id);
+    return {
+      id: String(r.id),
+      productId,
+      name: productDefOf(productId)?.name ?? productId,
+      email: (r.email as string | null) ?? null,
+      amountCents: r.amount_cents == null ? null : Number(r.amount_cents),
+      currency: (r.currency as string | null) ?? null,
+      paidAt: toDate(r.paid_at)!,
+      accessUntil: toDate(r.access_until)!,
+    };
+  }
+
+  type OrderRecord = { kind: "created" | "existing"; order: Order } | { kind: "rejected"; reason: string };
+
+  /** Records a paid product session once (id = session id). Access runs accessDays from the first record. */
+  async function recordOrderTx(tx: SqlExecutor, session: GatewayCheckoutSession): Promise<OrderRecord> {
+    const md = session.metadata ?? {};
+    if (session.mode !== "payment" || md.app !== catalog.app || md.kind !== "product") {
+      return { kind: "rejected", reason: `checkout ${session.id} is not a ${catalog.app} product` };
+    }
+    const def = productDefOf(md.productId ?? "");
+    if (!def) return { kind: "rejected", reason: `checkout ${session.id} names unknown product ${md.productId ?? "?"}` };
+    if (session.paymentStatus !== "paid") return { kind: "rejected", reason: `checkout ${session.id} is not paid (${session.paymentStatus})` };
+    const paidAt = now();
+    const accessUntil = new Date(paidAt.getTime() + def.accessDays * DAY_MS);
+    const ins = await tx.query<Record<string, unknown>>(
+      `INSERT INTO billing_orders (id, app, product_id, email, stripe_customer_id, payment_intent_id, amount_cents, currency,
+         livemode, paid_at, access_until)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       ON CONFLICT (id) DO NOTHING
+       RETURNING ${ORDER_COLUMNS}`,
+      [
+        session.id,
+        catalog.app,
+        def.id,
+        session.customerEmail ? session.customerEmail.slice(0, 320) : null,
+        session.customer,
+        session.paymentIntent,
+        session.amountTotal,
+        session.currency,
+        session.livemode,
+        paidAt,
+        accessUntil,
+      ],
+    );
+    if (ins.rows[0]) return { kind: "created", order: orderOf(ins.rows[0]) };
+    const again = (await tx.query<Record<string, unknown>>(`SELECT ${ORDER_COLUMNS} FROM billing_orders WHERE id = $1`, [session.id])).rows[0]!;
+    return { kind: "existing", order: orderOf(again) };
+  }
+
+  /** The product's lookup-key price, or an inline price when none exists yet (a product added after the setup run). */
+  async function productLineItem(def: ProductDef): Promise<PaymentCheckoutSessionParams["line_items"][number]> {
+    const prices = (await stripe.prices.listByLookupKeys([def.stripeLookupKey])).filter((p) => p.active && p.lookupKey === def.stripeLookupKey);
+    if (prices.length > 0) return { price: await priceIdForKey(def.stripeLookupKey, def.priceCents), quantity: 1 };
+    return {
+      price_data: {
+        currency: "usd",
+        unit_amount: def.priceCents,
+        tax_behavior: "exclusive",
+        product_data: {
+          name: def.name,
+          tax_code: opts.productTaxCode ?? DEFAULT_PRODUCT_TAX_CODE,
+          metadata: { app: catalog.app, kind: "product", productId: def.id },
+        },
+      },
+      quantity: 1,
+    };
+  }
+
+  async function createProductCheckout(
+    productId: string,
+    o: { successPath: string; cancelPath?: string; email?: string | null },
+  ): Promise<{ url: string; id: string }> {
+    const def = typeof productId === "string" ? productDefOf(productId) : undefined;
+    if (!def) throw new BillingError("invalid_plan", `Unknown product "${String(productId)}"`, 400);
+    if (typeof o.successPath !== "string" || !o.successPath.startsWith("/") || !o.successPath.includes("{CHECKOUT_SESSION_ID}")) {
+      throw new BillingError("invalid_input", "successPath must be a path containing {CHECKOUT_SESSION_ID}", 400);
+    }
+    if (!configured) throw new BillingNotConfiguredError();
+    const lineItem = await productLineItem(def);
+    const metadata: Record<string, string> = { app: catalog.app, kind: "product", productId: def.id };
+    const email = typeof o.email === "string" && EMAIL_RE.test(o.email) ? o.email : undefined;
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer_creation: "always",
+      ...(email ? { customer_email: email } : {}),
+      line_items: [lineItem],
+      success_url: `${appUrl}${o.successPath}`,
+      cancel_url: `${appUrl}${safeReturnPath(o.cancelPath)}`,
+      allow_promotion_codes: opts.allowPromotionCodes ?? false,
+      metadata,
+      payment_intent_data: {
+        metadata,
+        ...(opts.passStatementDescriptorSuffix ? { statement_descriptor_suffix: opts.passStatementDescriptorSuffix.slice(0, 22) } : {}),
+      },
+      ...(opts.checkoutBranding ? { branding_settings: opts.checkoutBranding } : {}),
+      ...(opts.automaticTax
+        ? { automatic_tax: { enabled: true }, billing_address_collection: "required" as const, tax_id_collection: { enabled: true } }
+        : {}),
+    });
+    return { url: session.url, id: session.id };
+  }
+
+  async function claimOrder(sessionId: string): Promise<OrderClaim> {
+    if (typeof sessionId !== "string" || !SESSION_ID_RE.test(sessionId)) return { status: "invalid" };
+    if (products.length === 0) return { status: "invalid" };
+    const load = async () =>
+      (await ex.query<Record<string, unknown>>(`SELECT ${ORDER_COLUMNS} FROM billing_orders WHERE id = $1 AND app = $2`, [sessionId, catalog.app]))
+        .rows[0];
+    let raw = await load();
+    if (!raw) {
+      if (!configured) return { status: "invalid" };
+      let session: GatewayCheckoutSession;
+      try {
+        session = await stripe.checkout.sessions.retrieve(sessionId);
+      } catch (e) {
+        if (isNotFound(e)) return { status: "invalid" };
+        throw e;
+      }
+      const md = session.metadata ?? {};
+      if (session.mode !== "payment" || md.app !== catalog.app || md.kind !== "product") return { status: "invalid" };
+      if (session.paymentStatus !== "paid") return { status: "unpaid" };
+      const r = await handle.transaction((tx) => recordOrderTx(tx, session));
+      if (r.kind === "rejected") return { status: "invalid" };
+      if (r.kind === "created") {
+        const order = r.order;
+        await safeHook("onOrderPaid", hooks.onOrderPaid && (() => hooks.onOrderPaid!(order)), {});
+      }
+      raw = await load();
+    }
+    if (!raw) return { status: "invalid" };
+    const order = orderOf(raw);
+    if (raw.revoked_at) return { status: "revoked", order };
+    if (order.accessUntil.getTime() <= now().getTime()) return { status: "expired", order };
+    return { status: "active", order };
   }
 
   function passIdsFromCookieHeader(cookieHeader: string | null): string[] {
@@ -1196,6 +1404,9 @@ export function createBilling(opts: BillingOptions): Billing {
     getActivePasses,
     passIdsFromCookieHeader,
     passSetCookie,
+    products,
+    createProductCheckout,
+    claimOrder,
     consumeUsage,
     releaseUsage,
     getUsage,

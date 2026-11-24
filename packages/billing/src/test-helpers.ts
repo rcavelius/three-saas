@@ -1,6 +1,6 @@
 /** Shared setup for this package's own tests (not exported). */
 import { createBilling, type BillingAnomaly, type BillingHooks, type CheckoutBranding, type PaymentFailedInfo } from "./billing";
-import type { Catalog } from "./catalog";
+import type { Catalog, ProductDef } from "./catalog";
 import { CHANGEKITE_CATALOG } from "./catalogs";
 import { FakeStripe, createBillingTestDb } from "./testing";
 
@@ -16,13 +16,16 @@ export async function setup(
     automaticTax?: boolean;
     checkoutBranding?: CheckoutBranding;
     passCookie?: { name: string; secret: string };
+    products?: ProductDef[];
+    /** Products that get a pre-created Stripe price (default: all of them). */
+    pricedProducts?: ProductDef[];
   } = {},
 ) {
   const catalog = opts.catalog ?? CHANGEKITE_CATALOG;
   const clock = { t: new Date("2026-03-10T12:00:00.000Z") };
   const now = () => clock.t;
   const handle = await createBillingTestDb();
-  const fake = new FakeStripe({ webhookSecret: WEBHOOK_SECRET, now, catalogs: [catalog], latencyMs: opts.latencyMs });
+  const fake = new FakeStripe({ webhookSecret: WEBHOOK_SECRET, now, catalogs: [catalog], latencyMs: opts.latencyMs, products: opts.pricedProducts ?? opts.products });
   const seen = {
     cancellationScheduled: [] as Array<[string, { planId: string; endsAt: Date | null }]>,
     planChanged: [] as [string, string, string][],
@@ -40,6 +43,7 @@ export async function setup(
     automaticTax: opts.automaticTax,
     checkoutBranding: opts.checkoutBranding,
     passCookie: opts.passCookie,
+    products: opts.products,
     hooks: {
       onPlanChanged: async (o, f, t) => void seen.planChanged.push([o, f, t]),
       onPaymentFailed: async (o, i) => void seen.paymentFailed.push([o, i]),

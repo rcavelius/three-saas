@@ -164,10 +164,25 @@ if (stripeKey) {
   // One-time passes (Checkout mode "payment"): the PaymentIntent carries metadata { app, kind: "pass", passId }.
   const now = Date.now();
   const pass = { sales_ever: 0, revenue_usd_ever: 0, sales_1d: 0, sales_7d: 0, sales_30d: 0, revenue_usd_30d: 0, refunded: 0, by_pass: {} as Record<string, number>, sale_dates: [] as string[] };
+  // One-time products (GridRinse spreadsheet templates): metadata { app, kind: "product", productId }.
+  const product = { sales_ever: 0, revenue_usd_ever: 0, sales_1d: 0, sales_7d: 0, sales_30d: 0, revenue_usd_30d: 0, refunded: 0, by_product: {} as Record<string, number>, sale_dates: [] as string[] };
   for await (const pi of stripe.paymentIntents.list({ limit: 100, created: { gte: 1_763_000_000 }, expand: ["data.latest_charge"] })) {
-    if (pi.metadata?.app !== app || pi.metadata?.kind !== "pass" || pi.status !== "succeeded") continue;
+    if (pi.metadata?.app !== app || pi.status !== "succeeded") continue;
     const ageDays = (now - pi.created * 1000) / 86_400_000;
     const net = (pi.amount_received ?? 0) - (typeof pi.latest_charge === "object" && pi.latest_charge ? pi.latest_charge.amount_refunded : 0);
+    if (pi.metadata.kind === "product") {
+      if (net <= 0) { product.refunded++; continue; }
+      product.sales_ever++;
+      product.revenue_usd_ever += net / 100;
+      if (ageDays <= 1) product.sales_1d++;
+      if (ageDays <= 7) product.sales_7d++;
+      if (ageDays <= 30) { product.sales_30d++; product.revenue_usd_30d += net / 100; }
+      const pid = pi.metadata.productId ?? "unknown";
+      product.by_product[pid] = (product.by_product[pid] ?? 0) + 1;
+      product.sale_dates.push(new Date(pi.created * 1000).toISOString().slice(0, 10));
+      continue;
+    }
+    if (pi.metadata.kind !== "pass") continue;
     if (net <= 0) { pass.refunded++; continue; }
     pass.sales_ever++;
     pass.revenue_usd_ever += net / 100;
@@ -179,6 +194,7 @@ if (stripeKey) {
     pass.sale_dates.push(new Date(pi.created * 1000).toISOString().slice(0, 10));
   }
   pass.sale_dates.sort();
+  product.sale_dates.sort();
   stripeStats = {
     available: true,
     mode: live ? "live" : "test",
@@ -188,9 +204,10 @@ if (stripeKey) {
     canceled,
     subscription_start_dates: firstPaidDates.sort(),
     one_time_passes: pass,
-    // The one question that matters: has this product ever been paid (subscription or pass), and is it earning now?
-    paying_customers_ever: everPaid + pass.sales_ever,
-    making_money_now: active > 0 || pass.sales_30d > 0,
+    one_time_products: product,
+    // The one question that matters: has this product ever been paid (subscription, pass or template), and is it earning now?
+    paying_customers_ever: everPaid + pass.sales_ever + product.sales_ever,
+    making_money_now: active > 0 || pass.sales_30d > 0 || product.sales_30d > 0,
   };
 }
 

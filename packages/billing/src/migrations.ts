@@ -80,4 +80,28 @@ CREATE INDEX IF NOT EXISTS billing_passes_org_idx ON billing_passes (org_id, exp
 CREATE INDEX IF NOT EXISTS billing_passes_payment_intent_idx ON billing_passes (payment_intent_id);
 `,
   },
+  {
+    // One-time digital products (spreadsheet templates). id = the Stripe Checkout Session id, so the webhook and the
+    // buyer's download page record the same order at most once. access_until: when the download link stops working.
+    id: "billing_0003_orders",
+    sql: `
+CREATE TABLE IF NOT EXISTS billing_orders (
+  id text PRIMARY KEY,
+  app text NOT NULL,
+  product_id text NOT NULL,
+  email text,
+  stripe_customer_id text,
+  payment_intent_id text,
+  amount_cents integer,
+  currency text,
+  livemode boolean NOT NULL DEFAULT false,
+  paid_at timestamptz NOT NULL,
+  access_until timestamptz NOT NULL,
+  revoked_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS billing_orders_payment_intent_idx ON billing_orders (payment_intent_id);
+CREATE INDEX IF NOT EXISTS billing_orders_paid_idx ON billing_orders (app, paid_at);
+`,
+  },
 ];

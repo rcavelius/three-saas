@@ -49,6 +49,14 @@ owner sets that variable**, after Stripe account verification; agents, CI and te
 
 Subscribe each app's endpoint to `STRIPE_WEBHOOK_EVENTS` (see `scripts/setup-stripe-test.ts`).
 
+## One-time products (downloads)
+
+`createBilling({ products })` sells one-time digital products (GridRinse spreadsheet templates). `createProductCheckout`
+opens Checkout `mode: payment` (metadata `kind: "product"`; the lookup-key price, or an inline price from the catalog
+amount when none exists yet). The webhook and `claimOrder(sessionId)` record the paid session once in `billing_orders`
+(`ON CONFLICT DO NOTHING`), `hooks.onOrderPaid` fires once per order (receipt email), access lasts `accessDays`, and a
+full refund (`charge.refunded`) revokes it. Orders never change plan entitlements. Tests: `src/orders.test.ts`.
+
 ## Entitlements
 
 From the database only: `active`/`trialing` → plan; `past_due` → plan for 7 days from the first

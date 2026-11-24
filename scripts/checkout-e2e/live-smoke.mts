@@ -5,13 +5,17 @@
  *    in Stripe (payment mode, open, unpaid, right lookup key and amount, metadata, claim URL) and expire it;
  *  - plans: the site's /api/billing/checkout must refuse anonymous visitors (401; creating accounts on the live
  *    sites is off-limits for automation), the live price behind the lookup key must be active, monthly and the
- *    catalog amount, the pricing page must show it, and a live subscription Checkout for it opens and is expired.
+ *    catalog amount, the pricing page must show it, and a live subscription Checkout for it opens and is expired;
+ *  - GridRinse spreadsheet templates (and the bundle): the template page answers 200 with its price, the site's own
+ *    /api/templates/checkout opens a live Checkout (payment mode, right lookup key and amount, product metadata,
+ *    download-page success URL), which is expired at once.
  *
  *   STRIPE_LIVE_KEY_<APP>=sk_live_... npx tsx scripts/checkout-e2e/live-smoke.mts <outFile>
  */
 import { writeFileSync } from "node:fs";
 import Stripe from "stripe";
 import { ALL_CATALOGS } from "../../packages/billing/src/catalogs";
+import { BUNDLE, TEMPLATE_PRODUCTS } from "../../apps/gridrinse/src/content/templates.ts";
 
 const DOMAINS: Record<string, string> = { gridrinse: "gridrinse.com", changekite: "changekite.com", webhooktrail: "webhooktrail.com" };
 const outFile = process.argv[2] ?? "live-smoke.json";
@@ -85,6 +89,54 @@ for (const catalog of ALL_CATALOGS) {
         ["metadata", s.metadata?.app === app && s.metadata?.kind === "pass" && s.metadata?.passId === pass.id],
         ["claim url", (s.success_url ?? "").startsWith(`${origin}/api/billing/pass/claim?session_id=`)],
         ["pricing page shows the pass price", pricing.includes(usd(pass.priceCents))],
+      ];
+      for (const [n, ok] of checks) if (!ok) failed.push(n);
+    } catch (e) {
+      failed.push((e as Error).message.slice(0, 200));
+    } finally {
+      if (id) {
+        const ex = await stripe.checkout.sessions.expire(id).catch((e) => ({ status: `expire failed: ${(e as Error).message}` }));
+        if (ex.status !== "expired") failed.push("session not expired");
+      }
+    }
+    results.push({ app, flow, ok: failed.length === 0, failed });
+  }
+
+  for (const product of app === "gridrinse" ? TEMPLATE_PRODUCTS : []) {
+    const flow = `template ${product.id} ${usd(product.priceCents)}`;
+    const failed: string[] = [];
+    let id: string | undefined;
+    try {
+      const pagePath = product.id === BUNDLE.id ? "/templates" : `/templates/${product.id}`;
+      const html = await retry(async () => {
+        const r = await fetch(`${origin}${pagePath}`, { headers: { "user-agent": UA } });
+        if (r.status !== 200) throw new Error(`${pagePath} HTTP ${r.status}`);
+        return (await r.text()).replace(/<!-- -->/g, "");
+      });
+      if (!html.includes(`$${(product.priceCents / 100).toFixed(2)}`)) failed.push(`${pagePath} does not show the price`);
+      const body = await retry(async () => {
+        const res = await fetch(`${origin}/api/templates/checkout`, {
+          method: "POST",
+          headers: { "content-type": "application/json", origin, "user-agent": UA },
+          body: JSON.stringify({ productId: product.id }),
+        });
+        const b = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+        if (res.status !== 200 || !b.url) throw new Error(`template checkout HTTP ${res.status} ${b.error ?? ""}`);
+        return b;
+      });
+      if (!body.url!.startsWith("https://checkout.stripe.com/")) failed.push("checkout url not on checkout.stripe.com");
+      id = body.url!.match(/cs_live_[A-Za-z0-9]+/)?.[0];
+      if (!id) throw new Error("no live session id in the checkout url");
+      const s = await stripe.checkout.sessions.retrieve(id, { expand: ["line_items"] });
+      const li = s.line_items?.data[0];
+      const checks: [string, boolean][] = [
+        ["live", s.livemode],
+        ["payment mode", s.mode === "payment"],
+        ["open and unpaid", s.status === "open" && s.payment_status === "unpaid"],
+        [`price ${product.stripeLookupKey}`, li?.price?.lookup_key === product.stripeLookupKey && li?.price?.unit_amount === product.priceCents],
+        [`amount ${usd(product.priceCents)}`, s.amount_total === product.priceCents && s.currency === "usd"],
+        ["metadata", s.metadata?.app === app && s.metadata?.kind === "product" && s.metadata?.productId === product.id],
+        ["download page success url", (s.success_url ?? "").startsWith(`${origin}/templates/download?session_id=`)],
       ];
       for (const [n, ok] of checks) if (!ok) failed.push(n);
     } catch (e) {

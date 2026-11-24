@@ -26,6 +26,8 @@ export const EVENT_SPEC = {
   paywall_shown: { reason: ["download_rows", "download_daily", "too_big", "too_many_rows", "too_many_files"] },
   /** "Get the 24-hour pass" was clicked (Stripe Checkout is being opened). */
   pass_checkout_started: { pass: ["day"], from: ["download", "limit", "files", "pricing"] },
+  /** "Buy" on a spreadsheet template (Stripe Checkout is being opened). */
+  template_checkout_started: { product: ["single", "bundle"], from: ["catalog", "template_page", "tool_page", "guide"] },
   /** The visitor came back from a paid pass checkout with the pass active. */
   pass_activated: { pass: ["day"] },
   /** Someone downloaded a messy sample file from a tool page. */

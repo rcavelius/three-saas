@@ -86,3 +86,37 @@ expires it unpaid. The revenue dashboard counts passes from `billing_passes`.
 Checkout (card 4242), entitlements, billing portal, upgrade, downgrade, declined renewal with notice, cancel at period
 end, cancel to Free, cancellation email, account deletion (GridRinse 16/16; ChangeKite and WebhookTrail 10/10), and
 live webhook delivery to all three domains.
+
+## Spreadsheet templates (GridRinse, 2026-11-23)
+
+GridRinse also sells one-time **spreadsheet templates** at https://gridrinse.com/templates (no account needed). Checkout
+`mode: payment` with metadata `{ app: "gridrinse", kind: "product", productId }`; the webhook (and the buyer's download
+page, whichever comes first) records the order once in `billing_orders` (id = Checkout Session id), access runs 30 days,
+a full refund revokes it, and the buyer gets one receipt email with the download link (`onOrderPaid`, outbox mailer).
+Live products `gridrinse_template_<slug>` (tax code `txcd_10000000`, tax-exclusive one-time USD prices, lookup key =
+product id) were created with `scripts/templates/setup-stripe-templates.mts` (`STRIPE_LIVE_SETUP_APPROVED=yes`):
+
+| Template | Price | Lookup key |
+|---|---|---|
+| 2027 Budget Planner | $7.99 | `gridrinse_template_annual_budget_planner` |
+| Paycheck Budget Planner | $6.99 | `gridrinse_template_paycheck_budget_planner` |
+| Debt Payoff Planner | $5.99 | `gridrinse_template_debt_payoff_planner` |
+| Savings Challenge Tracker | $4.99 | `gridrinse_template_savings_challenge_tracker` |
+| Small Business Bookkeeping 2027 | $12.99 | `gridrinse_template_small_business_bookkeeping` |
+| Inventory and Stock Tracker | $9.99 | `gridrinse_template_inventory_tracker` |
+| Etsy Seller Profit Tracker | $14.99 | `gridrinse_template_etsy_seller_profit_tracker` |
+| Wedding Budget Planner | $14.99 | `gridrinse_template_wedding_budget_planner` |
+| Rental Property Manager | $16.99 | `gridrinse_template_rental_property_manager` |
+| Short-Term Rental Host Tracker | $14.99 | `gridrinse_template_airbnb_host_tracker` |
+| All 10 templates (bundle) | $39.00 | `gridrinse_template_bundle` |
+
+A template added to `apps/gridrinse/src/content/templates.ts` sells even before its price exists (Checkout then creates
+the price inline from the catalog amount); re-running the setup script gives it its own product and price.
+
+**Files** are never in this public repository. They live in the private Workers KV namespace
+`gridrinse-template-files` (id `e02eb37ac0634cdeac3491e95c3b70bd`, bound to the gridrinse Worker as `TEMPLATE_FILES`;
+R2 is not enabled on the account). The download page issues 15-minute links `/api/templates/file?k&n&e&s`
+signed with `HMAC(HMAC(SESSION_SECRET, "template-files-v1"), k + LF + n + LF + e)`, and the Worker serves them from KV without
+waking the container. Upload with `scripts/templates/upload-template-files.mjs` (needs `CLOUDFLARE_API_TOKEN`).
+Checked daily by the live smoke (a live Checkout per template, expired unpaid) and weekly by the test-mode e2e
+(card 4242 → download page → files download → one order, one receipt).

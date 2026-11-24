@@ -21,10 +21,12 @@ if (!FLOWS) throw new Error("usage: run.mts <gridrinse|changekite|webhooktrail>"
 const ctx = makeCtx(app);
 const browser = await chromium.launch({ headless: true, ...(process.env.BROWSER_CHANNEL ? { channel: process.env.BROWSER_CHANNEL } : {}) });
 const results: FlowResult[] = [];
-for (const [name, run] of [
+const flows: [string, (c: typeof ctx, b: typeof browser) => Promise<Flow>][] = [
   ["pass", FLOWS.passFlow],
   ["plan", FLOWS.planFlow],
-] as const) {
+];
+if ("templateFlow" in FLOWS) flows.push(["template", FLOWS.templateFlow]);
+for (const [name, run] of flows) {
   try {
     results.push((await run(ctx, browser)).result());
   } catch (e) {
