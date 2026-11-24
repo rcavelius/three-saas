@@ -40,6 +40,52 @@ export interface PassDef {
   features: Record<string, boolean>;
 }
 
+/**
+ * A one-time digital product (e.g. a spreadsheet template): paid once with Stripe Checkout (mode "payment"), no
+ * account needed. The buyer gets access to its downloads for `accessDays` after payment. The files themselves are the
+ * app's business; billing records the paid order (table billing_orders) and revokes it on a full refund.
+ */
+export interface ProductDef {
+  /** "debt-payoff-planner" | "bundle" | ... unique within the app's products. */
+  id: string;
+  /** Customer-facing name on Checkout and receipts. */
+  name: string;
+  /** One-time price in USD cents. */
+  priceCents: number;
+  /**
+   * Stripe Price lookup key of the one-time price, e.g. "gridrinse_template_debt_payoff_planner". When no active price
+   * has this key yet, Checkout creates the price inline from priceCents (so a new product sells without a setup run).
+   */
+  stripeLookupKey: string;
+  /** Days the download link keeps working after payment. */
+  accessDays: number;
+}
+
+export const productDefSchema = z
+  .object({
+    id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,59}$/, "product id: lowercase letters, digits, dashes"),
+    name: z.string().min(1).max(120),
+    priceCents: z.number().int().min(100).max(100_000),
+    stripeLookupKey: z.string().regex(/^[a-z0-9_]{3,200}$/, "lookup key: lowercase letters, digits, underscore"),
+    accessDays: z.number().int().min(1).max(3650),
+  })
+  .strict();
+
+/** Validates a product list (unique ids and lookup keys) and returns it. */
+export function defineProducts(products: ProductDef[]): ProductDef[] {
+  const ids = new Set<string>();
+  const keys = new Set<string>();
+  for (const p of products) {
+    const r = productDefSchema.safeParse(p);
+    if (!r.success) throw new Error(`Invalid product "${p?.id}": ${r.error.issues.map((i) => i.message).join("; ")}`);
+    if (ids.has(p.id)) throw new Error(`duplicate product id ${p.id}`);
+    if (keys.has(p.stripeLookupKey)) throw new Error(`duplicate product lookup key ${p.stripeLookupKey}`);
+    ids.add(p.id);
+    keys.add(p.stripeLookupKey);
+  }
+  return products;
+}
+
 export interface Catalog {
   /** App identifier, e.g. "changekite". Also stored in Stripe metadata. */
   app: string;

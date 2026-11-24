@@ -4,8 +4,9 @@ name: Checkout health
 # docs/growth/checkout-health.json (docs/growth/BOSS.md puts a failure at the top of DAILY-REPORT.md).
 #  - weekly (Monday 07:30 UTC) TEST-mode end to end, per app: production build + service Postgres + Stripe TEST
 #    keys + headless Chromium. Free limit → paywall → Stripe hosted Checkout with test card 4242 → webhook via
-#    `stripe listen --forward-to` → pass cookie + unlock link (or plan) → paid limits. Every pass and one monthly plan.
-#  - daily (07:00 UTC) LIVE smoke: opens a live Checkout for every pass (through the site's own route) and plan,
+#    `stripe listen --forward-to` → pass cookie + unlock link (or plan) → paid limits. Every pass and one monthly plan,
+#    plus (GridRinse) a spreadsheet template: template page → Checkout → download page → files download → one receipt.
+#  - daily (07:00 UTC) LIVE smoke: opens a live Checkout for every pass, plan and GridRinse template (site's own routes),
 #    checks price and amount, and EXPIRES each session unpaid. Nothing is ever paid in live mode.
 # A failed run makes GitHub email the repository owner.
 on:
@@ -51,6 +52,8 @@ jobs:
       # Once, before the matrix: three jobs creating the same products at once race ("Product already exists").
       - name: Create or check test products and prices (idempotent; passes included)
         run: npx tsx packages/billing/scripts/setup-stripe-test.ts
+      - name: Create or check test prices for the GridRinse spreadsheet templates (idempotent)
+        run: npx tsx scripts/templates/setup-stripe-templates.mts
 
   e2e:
     name: Test-mode checkout ${{ matrix.app }}
@@ -108,6 +111,11 @@ jobs:
           for i in $(seq 1 30); do grep -q "Ready" "$RUNNER_TEMP/listen.log" && break; sleep 1; done
           grep -q "Ready" "$RUNNER_TEMP/listen.log" || { sed 's/whsec_[A-Za-z0-9]*/whsec_…/g' "$RUNNER_TEMP/listen.log"; exit 1; }
           echo "stripe listen is ready"
+      - name: Stand-in template files (the real paid files live only in private storage)
+        if: matrix.app == 'gridrinse'
+        run: |
+          node scripts/templates/stand-in-files.mjs "$RUNNER_TEMP/template-files"
+          echo "TEMPLATE_FILES_DIR=$RUNNER_TEMP/template-files" >> "$GITHUB_ENV"
       - name: Start the production server
         working-directory: apps/${{ matrix.app }}
         env:
@@ -122,7 +130,7 @@ jobs:
           nohup npx next start --port "$PORT" > "$RUNNER_TEMP/server.log" 2>&1 &
           for i in $(seq 1 120); do curl -fsS -o /dev/null "http://localhost:$PORT/api/health" && break; sleep 1; done
           curl -fsS "http://localhost:$PORT/api/health" | head -c 300; echo
-      - name: Buy every pass and a monthly plan with Stripe test cards
+      - name: Buy every pass, a monthly plan (and a GridRinse template) with Stripe test cards
         run: npx tsx scripts/checkout-e2e/run.mts "$APP"
       - name: Logs
         if: always()

@@ -74,4 +74,24 @@ export const billingPasses = pgTable(
   (t) => [index("billing_passes_org_idx").on(t.orgId, t.expiresAt), index("billing_passes_payment_intent_idx").on(t.paymentIntentId)],
 );
 
-export const billingSchema = { billingCustomers, billingSubscriptions, billingEvents, billingUsage, billingPasses };
+export const billingOrders = pgTable(
+  "billing_orders",
+  {
+    id: text("id").primaryKey(),
+    app: text("app").notNull(),
+    productId: text("product_id").notNull(),
+    email: text("email"),
+    stripeCustomerId: text("stripe_customer_id"),
+    paymentIntentId: text("payment_intent_id"),
+    amountCents: integer("amount_cents"),
+    currency: text("currency"),
+    livemode: boolean("livemode").notNull().default(false),
+    paidAt: timestamp("paid_at", { withTimezone: true }).notNull(),
+    accessUntil: timestamp("access_until", { withTimezone: true }).notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("billing_orders_payment_intent_idx").on(t.paymentIntentId), index("billing_orders_paid_idx").on(t.app, t.paidAt)],
+);
+
+export const billingSchema = { billingCustomers, billingSubscriptions, billingEvents, billingUsage, billingPasses, billingOrders };

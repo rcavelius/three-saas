@@ -8,6 +8,8 @@ import { PageHero } from "@/components/PageHero";
 import { ToolSampleBox } from "@/components/ToolSampleBox";
 import { toolSample } from "@/content/tool-samples";
 import { TOOLS, getTool, toolExample } from "@/content/tools";
+import { templatesForTool } from "@/content/templates";
+import { TemplateStrip } from "@/components/templates/TemplateStrip";
 import { formatBytes } from "@/lib/limits";
 import { breadcrumbLd } from "@/lib/seo";
 import { appUrl } from "@/lib/site";
@@ -122,6 +124,12 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             ))}
           </div>
         </section>
+
+        <TemplateStrip
+          templates={templatesForTool(t.slug)}
+          heading="Spreadsheet templates that fit"
+          intro="Cleaned your export? Drop it into a ready-made Excel and Google Sheets template. One-time purchase, instant download."
+        />
 
         <section aria-labelledby="more" className="mt-12">
           <h2 id="more" className="display text-[2.2rem]">

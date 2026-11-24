@@ -39,6 +39,7 @@ const nav = [
   { href: "/how-it-works", label: "How it works" },
   { href: "/features", label: "Features" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/templates", label: "Templates" },
   { href: "/guides", label: "Resources" },
 ];
 
@@ -83,6 +84,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   ["/tools/fix-dates-csv", "Fix dates"],
                   ["/tools/merge-csv-files", "Merge CSV files"],
                   ["/tools", "All tools"],
+                  ["/templates", "Spreadsheet templates"],
                   ["/for/bookkeeping-exports", "For bookkeepers"],
                   ["/for/ecommerce-exports", "For e-commerce"],
                   ["/for/crm-imports", "For CRM imports"],

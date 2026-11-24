@@ -1,0 +1,232 @@
+{
+  "airbnb-host-tracker": [
+    {
+      "kind": "excel",
+      "name": "Short-Term-Rental-Host-Tracker.xlsx",
+      "key": "t/airbnb-host-tracker/Short-Term-Rental-Host-Tracker.xlsx",
+      "bytes": 215446,
+      "sha256": "e6afd9ded229cc009edb6d4899d830ca3b95642e6f705748b24acbaa7357c06f"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Short-Term-Rental-Host-Tracker-Google-Sheets.xlsx",
+      "key": "t/airbnb-host-tracker/Short-Term-Rental-Host-Tracker-Google-Sheets.xlsx",
+      "bytes": 211915,
+      "sha256": "c19b1d672aa8f01d530fb0643f4ec0fb1b46bc719321c3f8fa68a590e7d274ba"
+    },
+    {
+      "kind": "guide",
+      "name": "Short-Term-Rental-Host-Tracker-Quick-Start-Guide.pdf",
+      "key": "t/airbnb-host-tracker/Short-Term-Rental-Host-Tracker-Quick-Start-Guide.pdf",
+      "bytes": 228236,
+      "sha256": "a91b50d1edaf48b97049aa491d093ed225c5e9c7797dc2e460bd4468f70424a0"
+    }
+  ],
+  "annual-budget-planner": [
+    {
+      "kind": "excel",
+      "name": "Annual-Budget-Planner-2027.xlsx",
+      "key": "t/annual-budget-planner/Annual-Budget-Planner-2027.xlsx",
+      "bytes": 73591,
+      "sha256": "df117d9d17ba18a200ab95d421b10698ebe802f1452c56cda8bc17e40b1ae585"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Annual-Budget-Planner-2027-Google-Sheets.xlsx",
+      "key": "t/annual-budget-planner/Annual-Budget-Planner-2027-Google-Sheets.xlsx",
+      "bytes": 70324,
+      "sha256": "4c1974993681df5da0a2a6b15106aa260630eeea9ca506d59da5283404fd47ba"
+    },
+    {
+      "kind": "guide",
+      "name": "Annual-Budget-Planner-2027-Quick-Start-Guide.pdf",
+      "key": "t/annual-budget-planner/Annual-Budget-Planner-2027-Quick-Start-Guide.pdf",
+      "bytes": 341973,
+      "sha256": "c389cf24949b660ae52a4751c433ed837aa216f886520800d4d01db89551064f"
+    }
+  ],
+  "debt-payoff-planner": [
+    {
+      "kind": "excel",
+      "name": "Debt-Payoff-Planner.xlsx",
+      "key": "t/debt-payoff-planner/Debt-Payoff-Planner.xlsx",
+      "bytes": 545782,
+      "sha256": "fac740f19167ce855f07f33faca4bb1453e91cee79bdf8ae8f3398686e1b5552"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Debt-Payoff-Planner-Google-Sheets.xlsx",
+      "key": "t/debt-payoff-planner/Debt-Payoff-Planner-Google-Sheets.xlsx",
+      "bytes": 540640,
+      "sha256": "f6ba432c881c0cc9d3bc297c2c8226acf775386927a289b16b4bc1bfa259f7f9"
+    },
+    {
+      "kind": "guide",
+      "name": "Debt-Payoff-Planner-Quick-Start-Guide.pdf",
+      "key": "t/debt-payoff-planner/Debt-Payoff-Planner-Quick-Start-Guide.pdf",
+      "bytes": 224929,
+      "sha256": "762c731a7650f35902c229b8da63fd8e45833594e851399d410d6a2c6b388521"
+    }
+  ],
+  "etsy-seller-profit-tracker": [
+    {
+      "kind": "excel",
+      "name": "Etsy-Seller-Profit-Tracker.xlsx",
+      "key": "t/etsy-seller-profit-tracker/Etsy-Seller-Profit-Tracker.xlsx",
+      "bytes": 164847,
+      "sha256": "6377e0084391da843879204af1cc1cfe70be01473c3d7bec9f38eb213443b315"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Etsy-Seller-Profit-Tracker-Google-Sheets.xlsx",
+      "key": "t/etsy-seller-profit-tracker/Etsy-Seller-Profit-Tracker-Google-Sheets.xlsx",
+      "bytes": 161272,
+      "sha256": "1f70711b6d5c96eea30ff63f1a5a1f9f2d43f2760c6858c613f24652b9499369"
+    },
+    {
+      "kind": "guide",
+      "name": "Etsy-Seller-Profit-Tracker-Quick-Start-Guide.pdf",
+      "key": "t/etsy-seller-profit-tracker/Etsy-Seller-Profit-Tracker-Quick-Start-Guide.pdf",
+      "bytes": 250609,
+      "sha256": "01225076cf05b327aadb9bef97e508e26eff9c8ef8c8c56d388c4bc25ada40a9"
+    }
+  ],
+  "inventory-tracker": [
+    {
+      "kind": "excel",
+      "name": "Inventory-and-Stock-Tracker.xlsx",
+      "key": "t/inventory-tracker/Inventory-and-Stock-Tracker.xlsx",
+      "bytes": 160087,
+      "sha256": "26dd1477b050f4a278c325ba00c786874e0a21d3ebe4020c1b1a8b135b96b1df"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Inventory-and-Stock-Tracker-Google-Sheets.xlsx",
+      "key": "t/inventory-tracker/Inventory-and-Stock-Tracker-Google-Sheets.xlsx",
+      "bytes": 156532,
+      "sha256": "7d75d55fd2cb7120388e2c6afe527d4d09bc2ed5108883cfc794c99e34a72cbf"
+    },
+    {
+      "kind": "guide",
+      "name": "Inventory-and-Stock-Tracker-Quick-Start-Guide.pdf",
+      "key": "t/inventory-tracker/Inventory-and-Stock-Tracker-Quick-Start-Guide.pdf",
+      "bytes": 238340,
+      "sha256": "5f9040d530b73c601af3cf8be7aee96dc9c0a12393b72a8848fec8ed434b3113"
+    }
+  ],
+  "paycheck-budget-planner": [
+    {
+      "kind": "excel",
+      "name": "Paycheck-Budget-Planner.xlsx",
+      "key": "t/paycheck-budget-planner/Paycheck-Budget-Planner.xlsx",
+      "bytes": 50274,
+      "sha256": "00b259e11210399c0f8a8f3c34eefc24ea201283d2c373865f66fb7d1dd4540c"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Paycheck-Budget-Planner-Google-Sheets.xlsx",
+      "key": "t/paycheck-budget-planner/Paycheck-Budget-Planner-Google-Sheets.xlsx",
+      "bytes": 46711,
+      "sha256": "66eebc90030802958b8e050d806b409af90a7c9f9dc4c181c2037d1d9af048d1"
+    },
+    {
+      "kind": "guide",
+      "name": "Paycheck-Budget-Planner-Quick-Start-Guide.pdf",
+      "key": "t/paycheck-budget-planner/Paycheck-Budget-Planner-Quick-Start-Guide.pdf",
+      "bytes": 194782,
+      "sha256": "83143f976fab7dc2a665c1f8e5915df413db6e55c9b2b066c36dd0806baf6f22"
+    }
+  ],
+  "rental-property-manager": [
+    {
+      "kind": "excel",
+      "name": "Rental-Property-Manager.xlsx",
+      "key": "t/rental-property-manager/Rental-Property-Manager.xlsx",
+      "bytes": 81966,
+      "sha256": "a72f7cd30eff89e1bfbb4514ce729663c52af18de66d692284aa6fa17500be1d"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Rental-Property-Manager-Google-Sheets.xlsx",
+      "key": "t/rental-property-manager/Rental-Property-Manager-Google-Sheets.xlsx",
+      "bytes": 78435,
+      "sha256": "2ce59976da6775b71b9ca4d1a7b01cd2c2d9f1968494da55ca266eedc3809cae"
+    },
+    {
+      "kind": "guide",
+      "name": "Rental-Property-Manager-Quick-Start-Guide.pdf",
+      "key": "t/rental-property-manager/Rental-Property-Manager-Quick-Start-Guide.pdf",
+      "bytes": 212127,
+      "sha256": "59fa9a028da4eb5a3d4a6429834de6d489c2b6dd0b7dca3b20a92ad46716fbe6"
+    }
+  ],
+  "savings-challenge-tracker": [
+    {
+      "kind": "excel",
+      "name": "Savings-Challenge-Tracker.xlsx",
+      "key": "t/savings-challenge-tracker/Savings-Challenge-Tracker.xlsx",
+      "bytes": 43685,
+      "sha256": "6bc46301a4d7a8d4e8ab680bce1d75d0be6ff38a47b850854c4294d103e72a84"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Savings-Challenge-Tracker-Google-Sheets.xlsx",
+      "key": "t/savings-challenge-tracker/Savings-Challenge-Tracker-Google-Sheets.xlsx",
+      "bytes": 40139,
+      "sha256": "d10b23c307358e2bfd706d93c3f36097480db4c5ead6dbd4b0e6d5f0f3b7d5d7"
+    },
+    {
+      "kind": "guide",
+      "name": "Savings-Challenge-Tracker-Quick-Start-Guide.pdf",
+      "key": "t/savings-challenge-tracker/Savings-Challenge-Tracker-Quick-Start-Guide.pdf",
+      "bytes": 243302,
+      "sha256": "63c028a20b241d42259ef3cf47f1b02c586bfa1bda51f5e07d4187e21f194598"
+    }
+  ],
+  "small-business-bookkeeping": [
+    {
+      "kind": "excel",
+      "name": "Small-Business-Bookkeeping-2027.xlsx",
+      "key": "t/small-business-bookkeeping/Small-Business-Bookkeeping-2027.xlsx",
+      "bytes": 99321,
+      "sha256": "4ff89d5dfc21a7a8c3631acc3454ca55b5bc151aad3953eeb4638f01fd2cb667"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Small-Business-Bookkeeping-2027-Google-Sheets.xlsx",
+      "key": "t/small-business-bookkeeping/Small-Business-Bookkeeping-2027-Google-Sheets.xlsx",
+      "bytes": 95659,
+      "sha256": "44b6fc5d67b9f793d3872e5042cff8f221c601f75714bbefde3c0383079e38ce"
+    },
+    {
+      "kind": "guide",
+      "name": "Small-Business-Bookkeeping-2027-Quick-Start-Guide.pdf",
+      "key": "t/small-business-bookkeeping/Small-Business-Bookkeeping-2027-Quick-Start-Guide.pdf",
+      "bytes": 306215,
+      "sha256": "daff389c614cc9a45cd2fb3238d4c0adfbaf56ec0431d2c0c718a5ac505d9ff4"
+    }
+  ],
+  "wedding-budget-planner": [
+    {
+      "kind": "excel",
+      "name": "Wedding-Budget-Planner.xlsx",
+      "key": "t/wedding-budget-planner/Wedding-Budget-Planner.xlsx",
+      "bytes": 48226,
+      "sha256": "1e5865e7ce338475875855054de5101e8487c01d5a1141a555860d0c9aef25f1"
+    },
+    {
+      "kind": "gsheets",
+      "name": "Wedding-Budget-Planner-Google-Sheets.xlsx",
+      "key": "t/wedding-budget-planner/Wedding-Budget-Planner-Google-Sheets.xlsx",
+      "bytes": 44696,
+      "sha256": "1b0c2bbdb137270b76bd72ceb7c3fee56fa938d24b46a5c9663962f950574980"
+    },
+    {
+      "kind": "guide",
+      "name": "Wedding-Budget-Planner-Quick-Start-Guide.pdf",
+      "key": "t/wedding-budget-planner/Wedding-Budget-Planner-Quick-Start-Guide.pdf",
+      "bytes": 271934,
+      "sha256": "121451f13b24b602f1d7ae1b4a5454c8b0b2d765df781f0ba7a9a57a8c35d146"
+    }
+  ]
+}

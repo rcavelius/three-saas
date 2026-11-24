@@ -1,0 +1,685 @@
+{
+  "airbnb-host-tracker": {
+    "name": "Short-Term Rental Host Tracker",
+    "priceCents": 1499,
+    "etsyTitle": "Airbnb Host Spreadsheet, Short Term Rental Income & Expense Tracker, Occupancy, ADR & RevPAR, Vrbo, Excel & Google Sheets",
+    "intro": "Built for short-term rental hosts with one to eight listings. Log each stay once - nights, gross and payout calculate themselves - and the dashboard shows occupancy, average nightly rate (ADR), RevPAR and profit per listing.",
+    "features": [
+      "Bookings log: listing, platform, guest, dates, rate, cleaning fee, platform fee",
+      "Occupancy by listing and month, split correctly across month ends",
+      "KPIs: payout, expenses, profit, occupancy, ADR, RevPAR, nights booked",
+      "Payout by platform (Airbnb, Vrbo, Booking.com, direct)",
+      "Expenses per listing, with shared costs spread across listings",
+      "Cancelled stays drop out of every total automatically"
+    ],
+    "sheets": [
+      {
+        "name": "Dashboard",
+        "what": "payout, profit, occupancy, ADR, RevPAR and per-listing results"
+      },
+      {
+        "name": "Bookings",
+        "what": "every stay"
+      },
+      {
+        "name": "Expenses",
+        "what": "every cost by listing"
+      },
+      {
+        "name": "Occupancy",
+        "what": "nights booked and occupancy % by listing and month"
+      },
+      {
+        "name": "Settings",
+        "what": "listings, platforms and categories"
+      }
+    ],
+    "steps": [
+      "Settings: currency, year, and up to 8 listings (name and your usual cleaning fee). Edit platforms and expense categories if you like.",
+      "Bookings: one row per stay - listing, platform, guest, check-in, check-out, nightly rate, cleaning fee and the platform's fee. Nights, gross and payout calculate themselves.",
+      "Expenses: log every cost against a listing (or \"All\" for shared costs).",
+      "Dashboard shows payout, profit, occupancy, average nightly rate and RevPAR for the year, plus each listing's results. Occupancy breaks nights down month by month - stays that cross a month end are split correctly.",
+      "Delete the sample bookings and expenses before you start."
+    ],
+    "tips": [
+      "Platform fee = what Airbnb / Vrbo keep (host service fee). Payout = what reaches your bank.",
+      "Mark cancelled stays as Cancelled instead of deleting them - they drop out of every total, and any payout you still received can go in Other fees.",
+      "ADR = average nightly rate on booked nights. RevPAR = revenue per available night - the best single number for comparing listings.",
+      "Works for Airbnb, Vrbo, Booking.com and direct bookings in any currency. Not tax advice."
+    ],
+    "shots": [
+      "Dashboard",
+      "Bookings",
+      "Occupancy"
+    ],
+    "tags": [
+      "airbnb host",
+      "airbnb spreadsheet",
+      "short term rental",
+      "vrbo host",
+      "rental income",
+      "occupancy tracker",
+      "airbnb tracker",
+      "str spreadsheet",
+      "superhost",
+      "host tools",
+      "google sheets",
+      "excel template",
+      "vacation rental"
+    ]
+  },
+  "annual-budget-planner": {
+    "name": "Annual Budget Planner 2027",
+    "priceCents": 799,
+    "etsyTitle": "2027 Budget Planner Spreadsheet, Excel & Google Sheets Monthly Budget Template, Easy Annual Budget Tracker with Dashboard",
+    "intro": "A simple, good-looking budget for the whole of 2027. Type your transactions once and the dashboard shows - for any month you pick - what came in, what went out, what you saved and what's left to spend, category by category.",
+    "features": [
+      "Monthly dashboard with a month picker: income, expenses, savings, left to spend and savings rate",
+      "Budget vs actual for up to 30 categories, with progress bars and red/green differences",
+      "Annual summary: every category across 12 months, plus running bank balance",
+      "Charts: spending by type and income vs expenses for the year",
+      "Transactions log for 600 entries with category dropdowns",
+      "Category types (Income, Fixed, Variable, Savings, Debt) so totals sort themselves"
+    ],
+    "sheets": [
+      {
+        "name": "Settings",
+        "what": "currency, year, opening balance and your categories"
+      },
+      {
+        "name": "Budget",
+        "what": "planned amount per category for each month"
+      },
+      {
+        "name": "Transactions",
+        "what": "your income and spending log"
+      },
+      {
+        "name": "Dashboard",
+        "what": "one month at a glance: budget vs actual, charts, what's left"
+      },
+      {
+        "name": "Annual Summary",
+        "what": "every category across all 12 months, with yearly totals and savings rate"
+      }
+    ],
+    "steps": [
+      "Go to Settings: pick your currency symbol, the year and your opening bank balance.",
+      "Edit the category list in Settings (up to 30). Give each one a type: Income, Fixed, Variable, Savings or Debt.",
+      "On Budget, type how much you plan for each category each month. Copy one month across with copy/paste if it never changes.",
+      "Log every income and expense on Transactions: date, description, category (dropdown) and amount. Always enter amounts as positive numbers - the category type decides whether it is money in or out.",
+      "Open Dashboard and pick a month in the yellow box. Annual Summary shows the whole year at once.",
+      "Clear the sample data first: select the white cells on Transactions (columns B-E) and on Budget and press Delete."
+    ],
+    "tips": [
+      "Works in any currency - the symbol you choose in Settings appears on every label.",
+      "Left to spend = income - expenses - savings. Red means you spent more than you earned that month.",
+      "Rename a category in Settings and every sheet updates. If you rename one that already has transactions, update those rows too (Find & Replace).",
+      "Need more rows? Transactions holds 600 entries. Insert extra rows above the last one so the formulas expand with them."
+    ],
+    "shots": [
+      "Dashboard",
+      "Annual Summary",
+      "Transactions"
+    ],
+    "tags": [
+      "budget spreadsheet",
+      "budget planner",
+      "google sheets budget",
+      "excel budget",
+      "monthly budget",
+      "2027 budget planner",
+      "annual budget",
+      "budget template",
+      "expense tracker",
+      "finance tracker",
+      "budget dashboard",
+      "savings tracker",
+      "money planner"
+    ]
+  },
+  "debt-payoff-planner": {
+    "name": "Debt Payoff Planner",
+    "priceCents": 599,
+    "etsyTitle": "Debt Payoff Planner Spreadsheet, Snowball & Avalanche Debt Tracker, Excel & Google Sheets, Debt Free Date Calculator",
+    "intro": "List your debts and an extra amount you can pay each month. The planner works out your debt-free date, the total interest, and how much faster you finish than paying minimums only - comparing the snowball and avalanche methods side by side.",
+    "features": [
+      "Debt-free date, months to go and interest saved",
+      "Snowball, avalanche and minimum-only compared in one table",
+      "Month-by-month payment schedule for up to 30 years, payoff months highlighted",
+      "Payoff order with the date each debt is cleared",
+      "Warns you if a minimum payment doesn't cover the interest",
+      "Balance-over-time chart for all three strategies"
+    ],
+    "sheets": [
+      {
+        "name": "Dashboard",
+        "what": "debt-free date, interest, strategy comparison and payoff chart"
+      },
+      {
+        "name": "Debts",
+        "what": "your settings and debt list - the only place you type"
+      },
+      {
+        "name": "Schedule",
+        "what": "month-by-month payment plan for your chosen strategy"
+      }
+    ],
+    "steps": [
+      "Open Debts. Set your currency, the month of your first payment and any extra money you can add each month on top of the minimums.",
+      "List up to 10 debts: name, current balance, interest rate (APR) and minimum monthly payment. Replace the sample debts.",
+      "Choose a strategy: Snowball (smallest balance first, quick wins) or Avalanche (highest interest first, least interest overall).",
+      "Dashboard shows your debt-free date, total interest and how much faster you finish than paying minimums only - for both strategies side by side.",
+      "Schedule lists every month: what to pay on each debt and the balance left. Tick a debt off as you go and update balances every few months."
+    ],
+    "tips": [
+      "When a debt is paid off, its minimum payment rolls onto the next debt automatically - that's what makes snowball and avalanche work.",
+      "APR is the yearly interest rate on your statement, e.g. 22.9%. Enter 0% for interest-free debts.",
+      "If your minimum payment is less than the monthly interest, that debt never shrinks - the sheet shows \"30+ yrs\" so you can spot it.",
+      "Results are estimates: lenders calculate interest daily and fees can apply. Re-enter real balances every few months to stay accurate."
+    ],
+    "shots": [
+      "Dashboard",
+      "Debts",
+      "Schedule"
+    ],
+    "tags": [
+      "debt payoff",
+      "debt snowball",
+      "debt avalanche",
+      "debt tracker",
+      "debt spreadsheet",
+      "debt free",
+      "google sheets debt",
+      "excel debt tracker",
+      "credit card payoff",
+      "loan payoff",
+      "debt planner",
+      "budget spreadsheet",
+      "debt calculator"
+    ]
+  },
+  "etsy-seller-profit-tracker": {
+    "name": "Etsy Seller Profit Tracker",
+    "priceCents": 1499,
+    "etsyTitle": "Etsy Seller Spreadsheet, Etsy Fee Calculator & Profit Tracker, Pricing Calculator, Excel & Google Sheets Shop Bookkeeping",
+    "intro": "Find out what you actually keep. The pricing calculator shows the real profit on each product after transaction fees, payment processing, listing fees, materials, packaging and postage - and suggests a price for the margin you want. The sales log works out fees and profit on every order, including Offsite Ads.",
+    "features": [
+      "Pricing calculator with suggested price for your target margin",
+      "Per-order fees: transaction, payment processing, listing renewal and Offsite Ads (capped at 100)",
+      "Cost of goods per product: materials, packaging, postage, your time",
+      "Dashboard: revenue, fees, costs, profit, margin, best products, monthly chart",
+      "Shop costs log for ads, subscriptions and bulk supplies",
+      "Works for physical and digital products"
+    ],
+    "sheets": [
+      {
+        "name": "Dashboard",
+        "what": "revenue, fees, profit, margin, best sellers, monthly chart"
+      },
+      {
+        "name": "Pricing",
+        "what": "profit per sale and suggested price for every product"
+      },
+      {
+        "name": "Sales",
+        "what": "every order with its fees and profit"
+      },
+      {
+        "name": "Costs",
+        "what": "shop costs that aren't tied to one order"
+      },
+      {
+        "name": "Settings",
+        "what": "Etsy fee rates, hourly rate, currency"
+      }
+    ],
+    "steps": [
+      "Settings: check the Etsy fee rates for your country (they're preset to the standard US rates) and your hourly rate.",
+      "Pricing: add each product with its price, material and packaging cost, the postage you pay and minutes of work. You instantly see Etsy fees, real profit and margin per sale - and a suggested price for your target margin.",
+      "Sales: log orders (date, product, quantity, price, shipping charged, discount, and whether it came from Offsite Ads). Fees and profit calculate per order.",
+      "Costs: log shop costs that aren't per order - Etsy Ads, listing renewals, supplies in bulk, subscriptions.",
+      "Dashboard shows revenue, every fee, costs, true profit, best products and month-by-month results.",
+      "Delete the sample products, sales and costs when you start."
+    ],
+    "tips": [
+      "Fees are estimates from the rates in Settings. Check your monthly Etsy statement and adjust the rates if your country differs.",
+      "Offsite Ads: tick Yes for orders Etsy marks as coming from Offsite Ads - the 15% (or 12%) fee is added to that order.",
+      "Digital product? Leave materials and postage at 0 - the tracker still accounts for Etsy's fees.",
+      "Not affiliated with Etsy, Inc. Etsy is a trademark of Etsy, Inc."
+    ],
+    "shots": [
+      "Dashboard",
+      "Pricing",
+      "Sales"
+    ],
+    "tags": [
+      "etsy seller",
+      "etsy fee calculator",
+      "profit tracker",
+      "pricing calculator",
+      "etsy shop tools",
+      "small business",
+      "seller spreadsheet",
+      "google sheets",
+      "excel template",
+      "sales tracker",
+      "shop bookkeeping",
+      "etsy spreadsheet",
+      "craft business"
+    ]
+  },
+  "inventory-tracker": {
+    "name": "Inventory and Stock Tracker",
+    "priceCents": 999,
+    "etsyTitle": "Inventory Tracker Spreadsheet, Stock Management Template, Low Stock Alerts, Excel & Google Sheets, Small Business Inventory",
+    "intro": "A clear inventory system for makers and small shops. Add your products once, log every restock, sale, return or breakage, and see live stock, stock value and what needs reordering.",
+    "features": [
+      "Live stock per product from a simple movements log",
+      "Status for every item: OK, Low, Reorder or Out of stock - colour-coded",
+      "Reorder list and best-sellers on the dashboard",
+      "Stock value at cost and retail, margin per product",
+      "Up to 200 products and 1,500 stock movements",
+      "Duplicate-SKU and unknown-SKU warnings"
+    ],
+    "sheets": [
+      {
+        "name": "Dashboard",
+        "what": "stock value, items to reorder, best sellers, value by category"
+      },
+      {
+        "name": "Products",
+        "what": "your catalogue with live stock levels and status"
+      },
+      {
+        "name": "Stock Moves",
+        "what": "every restock, sale, return and correction"
+      },
+      {
+        "name": "Settings",
+        "what": "currency, categories, suppliers"
+      }
+    ],
+    "steps": [
+      "Settings: choose your currency and edit the category and supplier lists.",
+      "Products: add each item once - SKU (a short unique code), name, category, supplier, unit cost, sale price, reorder point and the stock you have today (opening stock).",
+      "Stock Moves: every time stock changes, add a row - date, SKU (dropdown), type (restock, sale, return, damaged, count correction) and quantity. Always type quantities as positive numbers, except count corrections where you type + or -.",
+      "Products then shows live stock, value and a status: OK, Low, Reorder or Out of stock. Dashboard lists what to reorder and your best sellers.",
+      "Delete the sample products and moves (white cells) before adding your own."
+    ],
+    "tips": [
+      "Reorder point = the stock level at which you should order more. Reorder qty = how many you usually order.",
+      "Low = within 25% above the reorder point, so you get an early warning.",
+      "Do a stock count every month or two and fix differences with a Count correction row - your history stays intact.",
+      "Selling on Etsy, Shopify or at markets? Log sales daily or weekly in one batch per SKU to keep it quick."
+    ],
+    "shots": [
+      "Dashboard",
+      "Products",
+      "Stock Moves"
+    ],
+    "tags": [
+      "inventory tracker",
+      "inventory sheet",
+      "stock tracker",
+      "small business",
+      "inventory template",
+      "google sheets",
+      "excel inventory",
+      "reorder tracker",
+      "product tracker",
+      "stock management",
+      "etsy seller tools",
+      "reseller",
+      "business planner"
+    ]
+  },
+  "paycheck-budget-planner": {
+    "name": "Paycheck Budget Planner",
+    "priceCents": 699,
+    "etsyTitle": "Paycheck Budget Spreadsheet, Biweekly Budget Template Excel & Google Sheets, Bill Tracker by Paycheck, Simple Bill Planner",
+    "intro": "Stop guessing which bills come out of which check. Enter your take-home pay, how often you're paid and your bills with their due days - the planner matches every bill to the paycheck that lands before it's due and shows what you can safely spend.",
+    "features": [
+      "\"This Paycheck\" view: the exact bills to pay from any paycheck, with due dates",
+      "Paycheck Plan for the whole year: pay, extra income, bills, savings and left to spend",
+      "Short paychecks highlighted in red so you can plan ahead",
+      "Weekly, biweekly, twice a month or monthly pay",
+      "Up to 30 bills, any due day (handles 29th-31st in short months)",
+      "Chart of left-to-spend across every paycheck"
+    ],
+    "sheets": [
+      {
+        "name": "This Paycheck",
+        "what": "the bills to pay from one paycheck, and what's left"
+      },
+      {
+        "name": "Paycheck Plan",
+        "what": "every paycheck of the year at a glance"
+      },
+      {
+        "name": "Setup",
+        "what": "your pay, payday and bills - the only typing you do"
+      }
+    ],
+    "steps": [
+      "Setup: type what you take home each payday, how often you're paid and your next payday.",
+      "List your bills with the amount and the day of the month each one is due. That's all the typing.",
+      "This Paycheck: pick a paycheck number and see exactly which bills to pay from it - and what's left to spend.",
+      "Paycheck Plan shows the whole year, one row per paycheck. Add any extra income or change savings for a single check there."
+    ],
+    "tips": [
+      "Bills are matched to the last paycheck that arrives before their due date, so the money is there in time.",
+      "Paid on the 1st and 15th? Choose \"Twice a month\". Every other Friday? Choose \"Every 2 weeks\".",
+      "Red left-over means that paycheck is short - move a bill's due date or shift some savings to another check."
+    ],
+    "shots": [
+      "This Paycheck",
+      "Paycheck Plan",
+      "Setup"
+    ],
+    "tags": [
+      "paycheck budget",
+      "biweekly budget",
+      "budget by paycheck",
+      "bill tracker",
+      "google sheets budget",
+      "excel budget",
+      "budget spreadsheet",
+      "bill planner",
+      "paycheck planner",
+      "weekly budget",
+      "budget template",
+      "bill calendar",
+      "money planner"
+    ]
+  },
+  "rental-property-manager": {
+    "name": "Rental Property Manager",
+    "priceCents": 1699,
+    "etsyTitle": "Rental Property Spreadsheet, Landlord Tracker for Rent, Tenants & Expenses, Rent Roll Template, Excel & Google Sheets",
+    "intro": "A landlord workbook that keeps rent, tenants and costs in order. Log rent as it arrives and the rent roll shows, for every tenant and month, whether rent is paid in full (green), part-paid (amber) or missing (red).",
+    "features": [
+      "Rent roll: every tenant x every month, colour-coded",
+      "Tenants & leases with Active / Ending soon / Ended status",
+      "Expenses by property and category (mortgage, repairs, tax, insurance...)",
+      "Per-property rent, expenses, cash flow and cap rate",
+      "Portfolio KPIs: rent collected, expenses, cash flow, occupancy, equity",
+      "Up to 10 properties and 30 leases"
+    ],
+    "sheets": [
+      {
+        "name": "Dashboard",
+        "what": "cash flow, occupancy, equity, per-property results and leases ending soon"
+      },
+      {
+        "name": "Properties",
+        "what": "your portfolio"
+      },
+      {
+        "name": "Tenants",
+        "what": "leases, rent and status"
+      },
+      {
+        "name": "Rent Roll",
+        "what": "paid / missing rent for every tenant and month"
+      },
+      {
+        "name": "Rent Ledger",
+        "what": "every rent payment received"
+      },
+      {
+        "name": "Expenses",
+        "what": "every cost by property"
+      },
+      {
+        "name": "Settings",
+        "what": "currency, year, expense categories"
+      }
+    ],
+    "steps": [
+      "Settings: currency, year, and the expense categories you want to track.",
+      "Properties: list each property once with its value, loan balance and monthly mortgage payment.",
+      "Tenants: one row per lease - property, unit, tenant, monthly rent, due day, deposit and lease dates. Status warns you 60 days before a lease ends.",
+      "Rent Ledger: log each rent payment and pick the month it pays for. Rent Roll then shows who has paid each month: green paid, amber part-paid, red missing.",
+      "Expenses: log every cost against a property. Dashboard shows cash flow, occupancy, equity and per-property results.",
+      "Delete the sample rows (white cells) when you're ready to start."
+    ],
+    "tips": [
+      "Log mortgage payments as an expense (category Mortgage payment) so cash flow is real money in minus real money out.",
+      "Cap rate = (rent - operating expenses, excluding mortgage) / current value. It's for comparing properties, not a valuation.",
+      "Works for houses, apartments, rooms or garages - a \"unit\" is anything you rent out separately.",
+      "This is a record-keeping tool, not tax or legal advice."
+    ],
+    "shots": [
+      "Dashboard",
+      "Rent Roll",
+      "Tenants"
+    ],
+    "tags": [
+      "landlord",
+      "rental property",
+      "rent tracker",
+      "property manager",
+      "rent roll",
+      "tenant tracker",
+      "landlord spreadsheet",
+      "real estate",
+      "google sheets",
+      "excel template",
+      "rental income",
+      "property investor",
+      "cash flow"
+    ]
+  },
+  "savings-challenge-tracker": {
+    "name": "Savings Challenge Tracker",
+    "priceCents": 499,
+    "etsyTitle": "Savings Challenge Tracker Spreadsheet, 100 Envelope Challenge, 52 Week Savings Challenge, Savings Goals, Excel Google Sheets",
+    "intro": "Make saving fun. The 100 envelope challenge, the 52 week challenge and your own savings goals - all in one tracker with a dashboard that fills in as you go.",
+    "features": [
+      "100 envelope challenge with a colour grid that fills as you save",
+      "52 week challenge: forward or reverse, any starting amount",
+      "Up to 10 savings goals with targets, dates and 'needed per month'",
+      "Deposits log for your goals",
+      "Total saved across every challenge",
+      "Print-friendly dashboard to stick on the fridge"
+    ],
+    "sheets": [
+      {
+        "name": "Dashboard",
+        "what": "total saved, the envelope grid, 52-week progress and goal bars"
+      },
+      {
+        "name": "100 Envelopes",
+        "what": "tick off envelopes in any order"
+      },
+      {
+        "name": "52 Weeks",
+        "what": "the classic weekly challenge, forward or reverse"
+      },
+      {
+        "name": "Savings Goals",
+        "what": "your own goals with targets and dates"
+      },
+      {
+        "name": "Deposits",
+        "what": "money you put towards each goal"
+      }
+    ],
+    "steps": [
+      "Dashboard: choose your currency, the multiplier for the 100 envelope challenge and your 52-week starting amount.",
+      "100 Envelopes: each envelope holds its number x your multiplier (1 = up to 100, total 5,050). Pick any envelope, save that amount, and mark it Yes. Watch the grid on the Dashboard fill up.",
+      "52 Weeks: save the week's amount and mark it Yes. Choose Forward (small first) or Reverse (big first, easier at year end).",
+      "Savings Goals: name up to 10 goals with a target and date. Log each deposit on Deposits - progress bars and \"needed per month\" update.",
+      "Clear the sample ticks and deposits before you begin."
+    ],
+    "tips": [
+      "Smaller budget? Set the envelope multiplier to 0.5 (total 2,525) or 0.25 (1,262.50).",
+      "Needed per month tells you exactly what to put aside to hit each goal on time.",
+      "Works in any currency. Print the Dashboard and stick it on the fridge for motivation."
+    ],
+    "shots": [
+      "Dashboard",
+      "100 Envelopes",
+      "Savings Goals"
+    ],
+    "tags": [
+      "savings challenge",
+      "100 envelope",
+      "52 week challenge",
+      "savings tracker",
+      "sinking funds",
+      "money challenge",
+      "savings goals",
+      "google sheets",
+      "excel template",
+      "budget spreadsheet",
+      "cash envelopes",
+      "save money",
+      "2027 savings"
+    ]
+  },
+  "small-business-bookkeeping": {
+    "name": "Small Business Bookkeeping 2027",
+    "priceCents": 1299,
+    "etsyTitle": "Small Business Bookkeeping Spreadsheet 2027, Income & Expense Tracker, Profit and Loss Template, Excel & Google Sheets",
+    "intro": "Bookkeeping without the accounting software. Log money in and money out; the workbook builds your monthly profit & loss, totals each quarter for estimated tax payments and shows where your money goes.",
+    "features": [
+      "Income and expense logs with category and payment-method dropdowns",
+      "Automatic monthly Profit & Loss by category",
+      "Quarter totals with a tax set-aside % you choose",
+      "Mileage log with your own rate per mile or km, flowing into the P&L",
+      "Receipt tracking: see how many receipts are still missing",
+      "Dashboard: income, expenses, net profit, margin, monthly chart and top expense categories"
+    ],
+    "sheets": [
+      {
+        "name": "Dashboard",
+        "what": "year-to-date profit, quarters, monthly chart and where the money goes"
+      },
+      {
+        "name": "Income",
+        "what": "every sale or payment received"
+      },
+      {
+        "name": "Expenses",
+        "what": "every business cost, with receipt tracking"
+      },
+      {
+        "name": "Mileage",
+        "what": "business trips and the deduction they earn"
+      },
+      {
+        "name": "Profit & Loss",
+        "what": "monthly P&L statement by category"
+      },
+      {
+        "name": "Settings",
+        "what": "business details, tax %, categories and payment methods"
+      }
+    ],
+    "steps": [
+      "Settings: type your business name, currency, year and the % of profit you set aside for tax. Edit the income and expense categories to match your business.",
+      "Record money in on Income and money out on Expenses - one row per transaction. Pick the category and payment method from the dropdowns.",
+      "Driving for work? Log trips on Mileage. The deduction uses the rate per mile/km you set in Settings and flows into your Profit & Loss.",
+      "Profit & Loss builds itself month by month. Dashboard shows year-to-date totals, quarter totals for estimated tax payments, and charts.",
+      "Delete the sample rows (white cells on Income, Expenses and Mileage) before you start."
+    ],
+    "tips": [
+      "Mark Receipt = Yes once you've filed the receipt - the dashboard counts the ones still missing.",
+      "Quarter totals make estimated / provisional tax payments easy: profit x your set-aside %.",
+      "Category names are generic so they work in any country. Rename them to match your tax form (e.g. Schedule C or self-assessment boxes).",
+      "This workbook organises your numbers. It isn't tax advice - check deductibility rules with an accountant."
+    ],
+    "shots": [
+      "Dashboard",
+      "Profit & Loss",
+      "Expenses"
+    ],
+    "tags": [
+      "bookkeeping",
+      "small business",
+      "income expense",
+      "profit and loss",
+      "business tracker",
+      "expense tracker",
+      "bookkeeping template",
+      "google sheets",
+      "excel template",
+      "self employed",
+      "mileage log",
+      "tax tracker",
+      "p&l spreadsheet"
+    ]
+  },
+  "wedding-budget-planner": {
+    "name": "Wedding Budget Planner",
+    "priceCents": 1499,
+    "etsyTitle": "Wedding Budget Planner Spreadsheet, Wedding Planner Template with Guest List & RSVP, Vendor Payments, Excel & Google Sheets",
+    "intro": "Plan your wedding without the stress of scattered notes. Set your total budget and the planner splits it across 15 categories using typical percentages. Add vendors with deposits and due dates and you'll always know what's paid, what's due next and what's left.",
+    "features": [
+      "Dashboard: days to go, budget, committed, paid, left in budget, cost per guest",
+      "Budget split by suggested percentages, fully editable",
+      "Vendor payments with deposits, due dates and overdue warnings",
+      "Guest list with RSVP, meal choice, table, gift and thank-you tracking",
+      "Planning checklist with due dates counted back from your wedding day",
+      "Planned vs committed chart for every category"
+    ],
+    "sheets": [
+      {
+        "name": "Dashboard",
+        "what": "countdown, budget vs spent, upcoming payments, RSVPs and meals"
+      },
+      {
+        "name": "Budget",
+        "what": "planned vs committed vs paid for every category"
+      },
+      {
+        "name": "Vendors",
+        "what": "suppliers, deposits, final payments and due dates"
+      },
+      {
+        "name": "Guest List",
+        "what": "invites, RSVPs, meals, tables and thank-you notes"
+      },
+      {
+        "name": "Checklist",
+        "what": "a 12-month planning timeline counted back from your date"
+      }
+    ],
+    "steps": [
+      "Dashboard: type your names, wedding date, total budget and currency in the pink boxes. The countdown starts straight away.",
+      "Budget: suggested percentages split your total budget across 15 categories. Change any planned amount or category name.",
+      "Vendors: add each supplier with its category, total cost, deposit and due dates. Mark deposits and final payments as paid - spending and \"still to pay\" update everywhere.",
+      "Guest List: add guests, how many people each invite covers, RSVP and meal choice. Dashboard counts confirmed guests and meals for your caterer.",
+      "Checklist: due dates count back from your wedding day. Mark tasks Done to see your progress.",
+      "Clear the sample data (white cells on Vendors, Guest List and Checklist) when you're ready."
+    ],
+    "tips": [
+      "Cost per guest = what you've committed to vendors divided by confirmed guests - handy when deciding on numbers.",
+      "Keep 5-10% as contingency - small extras always appear in the last month.",
+      "Upcoming payments on the Dashboard shows the next deposits and balances due, with overdue ones in red.",
+      "Share it: upload the Google Sheets version to Drive and share it with your partner or planner so you both edit the same file."
+    ],
+    "shots": [
+      "Dashboard",
+      "Budget",
+      "Guest List"
+    ],
+    "tags": [
+      "wedding budget",
+      "wedding planner",
+      "wedding spreadsheet",
+      "guest list",
+      "rsvp tracker",
+      "wedding checklist",
+      "google sheets",
+      "excel template",
+      "bride to be gift",
+      "engagement gift",
+      "wedding organizer",
+      "vendor tracker",
+      "budget planner"
+    ]
+  }
+}

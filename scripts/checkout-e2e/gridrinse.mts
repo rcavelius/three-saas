@@ -1,7 +1,9 @@
 /**
  * GridRinse: free download limit → paywall → 24-hour pass ($5) on Stripe test Checkout → webhook → pass cookie and
- * unlock link → unlimited downloads; and the Pro monthly plan ($9) from sign-up to "Current plan: Pro".
+ * unlock link → unlimited downloads; the Pro monthly plan ($9) from sign-up to "Current plan: Pro"; and a spreadsheet
+ * template ($5.99) from its page to the downloaded files.
  */
+import { statSync } from "node:fs";
 import type { Browser, Page } from "@playwright/test";
 import {
   Flow,
@@ -9,6 +11,7 @@ import {
   fakeEmail,
   holdClaimUntilWebhook,
   mailLink,
+  mailSubjects,
   passCookie,
   payOnStripe,
   q,
@@ -190,6 +193,89 @@ export async function planFlow(ctx: Ctx, browser: Browser): Promise<Flow> {
     throw e;
   } finally {
     await page.screenshot({ path: `${ctx.outDir}/plan-last.png`, fullPage: true }).catch(() => undefined);
+    await context.close();
+  }
+  return f;
+}
+
+/**
+ * Spreadsheet template ($5.99 debt payoff planner): template page → "Buy and download" → Stripe test Checkout with card
+ * 4242 → download page → each file downloads through a signed link → one order and one receipt email even after the
+ * webhook (idempotent) → the emailed link works on another device → a made-up session id unlocks nothing.
+ * CI serves stand-in files from TEMPLATE_FILES_DIR; production serves the real ones from private KV at the edge.
+ */
+export async function templateFlow(ctx: Ctx, browser: Browser): Promise<Flow> {
+  const f = new Flow("gridrinse template $5.99");
+  const context = await browser.newContext({ acceptDownloads: true, viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  const email = fakeEmail("gridrinse", "template");
+  try {
+    await page.goto(`${ctx.base}/templates/debt-payoff-planner`);
+    const buy = page.getByRole("button", { name: /Buy and download · \$5\.99/ });
+    f.must("template page offers Buy and download for $5.99", (await buy.count()) === 1);
+    await page.screenshot({ path: `${ctx.outDir}/template-page.png` });
+    await buy.click();
+    await payOnStripe(ctx, page, f, { amountText: "$5.99", email, shot: "template" });
+    await page.waitForLoadState("load");
+    const sessionId = new URL(page.url()).searchParams.get("session_id") ?? "";
+    f.must("Stripe returns to the download page with the session id", page.url().includes("/templates/download?session_id=cs_test_"), page.url().replace(ctx.base, ""));
+    const session = await rememberSessionCustomer(ctx, sessionId);
+    f.check(
+      "Stripe session: paid, payment mode, gridrinse_template_debt_payoff_planner $5.99, product metadata",
+      session?.payment_status === "paid" &&
+        session.mode === "payment" &&
+        session.line_items?.data[0]?.price?.lookup_key === "gridrinse_template_debt_payoff_planner" &&
+        session.amount_total === 599 &&
+        session.metadata?.kind === "product" &&
+        session.metadata?.productId === "debt-payoff-planner",
+      `${session?.payment_status} ${session?.amount_total}`,
+    );
+    await page.getByRole("heading", { name: "Your template is ready" }).waitFor({ timeout: 30_000 });
+    f.check("download page says the template is ready", true);
+    const buttons = page.locator("a[data-file]");
+    f.must("three files offered (Excel, Google Sheets, PDF guide)", (await buttons.count()) === 3, String(await buttons.count()));
+    await page.screenshot({ path: `${ctx.outDir}/template-download.png`, fullPage: true });
+    for (const kind of ["excel", "gsheets", "guide"]) {
+      const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 30_000 }), page.locator(`a[data-file="${kind}"]`).click()]);
+      const path = await dl.path();
+      const size = path ? statSync(path).size : 0;
+      f.check(`${kind} file downloads (${dl.suggestedFilename()})`, size > 0 && /^Debt-Payoff-Planner.*\.(xlsx|pdf)$/.test(dl.suggestedFilename()), `${size} bytes`);
+    }
+
+    // The webhook (stripe listen) records the same order: still one row, one receipt.
+    await deliverEvents(ctx, sessionId);
+    await until(
+      "webhook processed for the template order",
+      async () => (await q(ctx, `SELECT 1 FROM billing_events WHERE type = 'checkout.session.completed' AND outcome = 'processed' AND received_at >= to_timestamp($1)`, [ctx.started])).length > 0,
+      90_000,
+      2000,
+    );
+    const rows = await q<{ product_id: string; amount_cents: number; access_until: Date; email: string }>(ctx, `SELECT product_id, amount_cents, access_until, email FROM billing_orders WHERE id = $1`, [sessionId]);
+    const days = rows[0] ? (new Date(rows[0].access_until).getTime() - Date.now()) / 86_400_000 : 0;
+    f.check("one order recorded: debt-payoff-planner, $5.99, access for 30 days", rows.length === 1 && rows[0]!.product_id === "debt-payoff-planner" && rows[0]!.amount_cents === 599 && days > 29.9 && days <= 30.01, `${rows.length} rows, ${days.toFixed(2)} days`);
+    const subjects = (await mailSubjects(ctx, email)).filter((s) => /download/i.test(s));
+    f.check("exactly one receipt email with the download link", subjects.length === 1, subjects.join(" | "));
+    const link = await mailLink(ctx, email, "/templates/download?session_id=");
+    f.check("receipt links to this order's download page", link.includes(sessionId));
+
+    // The emailed link on another device.
+    const other = await browser.newContext({ acceptDownloads: true });
+    const op = await other.newPage();
+    await op.goto(link.replace(/^https?:\/\/[^/]+/, ctx.base));
+    f.check("emailed link opens the download page on a new device", (await op.getByRole("heading", { name: "Your template is ready" }).count()) === 1);
+    const [dl2] = await Promise.all([op.waitForEvent("download", { timeout: 30_000 }), op.locator('a[data-file="excel"]').click()]);
+    f.check("new device downloads the Excel file", !!(await dl2.path()));
+    await op.goto(`${ctx.base}/templates/download?session_id=cs_test_madeup000000000000000`);
+    f.check("a made-up session id unlocks nothing", (await op.getByRole("heading", { name: "We could not find that order" }).count()) === 1);
+    await other.close();
+
+    const log = await webhookLog(ctx);
+    f.check("no webhook failed", log.every((e) => e.outcome !== "failed" && e.outcome !== "unknown_price"), log.map((e) => `${e.type}=${e.outcome}`).join(", "));
+  } catch (e) {
+    Object.assign(e as object, { flow: f });
+    throw e;
+  } finally {
+    await page.screenshot({ path: `${ctx.outDir}/template-last.png`, fullPage: true }).catch(() => undefined);
     await context.close();
   }
   return f;

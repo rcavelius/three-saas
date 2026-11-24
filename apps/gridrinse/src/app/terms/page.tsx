@@ -48,6 +48,13 @@ export default function Terms() {
         Your files are still processed in your browser and never uploaded. If a pass did not unlock what this page describes, email {legal.supportEmail} within 7
         days of purchase for a full refund; a refunded pass stops working.
       </p>
+      <h3>Spreadsheet templates</h3>
+      <p>
+        A spreadsheet template (or the bundle of all templates) is a digital download bought with a single Stripe payment; it never renews. After payment you
+        get a private download link, shown on screen and emailed to you, that works for 30 days; the downloaded files are yours to keep for personal use or use
+        in one business, but may not be resold or shared. If a file does not open or does not work as its page describes, email {legal.supportEmail} within 14
+        days of purchase and a person will fix it or refund it in full; a refunded order&apos;s download link stops working.
+      </p>
       <h2>8. Changes</h2>
       <p>These terms may change. Material changes will be announced on this page with a new date, and by email to paying customers at least 30 days in advance.</p>
       <h2>9. Who we are, contact and governing law</h2>

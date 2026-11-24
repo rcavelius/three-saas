@@ -47,5 +47,8 @@
   "durable_objects": { "bindings": [{ "name": "APP", "class_name": "AppContainer" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AppContainer"] }],
   "send_email": [{ "name": "EMAIL" }],
+  // Private store of the paid spreadsheet-template files (served only through signed links; see src/index.ts).
+  // KV, not R2: R2 is not enabled on this Cloudflare account. Upload with scripts/templates/upload-template-files.mjs.
+  "kv_namespaces": [{ "binding": "TEMPLATE_FILES", "id": "e02eb37ac0634cdeac3491e95c3b70bd" }],
   "observability": { "enabled": true }
 }

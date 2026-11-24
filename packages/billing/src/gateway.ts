@@ -70,13 +70,21 @@ export interface CheckoutSessionParams {
   branding_settings?: { display_name: string; button_color?: string; background_color?: string; border_style?: "rounded" | "rectangular" | "pill" };
 }
 
+/** A one-time price created inline with the Checkout Session (digital products without a pre-created Stripe price). */
+export interface InlinePriceData {
+  currency: "usd";
+  unit_amount: number;
+  tax_behavior: "exclusive";
+  product_data: { name: string; tax_code?: string; metadata: Record<string, string> };
+}
+
 /** One-time payment Checkout (passes). No customer is passed: Checkout collects the email and creates one. */
 export interface PaymentCheckoutSessionParams {
   mode: "payment";
   customer_creation: "always";
   customer_email?: string;
   client_reference_id?: string;
-  line_items: { price: string; quantity: number }[];
+  line_items: ({ price: string; quantity: number } | { price_data: InlinePriceData; quantity: number })[];
   success_url: string;
   cancel_url: string;
   allow_promotion_codes: boolean;

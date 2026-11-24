@@ -43,6 +43,8 @@ import { isLocalAppUrl, loadEnv, type AppEnv } from "./env";
 import { ALL_MIGRATIONS } from "./migrations";
 import { workflowRepo, type WorkflowRepo } from "./workflows";
 import { createSupport, type AnthropicLike, type Support } from "@repo/support";
+import { TEMPLATE_PRODUCTS } from "@/content/templates";
+import { templateReceiptEmail } from "./templateShop";
 
 export const CATALOG = GRIDRINSE_CATALOG;
 export const COOKIE_PREFIX = "gr";
@@ -166,6 +168,8 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
     // One-time passes (no account needed): the signed cookie is derived from the session secret, server-only.
     passCookie: { name: PASS_COOKIE, secret: createHash("sha256").update(`pass-cookie-v1:${env.sessionSecret}`).digest("base64url") },
     passStatementDescriptorSuffix: "GRIDRINSE.COM",
+    // Spreadsheet templates (/templates): one-time purchase, downloads for 30 days.
+    products: TEMPLATE_PRODUCTS,
     checkoutBranding: { display_name: "GridRinse", button_color: "#138a4a", background_color: "#ffffff", border_style: "rounded" },
     paths: {
       checkoutSuccess: "/account/billing?checkout=success",
@@ -188,6 +192,11 @@ export async function createPlatform(o: PlatformOptions = {}): Promise<Platform>
         for (const to of await ownerEmails(orgId)) {
           await sendEmail(subscriptionCanceledEmail(brand, { to, planName: planName(ent.subscribedPlanId), accessUntil: null, billingUrl }));
         }
+      },
+      async onOrderPaid(order) {
+        const receipt = templateReceiptEmail(brand, order);
+        if (receipt) await sendEmail(receipt);
+        logger.info("template order paid", { product: order.productId, amountCents: order.amountCents });
       },
       async onAnomaly(a) {
         await raiseIncident(

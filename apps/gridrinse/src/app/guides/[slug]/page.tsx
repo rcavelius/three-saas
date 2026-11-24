@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
 import { PageHero } from "@/components/PageHero";
 import { GUIDES, getGuide } from "@/content/guides";
+import { templatesForGuide } from "@/content/templates";
+import { TemplateStrip } from "@/components/templates/TemplateStrip";
 import { appUrl } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -44,6 +46,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             Clean my spreadsheet
           </Link>
         </div>
+        <TemplateStrip templates={templatesForGuide(guide.slug)} heading="Templates for this data" intro="Ready-made Excel and Google Sheets workbooks to put the cleaned data to work. Pay once, download right away." />
       </div>
       <JsonLd
         data={{

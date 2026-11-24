@@ -10,6 +10,7 @@ import { RinseExplainer } from "@/components/RinseExplainer";
 import { AUDIENCES } from "@/content/audiences";
 import { GUIDES } from "@/content/guides";
 import { TOOLS } from "@/content/tools";
+import { BUNDLE, priceLabel, TEMPLATES, templateImages } from "@/content/templates";
 import { formatBytes, formatLimit, processingLimits } from "@/lib/limits";
 import { ogImage } from "@/lib/seo";
 import { appUrl } from "@/lib/site";
@@ -222,6 +223,30 @@ export default function Home() {
             <li key={t.slug}>
               <Link href={`/tools/${t.slug}`} className="lift inline-block rounded-full border-[3px] border-ink bg-surface px-4 py-2 text-[16px] font-bold shadow-[3px_3px_0_#0a0a0a] hover:bg-mint">
                 {t.h1}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section aria-labelledby="templates-heading" className="mx-auto max-w-[1400px] px-4 pt-12 sm:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h2 id="templates-heading" className="display text-[clamp(2.6rem,7vw,4.8rem)]">
+            Spreadsheet templates
+          </h2>
+          <Link href="/templates" className="btn-pop bg-mint">
+            All {TEMPLATES.length} for {priceLabel(BUNDLE.priceCents)}
+          </Link>
+        </div>
+        <p className="mt-2 max-w-3xl text-[17px] font-medium">Budget, debt payoff, bookkeeping, inventory, landlord and more: ready-made Excel and Google Sheets workbooks. Pay once, download right away.</p>
+        <ul className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {TEMPLATES.map((t) => (
+            <li key={t.slug}>
+              <Link href={`/templates/${t.slug}`} className="card-pop lift block h-full overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={templateImages(t).card.src} alt="" width={600} height={450} loading="lazy" decoding="async" className="aspect-[4/3] w-full border-b-[3px] border-ink object-cover" />
+                <span className="block px-3 py-2.5 text-[15px] font-extrabold leading-tight">
+                  {t.h1} <span className="font-semibold text-ink-2">· {priceLabel(t.priceCents)}</span>
+                </span>
               </Link>
             </li>
           ))}
