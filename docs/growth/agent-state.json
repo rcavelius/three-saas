@@ -7,6 +7,14 @@
   "sales_seen": 0,
   "ignored_subscriptions": 0,
   "ignored_note": "Raise ignored_subscriptions by 1 if the owner makes his own refunded test purchase, so it does not count as a sale.",
+  "templates_added": [
+    {
+      "date": "2026-11-23",
+      "slug": "(launch: 10 templates + bundle)",
+      "agent": "setup",
+      "price_usd": null
+    }
+  ],
   "log": [
     {
       "date": "2026-11-19",
