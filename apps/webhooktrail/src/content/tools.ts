@@ -288,6 +288,70 @@ export const TOOLS: ToolPage[] = [
     links: [GUIDE_SLACK, HELP_START, DOCS_CUSTOM, HELP_MASKING],
   },
   {
+    slug: "paypal-webhook-tester",
+    title: "PayPal webhook tester: inspect webhook event notifications",
+    h1: "PayPal webhook tester",
+    description:
+      "Use a WebhookTrail URL as a PayPal webhook listener and inspect each event notification: the JSON body and the PayPal transmission headers, live.",
+    intro:
+      "PayPal sends webhook event notifications to your listener URL as HTTPS POSTs with a JSON body (per PayPal's public documentation). Use a WebhookTrail URL as the listener to see each event's headers and exact body before you write your handler.",
+    feature: "inspector",
+    featureName: "Capture URL and live inspector",
+    howTo: [
+      "Click Create endpoint and copy the capture URL.",
+      "Add it as a webhook listener URL in your PayPal developer dashboard and choose the events to subscribe to.",
+      "Trigger an event, for example a sandbox payment, then open the request in the inspector to read the headers and JSON body.",
+    ],
+    faq: [
+      {
+        q: "Does WebhookTrail verify PayPal's signature?",
+        a: FAQ_NO_SIGNATURE_CHECK,
+      },
+      {
+        q: "Can I see the exact JSON PayPal sent?",
+        a: "Yes. The JSON body is shown formatted, and the Raw tab shows the exact bytes as received.",
+      },
+      {
+        q: "Is there a PayPal integration?",
+        a: "No. WebhookTrail treats PayPal like any webhook sender: it records the request as received and does not connect to your PayPal account.",
+      },
+      { q: "What are the limits?", a: freePlanFacts },
+    ],
+    links: [HELP_START, HELP_MASKING, DOCS_CUSTOM],
+  },
+  {
+    slug: "sendgrid-webhook-tester",
+    title: "SendGrid event webhook tester: inspect email event batches",
+    h1: "SendGrid event webhook tester",
+    description:
+      "Use a WebhookTrail URL as a SendGrid Event Webhook target and inspect each batch of email events: the JSON array body and the signature headers.",
+    intro:
+      "SendGrid's Event Webhook posts email events such as delivered, open and click to your URL as HTTPS POSTs with a JSON body (per SendGrid's public documentation). Use a WebhookTrail URL as the target to see exactly what arrives.",
+    feature: "inspector",
+    featureName: "Capture URL and live inspector",
+    howTo: [
+      "Click Create endpoint and copy the capture URL.",
+      "Enter it as the HTTP POST URL in your SendGrid Event Webhook settings and select the events to send.",
+      "Send a test email or use SendGrid's test event, then open the request in the inspector.",
+    ],
+    faq: [
+      {
+        q: "Does WebhookTrail verify the SendGrid signature?",
+        a: FAQ_NO_SIGNATURE_CHECK,
+      },
+      {
+        q: "Can I see the whole batch of events?",
+        a: "Yes. The JSON body is shown formatted and the Raw tab shows the exact bytes, which you need if you verify a signature over the raw payload.",
+      },
+      {
+        q: "Is there a SendGrid integration?",
+        a: "No. WebhookTrail treats SendGrid like any webhook sender: it records the request as received and does not connect to your SendGrid account.",
+      },
+      { q: "What are the limits?", a: freePlanFacts },
+    ],
+    links: [HELP_START, HELP_MASKING, DOCS_CUSTOM],
+  },
+  {
     slug: "replay-webhook",
     title: "Replay a webhook to your server, once or with retries",
     h1: "Replay a captured webhook",

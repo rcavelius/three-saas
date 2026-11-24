@@ -114,6 +114,17 @@ describe("tool landing pages", () => {
     expect(pageText(slack)).toContain(String(limits.responseBodyMaxBytes));
   });
 
+  it("PayPal and SendGrid pages stay honest about signatures and integrations", () => {
+    for (const slug of ["paypal-webhook-tester", "sendgrid-webhook-tester"]) {
+      const t = TOOLS.find((x) => x.slug === slug)!;
+      expect(t.faq.some((f) => f.a.includes("does not check signatures")), slug).toBe(true);
+      expect(t.faq.some((f) => f.a.includes("No. WebhookTrail treats")), slug).toBe(true);
+      expect(pageText(t)).toContain(freePlanFacts);
+    }
+    expect(isSensitiveHeader("x-twilio-email-event-webhook-signature")).toBe(true);
+    expect(src("../components/inspector/BodyViewer.tsx")).toContain("Raw");
+  });
+
   it("never claim forwarding to localhost or automatic forwarding", () => {
     for (const t of TOOLS) {
       const text = pageText(t).toLowerCase();
