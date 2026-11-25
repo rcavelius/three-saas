@@ -352,6 +352,38 @@ export const TOOLS: ToolPage[] = [
     links: [HELP_START, HELP_MASKING, DOCS_CUSTOM],
   },
   {
+    slug: "mailgun-webhook-tester",
+    title: "Mailgun webhook tester: inspect delivery event webhooks",
+    h1: "Mailgun webhook tester",
+    description:
+      "Use a WebhookTrail URL as a Mailgun webhook target and inspect each delivery event: the JSON body, including its signature block, and the request headers.",
+    intro:
+      "Mailgun can post email events such as delivered, opened and failed to a webhook URL you configure, as HTTPS POSTs with a JSON body (per Mailgun's public documentation). Use a WebhookTrail URL as the target to see exactly what arrives before you write your handler.",
+    feature: "inspector",
+    featureName: "Capture URL and live inspector",
+    howTo: [
+      "Click Create endpoint and copy the capture URL.",
+      "Add it as a webhook URL for the events you want in your Mailgun dashboard, or use Mailgun's test webhook option if it offers one for your account.",
+      "Send a test email, then open the request in the inspector to read the headers and the JSON body.",
+    ],
+    faq: [
+      {
+        q: "Does WebhookTrail verify the Mailgun signature?",
+        a: FAQ_NO_SIGNATURE_CHECK,
+      },
+      {
+        q: "Can I see the exact JSON Mailgun sent?",
+        a: "Yes. The JSON body is shown formatted, and the Raw tab shows the exact bytes as received.",
+      },
+      {
+        q: "Is there a Mailgun integration?",
+        a: "No. WebhookTrail treats Mailgun like any webhook sender: it records the request as received and does not connect to your Mailgun account.",
+      },
+      { q: "What are the limits?", a: freePlanFacts },
+    ],
+    links: [HELP_START, HELP_MASKING, DOCS_CUSTOM],
+  },
+  {
     slug: "replay-webhook",
     title: "Replay a webhook to your server, once or with retries",
     h1: "Replay a captured webhook",
