@@ -30,4 +30,10 @@ export const GUIDES: Guide[] = [
     description: "How Slack signs Events API and slash command requests with a v0 HMAC-SHA256 over the timestamp and raw body, and how to debug mismatches by capturing a real request.",
     updated: "2026-11-23",
   },
+  {
+    slug: "verify-twilio-request-signatures",
+    title: "Verify Twilio request signatures (X-Twilio-Signature)",
+    description: "How Twilio signs form-encoded webhook requests with an HMAC-SHA1 of the URL and sorted parameters, and how to debug mismatches by capturing a real request.",
+    updated: "2026-11-25",
+  },
 ];

@@ -69,7 +69,8 @@ function verifySlack(rawBody: string, timestamp: string | undefined, signature: 
       </p>
       <p>
         Related: <Link href="/guides/verify-github-webhook-signatures">GitHub signatures</Link>,{" "}
-        <Link href="/guides/verify-stripe-webhook-signatures">Stripe signatures</Link> and the general{" "}
+        <Link href="/guides/verify-twilio-request-signatures">Twilio signatures</Link>,{" "}
+        <Link href="/guides/verify-stripe-webhook-signatures">Stripe signatures</Link>, the <Link href="/tools/webhook-tester">webhook tester</Link> and the general{" "}
         <Link href="/tools/verify-webhook-signature">signature debugging page</Link>.
       </p>
     </GuideShell>

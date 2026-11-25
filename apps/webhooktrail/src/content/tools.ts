@@ -67,6 +67,7 @@ const responseTypes = joinAnd(RESPONSE_CONTENT_TYPES.map((t) => `\`${t}\``)).rep
 const GUIDE_STRIPE = { href: "/guides/verify-stripe-webhook-signatures", label: "Guide: verify Stripe webhook signatures" };
 const GUIDE_GITHUB = { href: "/guides/verify-github-webhook-signatures", label: "Guide: verify GitHub webhook signatures" };
 const GUIDE_SLACK = { href: "/guides/verify-slack-request-signatures", label: "Guide: verify Slack request signatures" };
+const GUIDE_TWILIO = { href: "/guides/verify-twilio-request-signatures", label: "Guide: verify Twilio request signatures" };
 const GUIDE_REPLAY = { href: "/guides/test-webhook-retries-with-replay", label: "Guide: test retries and idempotency with replay" };
 const HELP_START = { href: "/help/getting-started", label: "Help: getting started" };
 const HELP_REPLAY = { href: "/help/replay-and-destinations", label: "Help: replay requests to verified destinations" };
@@ -257,7 +258,7 @@ export const TOOLS: ToolPage[] = [
       },
       { q: "What are the limits?", a: freePlanFacts },
     ],
-    links: [HELP_START, HELP_MASKING, DOCS_CUSTOM],
+    links: [HELP_START, HELP_MASKING, DOCS_CUSTOM, GUIDE_TWILIO],
   },
   {
     slug: "slack-webhook-tester",

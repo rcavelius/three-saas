@@ -97,6 +97,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-25",
+      "agent": "guides",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added guide /guides/verify-twilio-request-signatures (from Twilio public docs), linked from /tools/twilio-webhook-tester and linking back to it plus /tools/send-test-webhook; Slack guide now links the Twilio guide and /tools/webhook-tester; tests pinned"
+      ],
+      "metrics": {
+        "visitors_7d": 11,
+        "signup_starts_7d": 0,
+        "pricing_views_7d": 0,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

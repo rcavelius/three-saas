@@ -161,4 +161,16 @@ describe("tool landing pages", () => {
     const urls = (await sitemap()).map((e) => new URL(e.url).pathname);
     expect(urls).toContain("/guides/verify-slack-request-signatures");
   });
+
+  it("links the Twilio tool page and the Twilio guide to each other and lists the guide in the sitemap", async () => {
+    const twilio = TOOLS.find((t) => t.slug === "twilio-webhook-tester")!;
+    expect(twilio.links.map((l) => l.href)).toContain("/guides/verify-twilio-request-signatures");
+    expect(GUIDES.map((g) => g.slug)).toContain("verify-twilio-request-signatures");
+    const page = src("../app/guides/verify-twilio-request-signatures/page.tsx");
+    expect(page).toContain("/tools/twilio-webhook-tester");
+    expect(page).toContain("HMAC-SHA1");
+    const { default: sitemap } = await import("@/app/sitemap");
+    const urls = (await sitemap()).map((e) => new URL(e.url).pathname);
+    expect(urls).toContain("/guides/verify-twilio-request-signatures");
+  });
 });
