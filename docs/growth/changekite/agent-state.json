@@ -97,6 +97,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-25",
+      "agent": "guides",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added guide /guides/wrong-canonical-tag, linking to /tools/canonical-tag-checker and /tools/noindex-canonical-conflict-checker; claims checked against checks/canonical.ts. Guide pages already end with scan CTA and list all guides."
+      ],
+      "metrics": {
+        "visitors_7d": 11,
+        "tool_users_7d": 1,
+        "pricing_views_7d": 1,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

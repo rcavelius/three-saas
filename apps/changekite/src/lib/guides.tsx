@@ -194,6 +194,50 @@ export const GUIDES: Guide[] = [
       </>
     ),
   },
+  {
+    slug: "wrong-canonical-tag",
+    title: "What a wrong canonical tag does, and how to find it",
+    description: "A canonical tag that points at the wrong URL can pull a page out of search results. The common mistakes, what each one tells search engines, and how to fix them.",
+    updated: "2026-11-25",
+    steps: [
+      { name: "List each page's canonical", text: "Scan the site with a canonical tag checker such as ChangeKite, or view the page source and search for rel=\"canonical\"." },
+      { name: "Compare it with the page's own address", text: "On a normal page the canonical should be the page's own final https:// URL. Any other value tells search engines to prefer a different page." },
+      { name: "Fix the template", text: "Most wrong canonicals come from one template, plugin or setting, so fix the source rather than single pages." },
+      { name: "Scan again", text: "Confirm each finding is gone and that no page declares more than one canonical." },
+    ],
+    body: (
+      <>
+        <p>
+          A canonical tag, <code>&lt;link rel=&quot;canonical&quot; href=&quot;&hellip;&quot;&gt;</code> in the <code>&lt;head&gt;</code>, tells search
+          engines which URL is the preferred version of a page. Pointed at the right address it merges duplicates such as tracking-parameter
+          URLs. Pointed at the wrong one, it can tell search engines to prefer another page and drop this one.
+        </p>
+        <h2>Common mistakes</h2>
+        <ul>
+          <li><strong>Canonical to a page that returns an error.</strong> If the target answers 404 or another 4xx/5xx, the page can fall out of search results.</li>
+          <li><strong>Canonical to a URL that redirects.</strong> It should point straight at the final URL.</li>
+          <li><strong>Canonical to the http:// version</strong> of an https page, often left over from before an HTTPS move.</li>
+          <li><strong>Canonical to another host</strong>, for example a staging site or the www/non-www variant you do not use. That is only right for a deliberate copy.</li>
+          <li><strong>Several different canonicals</strong> on one page, usually a theme plus an SEO plugin. With conflicting values search engines may ignore all of them.</li>
+          <li><strong>Canonical outside the head</strong>, often caused by an unclosed element, which makes it ignored.</li>
+          <li><strong>Empty or invalid href</strong>, which gives search engines nothing to use.</li>
+          <li><strong>noindex plus a canonical to another page</strong>: two conflicting signals.</li>
+        </ul>
+        <h2>How to fix it</h2>
+        <p>
+          For an ordinary page, the canonical should be that page&rsquo;s own final <code>https://</code> URL. Only point it elsewhere when the page is
+          a deliberate duplicate of that other page. Fix the template or plugin that writes the tag, then scan again.
+        </p>
+        <p>
+          ChangeKite reads the canonical on every page it crawls and reports each of the cases above, rating a canonical that returns 4xx/5xx as
+          critical and the others as warnings. A missing canonical is only a notice. It reads the HTML as delivered and does not run JavaScript, so a
+          canonical added by a script is not seen. Try the <Link href="/tools/canonical-tag-checker">canonical tag checker</Link>, and check the
+          related conflict with the{" "}
+          <Link href="/tools/noindex-canonical-conflict-checker">noindex and canonical conflict checker</Link>. Then scan your own site below.
+        </p>
+      </>
+    ),
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
