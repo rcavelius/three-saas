@@ -83,6 +83,22 @@ export default function HomePage() {
         {/* Scan progress and the report land here (empty until a scan starts). */}
         <div id="scan-results" className="col-span-2 scroll-mt-4 empty:hidden lg:col-span-12" />
 
+        {/* What the first scan gives you (copy only; every line is what the report does). */}
+        <section aria-labelledby="first-scan-title" className="tile ck-reveal col-span-2 bg-white p-7 sm:p-9 lg:col-span-12">
+          <h2 id="first-scan-title" className="display text-[2rem] leading-none sm:text-[2.75rem]">
+            What you get from your first scan
+          </h2>
+          <ul className="mt-5 grid gap-3 text-[1.0625rem] font-bold sm:grid-cols-2 lg:grid-cols-4">
+            <li className="rounded-[20px] bg-paper-deep p-4">One score out of 100, with a grade.</li>
+            <li className="rounded-[20px] bg-paper-deep p-4">Issues sorted by severity: critical, warning, notice.</li>
+            <li className="rounded-[20px] bg-paper-deep p-4">Your top {offer.freeIssues} fixes free, each with how to fix it.</li>
+            <li className="rounded-[20px] bg-paper-deep p-4">A shareable link to the report, no account needed.</li>
+          </ul>
+          <a href="#scan" className="btn-primary mt-6 inline-flex">
+            Scan my site <span aria-hidden="true">→</span>
+          </a>
+        </section>
+
         {/* What it does, as a short silent loop: the kite scans a site, pins what is broken, scores it. */}
         <section aria-labelledby="loop-title" className="tile ck-reveal col-span-2 grid items-center gap-6 bg-pink p-4 sm:p-7 lg:col-span-12 lg:grid-cols-[1.4fr_1fr] lg:gap-10 lg:p-9">
           <div className="overflow-hidden rounded-[24px] border-[3px] border-ink bg-paper">
