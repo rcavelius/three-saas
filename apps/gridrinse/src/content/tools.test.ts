@@ -93,4 +93,11 @@ describe("tool landing pages", () => {
       ["1001", "paid", "25.00"],
     ]);
   });
+
+  it("excel dedupe removes the repeated A-100 row and keeps the first", () => {
+    expect(ex("remove-duplicates-excel-xlsx").after.rows).toEqual([
+      ["A-100", "Desk lamp", "4"],
+      ["B-200", "Notebook", "12"],
+    ]);
+  });
 });

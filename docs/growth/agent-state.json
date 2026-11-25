@@ -359,6 +359,25 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-25",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "New tool page /tools/remove-duplicates-excel-xlsx (dedupe an .xlsx/.xls without Excel, save as .xlsx) with pinned test; linked from every tool page and /tools",
+        "/tools/remove-duplicates-csv: labelled before/after example table now sits right under the sample box, above the drop box (copy only)"
+      ],
+      "metrics": {
+        "visitors_7d": 48,
+        "tool_users_7d": 3,
+        "pricing_views_7d": 7,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

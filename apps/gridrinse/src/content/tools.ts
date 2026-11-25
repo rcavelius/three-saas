@@ -442,6 +442,39 @@ export const TOOLS: ToolPage[] = [
     ],
     guide: { href: "/guides/dedupe-strategies", label: "Guide: ways to deduplicate a spreadsheet" },
   },
+  {
+    slug: "remove-duplicates-excel-xlsx",
+    title: "Remove duplicates from an Excel .xlsx file without opening Excel (free)",
+    h1: "Remove duplicates from an Excel file",
+    description:
+      "Delete duplicate rows from an .xlsx or .xls spreadsheet in your browser and save the result as a clean .xlsx. No Excel needed, free, and your file is never uploaded.",
+    intro:
+      "Got an Excel workbook with repeated rows but no Excel at hand, or a file too messy for the built-in Remove Duplicates button? GridRinse reads .xlsx, .xlsm, .xls and .ods files in your browser, removes repeated rows and lets you download the result as .xlsx or CSV.",
+    stepName: "Remove duplicate rows",
+    howTo: [
+      "Choose your Excel file above (if it has several sheets, pick the one to clean).",
+      "Leave \"Remove duplicate rows\" on to compare whole rows, or open the step and pick key columns such as Email or Order ID.",
+      "Check the highlighted rows in the review, then in \"Download your file\" choose Excel (.xlsx) or CSV.",
+    ],
+    example: {
+      input: {
+        columns: ["SKU", "Item", "Qty"],
+        rows: [
+          ["A-100", "Desk lamp", "4"],
+          ["B-200", "Notebook", "12"],
+          ["A-100", "Desk lamp", "4"],
+        ],
+      },
+      steps: [makeStep({ type: "dedupe" })],
+      note: "The second A-100 row is identical to the first, so it is removed and the first is kept.",
+    },
+    faq: [
+      { q: "Which Excel formats can I open?", a: ".xlsx, .xlsm, .xls and OpenDocument .ods, plus .csv, .tsv and .txt." },
+      { q: "Can I save the result as .xlsx?", a: "Yes. In \"Download your file\" choose Excel (.xlsx) or CSV." },
+      { q: "Does it only compare whole rows?", a: "By default yes. Open the step and pick key columns to treat rows as duplicates when only those columns match." },
+    ],
+    guide: { href: "/guides/dedupe-strategies", label: "Guide: ways to deduplicate a spreadsheet" },
+  },
 ];
 
 export function getTool(slug: string): ToolPage | undefined {

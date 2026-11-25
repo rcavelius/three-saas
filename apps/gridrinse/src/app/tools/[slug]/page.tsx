@@ -82,6 +82,18 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
       <ToolSampleBox files={sample.files.map((f) => f.name)} xlsxName={sample.xlsx ? sample.files[0]!.name.replace(/\.csv$/, ".xlsx") : undefined} />
 
+      {t.slug === "remove-duplicates-csv" && ex.before.columns.length > 0 && (
+        <section aria-label="Example before and after" className="mx-auto max-w-5xl px-4 pt-6 sm:px-6">
+          <p className="mb-3 text-[15px] text-ink-2">
+            <strong>Example</strong> (made-up rows): {t.example.note}
+          </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Table table={ex.before} label="Before" />
+            <Table table={ex.after} label="After" />
+          </div>
+        </section>
+      )}
+
       <div className="pt-6 sm:pt-8">
         <Cleaner freeLimits={freeProcessingLimits()} offers={offers} pass={passOffer()} sample={{ files: sample.files, steps: sample.steps }} />
       </div>
