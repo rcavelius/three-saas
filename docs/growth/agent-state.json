@@ -396,6 +396,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-25",
+      "agent": "convert",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Homepage: labelled before/after example (made-up rows, computed by the engine) between the hero and the cleaner, with a 'Try it on your file' link to /tools/remove-duplicates-csv"
+      ],
+      "metrics": {
+        "visitors_7d": 43,
+        "tool_users_7d": 3,
+        "pricing_views_7d": 7,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

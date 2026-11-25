@@ -9,7 +9,7 @@ import { PlanButton } from "@/components/PlanButton";
 import { RinseExplainer } from "@/components/RinseExplainer";
 import { AUDIENCES } from "@/content/audiences";
 import { GUIDES } from "@/content/guides";
-import { TOOLS } from "@/content/tools";
+import { TOOLS, getTool, toolExample } from "@/content/tools";
 import { BUNDLE, priceLabel, TEMPLATES, templateImages } from "@/content/templates";
 import { formatBytes, formatLimit, processingLimits } from "@/lib/limits";
 import { ogImage } from "@/lib/seo";
@@ -47,12 +47,46 @@ const FIXES = [
 
 const QUICK_JOBS = ["remove-duplicates-csv", "trim-spaces-csv", "fix-dates-csv", "split-column-csv", "merge-csv-files"];
 
+function ExampleTable({ table, label }: { table: { columns: string[]; rows: string[][] }; label: "Before" | "After" }) {
+  return (
+    <div className="card-pop overflow-hidden">
+      <p className={`border-b-[3px] border-ink px-4 py-2 text-[17px] font-extrabold ${label === "After" ? "bg-mint" : "bg-pink"}`}>{label}</p>
+      <div className="overflow-x-auto p-2.5">
+        <table className="w-full border-collapse bg-surface font-mono text-[12.5px]">
+          <thead>
+            <tr>
+              {table.columns.map((h) => (
+                <th key={h} scope="col" className="border border-rule bg-sunken px-2 py-1 text-left font-semibold">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((r, i) => (
+              <tr key={i}>
+                {r.map((c, j) => (
+                  <td key={j} className="whitespace-pre border border-rule px-2 py-1">
+                    {c === "" ? " " : c.replace(/ /g, "·")}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 const mb = (bytes: number) => formatBytes(bytes).replace(/\.0 /, " ");
 
 export default function Home() {
   const free = freeProcessingLimits();
   const plans = displayPlans();
   const pass = passOffer();
+  const dedupe = getTool("remove-duplicates-csv");
+  const ex = dedupe ? toolExample(dedupe) : null;
   return (
     <>
       <section className="mint-grid overflow-hidden">
@@ -87,6 +121,21 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {dedupe && ex && ex.before.columns.length > 0 && (
+        <section aria-label="Example before and after" className="mx-auto max-w-[1400px] px-4 pt-10 sm:px-8 sm:pt-14">
+          <p className="mb-3 text-[15px] text-ink-2">
+            <strong>Example</strong> (made-up rows): {dedupe.example.note}{" "}
+            <Link href={`/tools/${dedupe.slug}`} className="font-bold underline decoration-2 underline-offset-4">
+              Try it on your file
+            </Link>
+          </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <ExampleTable table={ex.before} label="Before" />
+            <ExampleTable table={ex.after} label="After" />
+          </div>
+        </section>
+      )}
 
       <div className="pt-10 sm:pt-14">
         <Cleaner freeLimits={free} offers={upgradeOffers()} pass={pass} emptyState="hidden" />
