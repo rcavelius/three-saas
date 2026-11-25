@@ -20,9 +20,9 @@ const diffSource = readFileSync(join(src, "lib/monitoring/diff.ts"), "utf8");
 const copy = (t: (typeof TOOLS)[number]) => [t.title, t.h1, t.description, t.intro, ...t.howTo, ...t.faq.flatMap((f) => [f.q, f.a])].join("\n");
 
 describe("tool landing pages", () => {
-  it("have 8-15 pages with unique slugs and search-sized titles and descriptions", () => {
+  it("have 8-16 pages with unique slugs and search-sized titles and descriptions", () => {
     expect(TOOLS.length).toBeGreaterThanOrEqual(8);
-    expect(TOOLS.length).toBeLessThanOrEqual(15);
+    expect(TOOLS.length).toBeLessThanOrEqual(16);
     expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(TOOLS.length);
     expect(new Set(TOOLS.map((t) => t.title)).size).toBe(TOOLS.length);
     for (const t of TOOLS) {
@@ -124,6 +124,15 @@ describe("tool landing pages", () => {
     const page = copy(TOOLS.find((t) => t.slug === "noindex-canonical-conflict-checker")!);
     expect(page).toContain("noindex");
     expect(page).toContain("self-referencing");
+  });
+
+  it("the sitemap URL page matches the sitemap check", () => {
+    const site = readFileSync(join(src, "lib/scanner/checks/site.ts"), "utf8");
+    expect(site).toContain("s.status === null || s.status >= 300");
+    expect(site).toContain("location");
+    const page = copy(TOOLS.find((t) => t.slug === "sitemap-urls-redirect-or-404-checker")!);
+    expect(page).toContain("does not return 200");
+    expect(page).toContain("up to five");
   });
 
   it("every tool page and the index are in the sitemap", () => {

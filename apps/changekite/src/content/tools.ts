@@ -390,6 +390,28 @@ export const TOOLS: ToolPage[] = [
     ],
   },
   {
+    slug: "sitemap-urls-redirect-or-404-checker",
+    title: "Sitemap URLs that redirect or return 404: find them free",
+    h1: "Sitemap URLs that redirect or return errors",
+    description:
+      "Find sitemap.xml URLs that redirect, return 404 or sit on another host. Free scan: ChangeKite samples listed URLs and reports each one that does not return 200.",
+    intro:
+      "A sitemap should list only final, indexable URLs. If it lists pages that redirect, were deleted or live on another host, search engines waste crawl time on them and learn to distrust the file. ChangeKite finds your sitemap, samples the URLs it lists and reports every sampled URL that does not return 200, with the status and the redirect target.",
+    checks: ["sitemap"],
+    rules: ["sitemap-bad-urls", "sitemap-off-host"],
+    howTo: [
+      "Enter your homepage above (not the sitemap URL) and run the scan.",
+      "Open XML sitemap in the report: a finding lists sampled URLs that do not return 200, each with its status and, for redirects, where it points.",
+      "Replace redirected URLs with their targets and remove deleted pages from the sitemap, or fix the generator that lists them.",
+      "Scan again to confirm the finding is gone.",
+    ],
+    faq: [
+      { q: "Which URLs are checked?", a: "A sample of the URLs the sitemap lists, up to five. The report shows each one's status and, for a redirect, where it points." },
+      { q: "What counts as a problem?", a: "Any sampled URL that does not return 200, including redirects, 404s and URLs that fail to respond. The finding is a warning." },
+      { q: "What about URLs on another host?", a: "A sitemap listing URLs on a different host than the one serving it, such as www and non-www mixed, is reported separately as a warning." },
+    ],
+  },
+  {
     slug: "monitor-website-for-broken-links",
     title: "Monitor your website for broken links, with email alerts",
     h1: "Monitor your website for broken links",

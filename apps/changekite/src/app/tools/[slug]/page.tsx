@@ -48,6 +48,7 @@ const TOOL_CTA: Record<string, string> = {
   "broken-link-checker": "Check links",
   "find-404-pages": "Find 404s",
   "sitemap-checker": "Check sitemap",
+  "sitemap-urls-redirect-or-404-checker": "Check sitemap URLs",
   "robots-txt-checker": "Check robots.txt",
   "ssl-certificate-checker": "Check certificate",
 };

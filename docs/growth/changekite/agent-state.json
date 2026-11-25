@@ -79,6 +79,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-25",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added /tools/sitemap-urls-redirect-or-404-checker (claims pinned in tools.test.ts; page cap raised 15->16). Scan form already sits at the top of every tool page, so no CTA change needed."
+      ],
+      "metrics": {
+        "visitors_7d": 11,
+        "tool_users_7d": 1,
+        "pricing_views_7d": 1,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }
