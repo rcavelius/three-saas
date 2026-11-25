@@ -1,13 +1,16 @@
-# ChangeKite focus — 2026-11-24
-Data: metrics generated 2026-11-24T01:02Z; visitors 7 d 10; visits 7 d 12 (tracking began 2026-11-23, partial window); paid 0.
+# ChangeKite focus — 2026-11-25
+Data: metrics generated 2026-11-24T23:08Z; visitors 7 d 11; visits 7 d 13 (tracking began 2026-11-23, partial window); paid 0.
 
 ## Diagnosis
-All 12 visits are (direct or hidden) and all landed on /. 10 visitors in 7 d, 1 used the tool, 1 viewed /pricing, 0 signup, 0 checkout. Mobile 50%. No one lands on tool pages or guides yet, so search is not sending anyone. Biggest leak: visitors do not scan. Sample too small to conclude. Site-check is clean.
+All 13 visits in 7 d are (direct or hidden), all landing on /. 1 tool user, 1 pricing view, 0 checkouts in 7 d. 24 h: 3 visitors. Bots are 43.2% of pageviews, so human traffic is even smaller. Biggest leak: visitors do not scan. Yesterday's tactic was an example scan result near the scan box; today put the scan one step from every content page. Sample far too small to conclude. Site-check is clean.
+
 ## pages
-- Target 2 more narrow long-tail checker pages (e.g. neighbours of the HTTPS/HSTS pages), each with the scan form first; list them on /tools.
+- On each narrow checker page, add a "scan your site now" call-to-action with the form or a link to #scan near the top. Copy and links only.
+- Add one more narrow long-tail checker page next to the noindex/canonical one, listed on /tools.
 ## guides
-- Link each guide to two tool pages with a "scan your site now" call; link the guides from /guides and /docs.
+- Each guide links to two tool pages and ends with a scan call-to-action; make sure /guides lists the newest guides.
 ## convert
-- On /, show what a finished scan result looks like (use only features that exist) one step from the scan box. Copy and links on your own pages only; the homepage was redesigned on main, re-read it before editing.
+- Homepage: below the scan box add a short "what you get from your first scan" list, using only features that exist. Copy only; no pricing or paywall code.
 ## Don't
-- No work on pricing pages, billing or paywall code. No homepage edits without re-reading the current file.
+- No pricing, billing or paywall changes.
+- No more homepage scan-box rewrites this week; two have already landed.

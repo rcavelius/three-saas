@@ -1,59 +1,60 @@
-# Daily traffic report — 2026-11-24 (generated 14:05 UTC by the traffic boss)
+# Daily traffic report — 2026-11-25 (generated 14:10 UTC by the traffic boss)
 
 ## ARE WE MAKING MONEY? NO
-- GridRinse: NO. Sales 24 h 0 / 7 d 0, pass revenue 30 d $0, MRR $0 (paid 0, sales ever 0).
-- ChangeKite: NO. Sales 24 h 0 / 7 d 0, pass revenue 30 d $0, MRR $0 (paid 0, sales ever 0).
-- WebhookTrail: NO. Sales 24 h 0 / 7 d 0, pass revenue 30 d $0, MRR $0 (paid 0, sales ever 0).
-- Total revenue in the last 7 days: $0. All Stripe data is live mode. Checkout health is OK (test-mode run 2026-11-23 21:27 UTC, live smoke 2026-11-23 21:24 UTC, all 6 + 9 flows passing), so the checkout itself is not the reason.
+- GridRinse: NO. Sales 24 h 0 / 7 d 0; pass revenue 30 d $0; MRR $0; 0 sales ever (3 days of source tracking).
+- ChangeKite: NO. Sales 24 h 0 / 7 d 0; pass revenue 30 d $0; MRR $0; 0 sales ever.
+- WebhookTrail: NO. Sales 24 h 0 / 7 d 0; pass revenue 30 d $0; MRR $0; 0 sales ever.
+- Total last 7 days: $0.
 
 Why not:
-- GridRinse: 27 visitors in 24 h, 3 used the tool, 5 pricing views (3 visitors), 0 signup starts, 0 checkouts. Biggest leak: visitors do not try the tool (most land on `/`, 87.5% mobile). Sample is small.
-- ChangeKite: 10 visitors in 24 h, 1 tool user, 1 pricing view. Biggest leak: no visitors, and the few that come all land on `/` and do not scan.
-- WebhookTrail: 10 visitors in 24 h, 0 tool users, 0 pricing views. Biggest leak: visitors land on `/` and do not create an endpoint.
+- GridRinse: visitors do not try the tool (19 visitors in 24 h, 0 tool users; 3 of 48 in 7 d). 5 pricing views in 24 h from 3 visitors who landed straight on /pricing and never ran the tool; 0 checkout starts.
+- ChangeKite: visitors do not scan (1 tool user of 11 visitors in 7 d); 1 pricing view; 0 checkout starts.
+- WebhookTrail: visitors do not create an endpoint (0 tool users in 30 d, 11 visitors in 7 d); 0 pricing views in 7 d.
 
-Today's money move: GridRinse = make the tool the first thing on the phone-width screen of the three most-landed pages (`/`, `/tools/remove-duplicates-csv`, `/pricing` lead-in copy), a different tactic from yesterday's homepage "pick a job" links; ChangeKite = one-screen first scan with a concrete example result on `/`; WebhookTrail = a visible example capture on `/` and one-click "Create endpoint" from every tester page.
+Today's money move (different from yesterday's):
+- GridRinse: show a before/after example of a cleaned file on the first screen (yesterday: phone-width tool-first screens).
+- ChangeKite: scan call-to-action with a ready example target on every tool/guide page (yesterday: example scan result near the scan box).
+- WebhookTrail: copy-paste "send your first test" request on the homepage first screen (yesterday: example capture and one-click endpoint).
 
 ## Summary
-- Visitors: 47 in the last 24 h (GridRinse 27, ChangeKite 10, WebhookTrail 10); 70 in 7 d (50 / 10 / 10). Sample is small; no trends can be concluded.
-- Source tracking began 2026-11-23, so the 7 d and 30 d windows are partial. Every visit so far is "(direct or hidden)": no search or referral traffic is visible yet.
-- Revenue $0 everywhere. Most important problem: nobody arrives from search yet, and the few who arrive do not try the tools.
+- Visitors, last 24 h: GridRinse 19, ChangeKite 3, WebhookTrail 4 = 26 total. Last 7 d: 48 + 11 + 11 = 70 total.
+- Revenue: $0 everywhere; no checkout starts on any site in 30 d.
+- Every visit in 7 d is "(direct or hidden)": no search or referral traffic yet. Biggest problem: nobody reaches or tries a tool. Source tracking began 2026-11-23, so the 7 d source windows are partial.
+- Checkout health is OK (live smoke 2026-11-24 18:36 UTC, test mode 2026-11-23 21:27 UTC).
 
 ## GridRinse
-- Visitors: 24 h 27 (visits 34) · 7 d 50 · 30 d 100; bots 43.3% of pageviews (24 h; 20% in 7 d); mobile 87.5%.
-- Where they came from (7 d): (direct or hidden) 34 visits; countries US 24 visitors, unknown 27; utm campaigns none tagged.
-- Where they landed (7 d): `/` 22 visits, `/pricing` 5, `/tools/remove-duplicates-csv` 5, `/for/ecommerce-exports` 1, `/guides/dedupe-strategies` 1; all with no referrer.
-- What they did (7 d): tool users 5 (5 runs), pricing views 14, signup starts 2, new accounts 0, checkout starts 0.
-- Funnel: 50 visitors → 5 tool users → 7 pricing viewers (14 views) → 2 signup starts → 0 checkout starts → 0 paid. Biggest drop: visitors → tool users.
-- Revenue: active paid 0, MRR $0, subscriptions ever 0, pass sales 1 d 0 / 7 d 0 / 30 d 0, pass revenue $0.
-- Crew shipped since last report: pages — /tools/rename-columns-csv and /tools/remove-duplicate-emails-csv; guides — /guides/clean-contacts-export-for-import; convert — homepage "Or pick a job" links to five tool pages.
-- Technical SEO: site-check 2026-11-24 01:02 UTC clean (61 sitemap URLs all 200, 0 broken links, 0 missing from sitemap, 0 page faults). Fixed: nothing.
+- Visitors: 24 h 19 (visits 26) · 7 d 48 (visits 36) · 30 d 102; bots 32.6% of pageviews (7 d); mobile 80.8% (7 d)
+- Where they came from (7 d): (direct or hidden) 36 visits; countries US 25, DE 1, unknown 23; utm campaigns: none tagged
+- Where they landed (7 d): / 24 visits, /pricing 5, /tools/remove-duplicates-csv 5, /for/ecommerce-exports 1, /guides/dedupe-strategies 1; all with no referrer
+- What they did (7 d): 3 tool users / 3 runs, 7 pricing views, 0 signup starts, 0 new accounts, 0 checkout starts
+- Funnel: 48 visitors → 3 tool users → 5 viewed pricing → 0 signups → 0 checkouts → 0 paid. Biggest drop: visitors → tool users (the sample is small).
+- Revenue: active paid 0, MRR $0, subscriptions ever 0, pass sales 0 / 0 / 0 (1 d / 7 d / 30 d), pass revenue $0 (live mode)
+- Crew shipped since last report: pages — new tool page /tools/remove-duplicates-by-column-csv, linked from every tool page and /tools; pages — tool page hero shows one intro sentence so the drop box sits higher on phones. guides — nothing. convert — nothing.
+- Technical SEO: site-check 2026-11-24 23:08 UTC clean (62 sitemap URLs, 63 links checked, no faults). Nothing to fix.
 
 ## ChangeKite
-- Visitors: 24 h 10 (visits 12) · 7 d 10 · 30 d 12; bots 44.2% of pageviews; mobile 50%.
-- Where they came from (7 d): (direct or hidden) 12 visits; countries US 6, unknown 5; utm campaigns none tagged.
-- Where they landed (7 d): `/` 12 visits (no referrer).
-- What they did (7 d): tool users 1, pricing views 1, signup starts 0, new accounts 0, checkout starts 0.
-- Funnel: 10 visitors → 1 tool user → 1 pricing view → 0 signup → 0 checkout → 0 paid. Biggest drop: visitors → tool users.
-- Revenue: active paid 0, MRR $0, subscriptions ever 0, pass sales 1 d 0 / 7 d 0 / 30 d 0, pass revenue $0.
-- Crew shipped since last report: pages — /tools/http-to-https-redirect-checker and /tools/hsts-header-checker; guides — /guides/not-secure-after-moving-to-https; convert — nothing (homepage redesign conflicted).
-- Technical SEO: site-check 2026-11-24 01:03 UTC clean (40 sitemap URLs all 200, 0 broken links, 0 page faults). Fixed: nothing.
+- Visitors: 24 h 3 (visits 4) · 7 d 11 (visits 13) · 30 d 13; bots 43.2% of pageviews (7 d); mobile 42.9% (7 d)
+- Where they came from (7 d): (direct or hidden) 13 visits; countries US 7, unknown 5; utm campaigns: none tagged
+- Where they landed (7 d): / 13 visits, no referrer
+- What they did (7 d): 1 tool user / 1 run, 1 pricing view, 0 signup starts, 0 new accounts, 0 checkout starts
+- Funnel: 11 visitors → 1 tool user → 1 pricing view → 0 signups → 0 checkouts → 0 paid. Biggest drop: visitors → tool users (tiny sample).
+- Revenue: active paid 0, MRR $0, subscriptions ever 0, pass sales 0 / 0 / 0, pass revenue $0 (live mode)
+- Crew shipped since last report: pages — /tools/noindex-canonical-conflict-checker; guides — nothing; convert — nothing.
+- Technical SEO: site-check 2026-11-24 23:08 UTC clean (41 sitemap URLs, 42 links checked). Nothing to fix.
 
 ## WebhookTrail
-- Visitors: 24 h 10 (visits 11) · 7 d 10 · 30 d 12; bots 40% of pageviews; mobile 71.4%.
-- Where they came from (7 d): (direct or hidden) 11 visits; countries US 6, unknown 4, FR 1; utm campaigns none tagged.
-- Where they landed (7 d): `/` 11 visits (no referrer).
-- What they did (7 d): tool users 0, pricing views 0, signup starts 0, new accounts 0, checkout starts 0.
-- Funnel: 10 visitors → 0 tool users → 0 pricing → 0 signup → 0 checkout → 0 paid. Biggest drop: visitors → any action.
-- Revenue: active paid 0, MRR $0, subscriptions ever 0, pass sales 1 d 0 / 7 d 0 / 30 d 0, pass revenue $0.
-- Crew shipped since last report: pages — /tools/twilio-webhook-tester and /tools/slack-webhook-tester; guides — /guides/verify-slack-request-signatures; convert — homepage Tools list now links all tool pages.
-- Technical SEO: site-check 2026-11-24 01:03 UTC clean (38 sitemap URLs all 200, 0 broken links, 0 page faults). Fixed: nothing.
+- Visitors: 24 h 4 (visits 4) · 7 d 11 (visits 12) · 30 d 13; bots 38.5% of pageviews (7 d); mobile 62.5% (7 d)
+- Where they came from (7 d): (direct or hidden) 12 visits; countries US 6, unknown 4, FI 1, FR 1; utm campaigns: none tagged
+- Where they landed (7 d): / 12 visits, no referrer
+- What they did (7 d): 0 tool users, 0 pricing views, 0 signup starts, 0 new accounts, 0 checkout starts
+- Funnel: 11 visitors → 0 tool users. Biggest drop: visitors → tool users (tiny sample).
+- Revenue: active paid 0, MRR $0, subscriptions ever 0, pass sales 0 / 0 / 0, pass revenue $0 (live mode)
+- Crew shipped since last report: pages — /tools/paypal-webhook-tester and /tools/sendgrid-webhook-tester; convert — homepage Tools list links all tool pages; guides — nothing.
+- Technical SEO: site-check 2026-11-24 23:09 UTC clean (40 sitemap URLs, 42 links checked). Nothing to fix.
 
-## IndexNow (from the 01:02 UTC workflow run)
-- gridrinse.com: 61 URLs → HTTP 200 (accepted)
-- changekite.com: 40 URLs → HTTP 200 (accepted)
-- webhooktrail.com: 38 URLs → HTTP 200 (accepted)
+IndexNow (2026-11-24 workflow): GridRinse accepted (HTTP 200, 62 URLs) · ChangeKite accepted (HTTP 200, 41 URLs) · WebhookTrail accepted (HTTP 200, 40 URLs).
 
 ## Today's focus
-- GridRinse: money focus — get people to run the tool on phone-width first screens of the most-landed pages; more neighbours of remove-duplicates.
-- ChangeKite: money focus — first scan one step from `/`, narrow long-tail pages, link guides to tools.
-- WebhookTrail: money focus — show an example capture and a one-click first endpoint on `/` and tester pages; narrow long-tail pages.
+- GridRinse: money focus — before/after example of a cleaned file on the first screen; neighbour page of remove-duplicates-csv; guides link to two tools each.
+- ChangeKite: money focus — scan call-to-action with a ready example on tool and guide pages; narrow long-tail pages.
+- WebhookTrail: money focus — copy-paste "send your first test" request on the homepage; narrow long-tail pages.

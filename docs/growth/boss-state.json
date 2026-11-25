@@ -2,7 +2,7 @@
   "name": "Traffic boss",
   "born": "2026-11-23",
   "rulebook": "docs/growth/BOSS.md",
-  "last_run": "2026-11-24T14:05:00Z",
+  "last_run": "2026-11-25T14:10:00Z",
   "log": [
     {
       "date": "2026-11-23",
@@ -123,6 +123,36 @@
         "changekite": "accepted (HTTP 200, 40 URLs)",
         "webhooktrail": "accepted (HTTP 200, 38 URLs)"
       }
+    },
+    {
+      "date": "2026-11-25",
+      "run": "14:10 UTC",
+      "visitors_24h": {
+        "gridrinse": 19,
+        "changekite": 3,
+        "webhooktrail": 4
+      },
+      "visits_7d": {
+        "gridrinse": 36,
+        "changekite": 13,
+        "webhooktrail": 12
+      },
+      "paid": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "focus": {
+        "gridrinse": "Before/after example of a cleaned file on first screen; neighbour of remove-duplicates",
+        "changekite": "Scan CTA on every tool/guide page; narrow long-tail page",
+        "webhooktrail": "Copy-paste first-test curl on homepage; narrow provider page"
+      },
+      "fixed": [],
+      "indexnow": {
+        "gridrinse": "accepted (HTTP 200, 62 URLs)",
+        "changekite": "accepted (HTTP 200, 41 URLs)",
+        "webhooktrail": "accepted (HTTP 200, 40 URLs)"
+      }
     }
   ],
   "money_log": [
@@ -148,6 +178,30 @@
         "gridrinse": "tool-first phone-width screens (prev: homepage pick-a-job links)",
         "changekite": "example scan result near scan box",
         "webhooktrail": "example capture + one-click endpoint"
+      }
+    },
+    {
+      "date": "2026-11-25",
+      "making_money": {
+        "gridrinse": false,
+        "changekite": false,
+        "webhooktrail": false
+      },
+      "sales_24h": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "revenue_7d": 0,
+      "leak": {
+        "gridrinse": "visitors do not try the tool",
+        "changekite": "visitors do not scan",
+        "webhooktrail": "visitors do not create an endpoint"
+      },
+      "tactic": {
+        "gridrinse": "before/after example on first screen (prev: tool-first phone-width screens)",
+        "changekite": "scan CTA on tool/guide pages (prev: example scan result near scan box)",
+        "webhooktrail": "copy-paste first-test curl (prev: example capture + one-click endpoint)"
       }
     }
   ]
