@@ -378,6 +378,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-25",
+      "agent": "guides",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Guides dedupe-strategies and clean-contacts-export-for-import: 'Try it on your file' call at the top linking to two tool pages each (remove-duplicates-csv, remove-duplicates-by-column-csv; remove-duplicate-emails-csv, rename-columns-csv); /guides lists both automatically"
+      ],
+      "metrics": {
+        "visitors_7d": 48,
+        "tool_users_7d": 3,
+        "pricing_views_7d": 7,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

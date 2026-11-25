@@ -91,6 +91,10 @@ export const GUIDES: Guide[] = [
     body: (
       <>
         <p>
+          <strong>Try it on your file:</strong> <Link href="/tools/remove-duplicates-csv">remove duplicate rows from a CSV</Link> or{" "}
+          <Link href="/tools/remove-duplicates-by-column-csv">remove duplicates by a key column</Link>. Both run in your browser and list every removed row.
+        </p>
+        <p>
           &ldquo;Remove duplicates&rdquo; sounds like one operation, but it is really a decision: <em>which</em> columns decide that two rows are the same, and{" "}
           <em>which</em> of them to keep. Getting either wrong silently deletes real data.
         </p>
@@ -430,6 +434,10 @@ export const GUIDES: Guide[] = [
     summary: "Contact exports from a CRM, form tool or old mailing list repeat people, use odd column names and carry stray spaces. Here is a safe order of steps to get one tidy file ready for import.",
     body: (
       <>
+        <p>
+          <strong>Try it on your file:</strong> <Link href="/tools/remove-duplicate-emails-csv">remove duplicate emails from a CSV</Link> or{" "}
+          <Link href="/tools/rename-columns-csv">rename columns to match your import template</Link>. Both run in your browser, so the list is never uploaded.
+        </p>
         <p>
           Before you import contacts into a CRM or email tool, the file usually needs a tidy-up: the same person appears twice, column names do not match the import
           template, and names carry stray spaces. This guide gives an order that avoids losing good rows. Everything runs in your browser, so the list is never uploaded.
