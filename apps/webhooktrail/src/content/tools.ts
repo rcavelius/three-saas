@@ -385,6 +385,38 @@ export const TOOLS: ToolPage[] = [
     links: [HELP_START, HELP_MASKING, DOCS_CUSTOM],
   },
   {
+    slug: "zapier-webhook-tester",
+    title: "Zapier webhook tester: see what a Webhooks by Zapier step sends",
+    h1: "Zapier webhook tester",
+    description:
+      "Point a Webhooks by Zapier action at a WebhookTrail URL and inspect the exact method, headers and body it sends before you build the receiving side.",
+    intro:
+      "Zapier's Webhooks app can send HTTP requests to a URL you provide (per Zapier's public documentation). Use a WebhookTrail URL as the target to see exactly what a step sends: method, headers and body.",
+    feature: "inspector",
+    featureName: "Capture URL and live inspector",
+    howTo: [
+      "Click Create endpoint and copy the capture URL.",
+      "In your Zap, add a Webhooks by Zapier action and paste the capture URL as the URL.",
+      "Run the step's test, then open the request in the inspector to read the headers and the payload.",
+    ],
+    faq: [
+      {
+        q: "Can I see exactly what the Zap sent?",
+        a: "Yes. The body is shown formatted when it is JSON or form data, and the Raw tab shows the exact bytes as received.",
+      },
+      {
+        q: "Is there a Zapier integration?",
+        a: "No. WebhookTrail treats Zapier like any webhook sender: it records the request as received and does not connect to your Zapier account.",
+      },
+      {
+        q: "Does WebhookTrail verify signatures?",
+        a: FAQ_NO_SIGNATURE_CHECK,
+      },
+      { q: "What are the limits?", a: freePlanFacts },
+    ],
+    links: [HELP_START, HELP_MASKING, DOCS_CUSTOM],
+  },
+  {
     slug: "replay-webhook",
     title: "Replay a webhook to your server, once or with retries",
     h1: "Replay a captured webhook",

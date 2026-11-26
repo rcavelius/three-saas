@@ -21,7 +21,7 @@ const free = WEBHOOKTRAIL_CATALOG.plans.find((p) => p.id === WEBHOOKTRAIL_CATALO
 describe("tool landing pages", () => {
   it("have unique slugs and search-sized titles and descriptions", () => {
     expect(TOOLS.length).toBeGreaterThanOrEqual(8);
-    expect(TOOLS.length).toBeLessThanOrEqual(20);
+    expect(TOOLS.length).toBeLessThanOrEqual(21);
     expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(TOOLS.length);
     expect(new Set(TOOLS.map((t) => t.title)).size).toBe(TOOLS.length);
     for (const t of TOOLS) {
@@ -115,7 +115,7 @@ describe("tool landing pages", () => {
   });
 
   it("PayPal, SendGrid and Mailgun pages stay honest about signatures and integrations", () => {
-    for (const slug of ["paypal-webhook-tester", "sendgrid-webhook-tester", "mailgun-webhook-tester"]) {
+    for (const slug of ["paypal-webhook-tester", "sendgrid-webhook-tester", "mailgun-webhook-tester", "zapier-webhook-tester"]) {
       const t = TOOLS.find((x) => x.slug === slug)!;
       expect(t.faq.some((f) => f.a.includes("does not check signatures")), slug).toBe(true);
       expect(t.faq.some((f) => f.a.includes("No. WebhookTrail treats")), slug).toBe(true);
