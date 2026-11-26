@@ -414,6 +414,25 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-26",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "New tool page /tools/remove-duplicates-ignore-case-csv (dedupe ignoring capitals and stray spaces; neighbour of remove-duplicates-csv) with pinned test; linked from every tool page and /tools automatically",
+        "FOCUS 'try example data' path already existed on every tool page (ToolSampleBox: 'Clean the sample now' + downloads), so no change needed there"
+      ],
+      "metrics": {
+        "visitors_7d": 43,
+        "tool_users_7d": 3,
+        "pricing_views_7d": 7,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

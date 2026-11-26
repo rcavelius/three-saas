@@ -100,4 +100,11 @@ describe("tool landing pages", () => {
       ["B-200", "Notebook", "12"],
     ]);
   });
+
+  it("ignore-case dedupe keeps the first Acme row", () => {
+    expect(ex("remove-duplicates-ignore-case-csv").after.rows).toEqual([
+      ["Acme Corp", "London"],
+      ["Beta Ltd", "Leeds"],
+    ]);
+  });
 });

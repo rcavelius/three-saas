@@ -475,6 +475,39 @@ export const TOOLS: ToolPage[] = [
     ],
     guide: { href: "/guides/dedupe-strategies", label: "Guide: ways to deduplicate a spreadsheet" },
   },
+  {
+    slug: "remove-duplicates-ignore-case-csv",
+    title: "Remove duplicates ignoring upper and lower case in CSV or Excel (free)",
+    h1: "Remove duplicates, ignoring capital letters",
+    description:
+      "Delete rows that repeat except for capitalization or stray spaces, such as ACME Corp and Acme Corp, in a CSV or Excel file. Free, in your browser, no upload.",
+    intro:
+      "Copy-pasted lists often hold the same company or product in different capitals, so a plain duplicate check keeps both. GridRinse can compare rows ignoring upper and lower case and extra spaces, keep the first or last copy, and show which rows go before you download.",
+    stepName: "Remove duplicate rows",
+    howTo: [
+      "Choose your CSV or Excel file above (or try the sample).",
+      "Open the step \"Remove duplicate rows\" and turn on ignore case. Extra spaces at the start or end of a cell are ignored by default. Pick key columns if only some columns should be compared.",
+      "Choose whether the first or the last copy is kept, check the highlighted rows in the review, then download.",
+    ],
+    example: {
+      input: {
+        columns: ["Company", "City"],
+        rows: [
+          ["Acme Corp", "London"],
+          ["Beta Ltd", "Leeds"],
+          ["ACME CORP ", "london"],
+        ],
+      },
+      steps: [makeStep({ type: "dedupe", ignoreCase: true })],
+      note: "\"ACME CORP \" and \"london\" match the first row apart from capitals and a trailing space, so only the first row is kept.",
+    },
+    faq: [
+      { q: "Is capitalization ignored by default?", a: "No. Turn on ignore case in the Remove duplicate rows step. Extra spaces at the start or end of a cell are ignored by default." },
+      { q: "Can I ignore case on only one column?", a: "Pick that column as the key; only key columns are compared, and ignore case applies to them." },
+      { q: "Which copy is kept?", a: "Your choice: the first (default) or the last. Removed rows are listed in the review before you download." },
+    ],
+    guide: { href: "/guides/dedupe-strategies", label: "Guide: ways to deduplicate a spreadsheet" },
+  },
 ];
 
 export function getTool(slug: string): ToolPage | undefined {
