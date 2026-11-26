@@ -238,6 +238,45 @@ export const GUIDES: Guide[] = [
       </>
     ),
   },
+  {
+    slug: "sitemap-urls-redirect-or-404",
+    title: "Sitemap URLs that redirect or return 404: why it matters and how to fix it",
+    description: "A sitemap should list only final URLs that return 200. What goes wrong when it lists redirected, deleted or other-host URLs, and how to clean it up.",
+    updated: "2026-11-26",
+    steps: [
+      { name: "Open your sitemap", text: "Load /sitemap.xml (or the Sitemap: address in robots.txt) and look at the <loc> entries." },
+      { name: "Check what each URL returns", text: "Request a few listed URLs. Each should answer 200 on the same host as the sitemap, not a redirect or an error." },
+      { name: "Replace or remove", text: "Swap redirected URLs for their final targets and remove pages that no longer exist, ideally by fixing the generator." },
+      { name: "Scan again", text: "Run the scan again and confirm the sitemap finding is gone." },
+    ],
+    body: (
+      <>
+        <p>
+          A sitemap is a list of the URLs you want search engines to index. It works best when every entry is a final address that answers
+          200. Entries that redirect, were deleted or sit on another host make the file less useful: crawlers spend requests on them and have less
+          reason to trust the rest of the list.
+        </p>
+        <h2>What usually goes wrong</h2>
+        <ul>
+          <li><strong>Redirected URLs.</strong> Pages moved or renamed, or http:// and trailing-slash variants, while the sitemap still lists the old address.</li>
+          <li><strong>Deleted pages.</strong> The page returns 404 but the generator still lists it.</li>
+          <li><strong>The wrong host.</strong> A sitemap served from one host that lists another, such as www mixed with non-www, or http mixed with https.</li>
+        </ul>
+        <h2>How to fix it</h2>
+        <p>
+          List only final, indexable URLs that return 200 on the host serving the sitemap. Replace redirected entries with their targets, remove
+          deleted pages, and fix the plugin or build step that generates the file so the problem does not return. Then scan again.
+        </p>
+        <p>
+          ChangeKite finds your sitemap, samples up to five of the URLs it lists and reports any that do not return 200, showing each status and, for
+          a redirect, where it points. That is a sample, not every URL in the file. A sitemap that lists URLs on a different host is reported
+          separately. Both are warnings. Try the{" "}
+          <Link href="/tools/sitemap-urls-redirect-or-404-checker">sitemap URLs redirect or 404 checker</Link>, and see the{" "}
+          <Link href="/tools/sitemap-checker">sitemap checker</Link> for the other sitemap checks. Then scan your own site below.
+        </p>
+      </>
+    ),
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {

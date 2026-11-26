@@ -151,6 +151,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-26",
+      "agent": "guides",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added guide /guides/sitemap-urls-redirect-or-404, linking to /tools/sitemap-urls-redirect-or-404-checker and /tools/sitemap-checker; claims checked against checks/site.ts and scan.ts. No sample report exists to link; /guides lists all guides automatically."
+      ],
+      "metrics": {
+        "visitors_7d": 13,
+        "tool_users_7d": 1,
+        "pricing_views_7d": 1,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }
