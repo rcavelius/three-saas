@@ -92,7 +92,9 @@ export const GUIDES: Guide[] = [
       <>
         <p>
           <strong>Try it on your file:</strong> <Link href="/tools/remove-duplicates-csv">remove duplicate rows from a CSV</Link> or{" "}
-          <Link href="/tools/remove-duplicates-by-column-csv">remove duplicates by a key column</Link>. Both run in your browser and list every removed row.
+          <Link href="/tools/remove-duplicates-by-column-csv">remove duplicates by a key column</Link>. Both run in your browser and list every removed row. Working with
+          an Excel file? See <Link href="/tools/remove-duplicates-excel-xlsx">remove duplicates in an .xlsx without Excel</Link>. Capitals and stray spaces hiding
+          duplicates? Try <Link href="/tools/remove-duplicates-ignore-case-csv">remove duplicates ignoring case and spaces</Link>.
         </p>
         <p>
           &ldquo;Remove duplicates&rdquo; sounds like one operation, but it is really a decision: <em>which</em> columns decide that two rows are the same, and{" "}
