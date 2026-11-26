@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-25T22:37:58.533Z",
+  "generated_at": "2026-11-26T22:28:01.844Z",
   "product": "gridrinse",
   "sources_tracked_since": "2026-11-23T08:26:00.448Z",
   "accounts_total": 0,
@@ -39,30 +39,59 @@
   },
   "last_1d": {
     "days": 1,
-    "visitors": 0,
-    "pageviews": 0,
+    "visitors": 1,
+    "pageviews": 1,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
     "signup_starts": 0,
     "checkout_starts": 0,
     "new_accounts": 0,
-    "events": {},
-    "top_pages": [],
+    "events": {
+      "pageview": {
+        "count": 1,
+        "visitors": 1
+      }
+    },
+    "top_pages": [
+      {
+        "path": "/",
+        "views": 1,
+        "visitors": 1
+      }
+    ],
     "sources_available": true,
-    "visits": 0,
+    "visits": 1,
     "bot_pageviews": 0,
-    "bot_share": null,
-    "mobile_share": null,
-    "top_referrers": [],
-    "top_countries": [],
-    "top_landing_pages": [],
+    "bot_share": 0,
+    "mobile_share": 0,
+    "top_referrers": [
+      {
+        "host": "(direct or hidden)",
+        "visits": 1,
+        "visitors": 1
+      }
+    ],
+    "top_countries": [
+      {
+        "country": "US",
+        "visitors": 1
+      }
+    ],
+    "top_landing_pages": [
+      {
+        "path": "/",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": null
+      }
+    ],
     "utm_campaigns": []
   },
   "last_7d": {
     "days": 7,
-    "visitors": 43,
-    "pageviews": 54,
+    "visitors": 39,
+    "pageviews": 50,
     "tool_users": 3,
     "tool_runs": 3,
     "pricing_views": 7,
@@ -71,8 +100,8 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 54,
-        "visitors": 43
+        "count": 50,
+        "visitors": 39
       },
       "tool_used": {
         "count": 3,
@@ -82,8 +111,8 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 39,
-        "visitors": 33
+        "views": 35,
+        "visitors": 29
       },
       {
         "path": "/pricing",
@@ -112,25 +141,25 @@
       }
     ],
     "sources_available": true,
-    "visits": 36,
+    "visits": 37,
     "bot_pageviews": 29,
-    "bot_share": 0.349,
-    "mobile_share": 0.808,
+    "bot_share": 0.367,
+    "mobile_share": 0.778,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 36,
-        "visitors": 26
+        "visits": 37,
+        "visitors": 27
       }
     ],
     "top_countries": [
       {
         "country": "US",
-        "visitors": 25
+        "visitors": 26
       },
       {
         "country": "(unknown)",
-        "visitors": 18
+        "visitors": 13
       },
       {
         "country": "DE",
@@ -140,8 +169,8 @@
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 24,
-        "visitors": 19,
+        "visits": 25,
+        "visitors": 20,
         "top_referrer": null
       },
       {
@@ -173,8 +202,8 @@
   },
   "last_30d": {
     "days": 30,
-    "visitors": 102,
-    "pageviews": 201,
+    "visitors": 103,
+    "pageviews": 202,
     "tool_users": 7,
     "tool_runs": 12,
     "pricing_views": 19,
@@ -183,8 +212,8 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 201,
-        "visitors": 102
+        "count": 202,
+        "visitors": 103
       },
       "signup_started": {
         "count": 7,
@@ -198,8 +227,8 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 118,
-        "visitors": 88
+        "views": 119,
+        "visitors": 89
       },
       {
         "path": "/pricing",
@@ -273,15 +302,15 @@
       }
     ],
     "sources_available": true,
-    "visits": 36,
+    "visits": 37,
     "bot_pageviews": 29,
     "bot_share": 0.126,
-    "mobile_share": 0.808,
+    "mobile_share": 0.778,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 36,
-        "visitors": 26
+        "visits": 37,
+        "visitors": 27
       }
     ],
     "top_countries": [
@@ -291,7 +320,7 @@
       },
       {
         "country": "US",
-        "visitors": 25
+        "visitors": 26
       },
       {
         "country": "DE",
@@ -301,8 +330,8 @@
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 24,
-        "visitors": 19,
+        "visits": 25,
+        "visitors": 20,
         "top_referrer": null
       },
       {

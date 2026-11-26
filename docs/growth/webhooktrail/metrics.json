@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-25T22:37:59.908Z",
+  "generated_at": "2026-11-26T22:28:08.557Z",
   "product": "webhooktrail",
   "sources_tracked_since": "2026-11-23T08:26:02.921Z",
   "accounts_total": 0,
@@ -39,8 +39,8 @@
   },
   "last_1d": {
     "days": 1,
-    "visitors": 1,
-    "pageviews": 1,
+    "visitors": 2,
+    "pageviews": 2,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
@@ -49,40 +49,40 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 1,
-        "visitors": 1
+        "count": 2,
+        "visitors": 2
       }
     },
     "top_pages": [
       {
         "path": "/",
-        "views": 1,
-        "visitors": 1
+        "views": 2,
+        "visitors": 2
       }
     ],
     "sources_available": true,
-    "visits": 1,
+    "visits": 2,
     "bot_pageviews": 0,
     "bot_share": 0,
     "mobile_share": 0,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 1,
-        "visitors": 1
+        "visits": 2,
+        "visitors": 2
       }
     ],
     "top_countries": [
       {
         "country": "US",
-        "visitors": 1
+        "visitors": 2
       }
     ],
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 1,
-        "visitors": 1,
+        "visits": 2,
+        "visitors": 2,
         "top_referrer": null
       }
     ],
@@ -90,8 +90,8 @@
   },
   "last_7d": {
     "days": 7,
-    "visitors": 12,
-    "pageviews": 17,
+    "visitors": 14,
+    "pageviews": 19,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
@@ -100,33 +100,33 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 17,
-        "visitors": 12
+        "count": 19,
+        "visitors": 14
       }
     },
     "top_pages": [
       {
         "path": "/",
-        "views": 17,
-        "visitors": 12
+        "views": 19,
+        "visitors": 14
       }
     ],
     "sources_available": true,
-    "visits": 13,
+    "visits": 15,
     "bot_pageviews": 10,
-    "bot_share": 0.37,
-    "mobile_share": 0.556,
+    "bot_share": 0.345,
+    "mobile_share": 0.455,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 13,
-        "visitors": 9
+        "visits": 15,
+        "visitors": 11
       }
     ],
     "top_countries": [
       {
         "country": "US",
-        "visitors": 7
+        "visitors": 9
       },
       {
         "country": "(unknown)",
@@ -144,8 +144,8 @@
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 13,
-        "visitors": 9,
+        "visits": 15,
+        "visitors": 11,
         "top_referrer": null
       }
     ],
@@ -153,8 +153,8 @@
   },
   "last_30d": {
     "days": 30,
-    "visitors": 14,
-    "pageviews": 31,
+    "visitors": 16,
+    "pageviews": 33,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 2,
@@ -163,15 +163,15 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 31,
-        "visitors": 14
+        "count": 33,
+        "visitors": 16
       }
     },
     "top_pages": [
       {
         "path": "/",
-        "views": 19,
-        "visitors": 14
+        "views": 21,
+        "visitors": 16
       },
       {
         "path": "/help",
@@ -205,21 +205,21 @@
       }
     ],
     "sources_available": true,
-    "visits": 13,
+    "visits": 15,
     "bot_pageviews": 10,
-    "bot_share": 0.244,
-    "mobile_share": 0.556,
+    "bot_share": 0.233,
+    "mobile_share": 0.455,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
-        "visits": 13,
-        "visitors": 9
+        "visits": 15,
+        "visitors": 11
       }
     ],
     "top_countries": [
       {
         "country": "US",
-        "visitors": 7
+        "visitors": 9
       },
       {
         "country": "(unknown)",
@@ -237,8 +237,8 @@
     "top_landing_pages": [
       {
         "path": "/",
-        "visits": 13,
-        "visitors": 9,
+        "visits": 15,
+        "visitors": 11,
         "top_referrer": null
       }
     ],
