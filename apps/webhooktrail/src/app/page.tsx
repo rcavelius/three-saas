@@ -88,6 +88,17 @@ export default function Home() {
                 <div className="order-1 lg:order-2">
                   <CreateEndpointButton full />
                   <p className="mt-2.5 font-mono text-[12px] leading-[18px] text-fg-dim">No signup. curl command ready to paste.</p>
+                  <div className="mt-4 border border-line bg-bg p-3">
+                    <p className="g-cap text-fg-dim">Then send your first test</p>
+                    <pre className="mt-2 overflow-x-auto font-mono text-[12px] leading-[18px]">
+                      <code>{`curl -X POST 'https://webhooktrail.com/h/<your-slug>/hello' \\
+  -H 'Content-Type: application/json' \\
+  -d '{"event":"ping","ok":true}'`}</code>
+                    </pre>
+                    <p className="mt-2 font-mono text-[12px] leading-[18px] text-fg-dim">
+                      Your real URL is on the next screen. The request shows up in the inspector with its method, headers and body.
+                    </p>
+                  </div>
                 </div>
               </div>
               <dl className="hidden grid-cols-2 gap-px bg-line lg:grid">
