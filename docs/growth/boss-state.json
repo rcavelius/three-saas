@@ -2,7 +2,7 @@
   "name": "Traffic boss",
   "born": "2026-11-23",
   "rulebook": "docs/growth/BOSS.md",
-  "last_run": "2026-11-25T14:10:00Z",
+  "last_run": "2026-11-26T14:10:00Z",
   "log": [
     {
       "date": "2026-11-23",
@@ -153,6 +153,36 @@
         "changekite": "accepted (HTTP 200, 41 URLs)",
         "webhooktrail": "accepted (HTTP 200, 40 URLs)"
       }
+    },
+    {
+      "date": "2026-11-26",
+      "run": "14:10 UTC",
+      "visitors_24h": {
+        "gridrinse": 0,
+        "changekite": 2,
+        "webhooktrail": 1
+      },
+      "visits_7d": {
+        "gridrinse": 36,
+        "changekite": 15,
+        "webhooktrail": 13
+      },
+      "paid": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "focus": {
+        "gridrinse": "Try-without-a-file example data path on dedupe tool pages and homepage",
+        "changekite": "Lower first-scan effort: free/no-signup promise (if true), sample report link",
+        "webhooktrail": "Provider shortcut links from homepage to matching testers"
+      },
+      "fixed": [],
+      "indexnow": {
+        "gridrinse": "accepted (HTTP 200, 63 URLs)",
+        "changekite": "accepted (HTTP 200, 43 URLs)",
+        "webhooktrail": "accepted (HTTP 200, 42 URLs)"
+      }
     }
   ],
   "money_log": [
@@ -202,6 +232,30 @@
         "gridrinse": "before/after example on first screen (prev: tool-first phone-width screens)",
         "changekite": "scan CTA on tool/guide pages (prev: example scan result near scan box)",
         "webhooktrail": "copy-paste first-test curl (prev: example capture + one-click endpoint)"
+      }
+    },
+    {
+      "date": "2026-11-26",
+      "making_money": {
+        "gridrinse": false,
+        "changekite": false,
+        "webhooktrail": false
+      },
+      "sales_24h": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "revenue_7d": 0,
+      "leak": {
+        "gridrinse": "visitors do not try the tool",
+        "changekite": "visitors do not scan",
+        "webhooktrail": "visitors do not create an endpoint"
+      },
+      "tactic": {
+        "gridrinse": "example data / no-file-needed path (prev: before/after example)",
+        "changekite": "lower first-scan effort and free promise (prev: scan CTA on tool pages)",
+        "webhooktrail": "provider shortcut links (prev: copy-paste curl)"
       }
     }
   ]
