@@ -50,7 +50,7 @@ export default function HomePage() {
           <Star className="ck-twinkle absolute right-5 top-5 h-11 w-11 sm:right-8 sm:top-8 sm:h-16 sm:w-16" fill="var(--color-pink)" />
           <Star className="ck-twinkle absolute bottom-10 right-10 hidden h-10 w-10 lg:block" fill="var(--color-cyan)" />
           <p className="ck-in">
-            <span className="chip">Free website health scan</span>
+            <span className="chip">Free website health scan · no signup</span>
           </p>
           <h1 id="hero-title" className="display sticker ck-in mt-5 max-w-[11ch] text-[2.8rem] sm:text-[4.5rem] lg:text-[5.4rem] xl:text-[6rem]" style={{ ["--d" as string]: "60ms" }}>
             Find what&rsquo;s broken on your site.

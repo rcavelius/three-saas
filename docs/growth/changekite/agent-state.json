@@ -169,6 +169,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-26",
+      "agent": "convert",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Homepage hero chip now reads 'Free website health scan \u00b7 no signup' so the no-account promise sits above the scan form at phone width; copy only (Scanner already offers no-account scans)"
+      ],
+      "metrics": {
+        "visitors_7d": 16,
+        "tool_users_7d": 1,
+        "pricing_views_7d": 1,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }
