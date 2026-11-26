@@ -1,8 +1,8 @@
 {
   "about": "Checkout health. test_mode = weekly real-browser purchase of every pass and one monthly plan per app with Stripe TEST cards (free limit → paywall → Stripe Checkout → webhook → unlock cookie/link → paid limits). live_smoke = daily live Checkout sessions opened through the live sites and expired unpaid. Written by .github/workflows/checkout-e2e.yml.",
-  "updated_at": "2026-11-25T17:47:35.247Z",
+  "updated_at": "2026-11-26T17:30:55.538Z",
   "ok": true,
-  "last_run": "https://github.com/rcavelius/three-saas/actions/runs/45668271953",
+  "last_run": "https://github.com/rcavelius/three-saas/actions/runs/45868196129",
   "test_mode": {
     "run_at": "2026-11-23T21:27:32.152Z",
     "ok": true,
@@ -46,7 +46,7 @@
     ]
   },
   "live_smoke": {
-    "run_at": "2026-11-25T17:47:20.402Z",
+    "run_at": "2026-11-26T17:30:38.382Z",
     "ok": true,
     "checks": [
       {
