@@ -151,6 +151,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-26",
+      "agent": "guides",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added guide /guides/verify-sendgrid-event-webhook-signatures (from SendGrid public docs; links /tools/sendgrid-webhook-tester and /tools/send-test-webhook near top), linked from the SendGrid tool page; tests pinned"
+      ],
+      "metrics": {
+        "visitors_7d": 12,
+        "signup_starts_7d": 0,
+        "pricing_views_7d": 0,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

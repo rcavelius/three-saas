@@ -36,4 +36,10 @@ export const GUIDES: Guide[] = [
     description: "How Twilio signs form-encoded webhook requests with an HMAC-SHA1 of the URL and sorted parameters, and how to debug mismatches by capturing a real request.",
     updated: "2026-11-25",
   },
+  {
+    slug: "verify-sendgrid-event-webhook-signatures",
+    title: "Verify SendGrid Event Webhook signatures (ECDSA and the raw body)",
+    description: "How SendGrid signs Event Webhook batches with an ECDSA signature over the timestamp and raw body, and how to debug mismatches by capturing a real request.",
+    updated: "2026-11-26",
+  },
 ];

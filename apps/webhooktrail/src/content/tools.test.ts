@@ -173,4 +173,17 @@ describe("tool landing pages", () => {
     const urls = (await sitemap()).map((e) => new URL(e.url).pathname);
     expect(urls).toContain("/guides/verify-twilio-request-signatures");
   });
+
+  it("links the SendGrid tool page and the SendGrid guide to each other and lists the guide in the sitemap", async () => {
+    const sg = TOOLS.find((t) => t.slug === "sendgrid-webhook-tester")!;
+    expect(sg.links.map((l) => l.href)).toContain("/guides/verify-sendgrid-event-webhook-signatures");
+    expect(GUIDES.map((g) => g.slug)).toContain("verify-sendgrid-event-webhook-signatures");
+    const page = src("../app/guides/verify-sendgrid-event-webhook-signatures/page.tsx");
+    expect(page).toContain("/tools/sendgrid-webhook-tester");
+    expect(page).toContain("/tools/send-test-webhook");
+    expect(page).toContain("ECDSA");
+    const { default: sitemap } = await import("@/app/sitemap");
+    const urls = (await sitemap()).map((e) => new URL(e.url).pathname);
+    expect(urls).toContain("/guides/verify-sendgrid-event-webhook-signatures");
+  });
 });
