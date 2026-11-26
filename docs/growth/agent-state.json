@@ -451,6 +451,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-26",
+      "agent": "convert",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Homepage: one-line promise under the hero drop box (no sign-up, read and cleaned on your device, review every change before download) plus pointer to the existing 'Clean a messy sample file' link; copy only"
+      ],
+      "metrics": {
+        "visitors_7d": 39,
+        "tool_users_7d": 3,
+        "pricing_views_7d": 7,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

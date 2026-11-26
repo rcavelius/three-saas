@@ -73,6 +73,9 @@ export function HeroDrop({ limitText }: { limitText: string }) {
           Never uploaded
         </p>
       </div>
+      <p className="mt-2 px-1 text-[14px] font-medium text-ink-2">
+        No sign-up. The file is read and cleaned on your device, and you review every change before you download the result. No file? Use the sample.
+      </p>
     </div>
   );
 }
