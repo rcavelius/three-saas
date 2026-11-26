@@ -20,9 +20,9 @@ const diffSource = readFileSync(join(src, "lib/monitoring/diff.ts"), "utf8");
 const copy = (t: (typeof TOOLS)[number]) => [t.title, t.h1, t.description, t.intro, ...t.howTo, ...t.faq.flatMap((f) => [f.q, f.a])].join("\n");
 
 describe("tool landing pages", () => {
-  it("have 8-16 pages with unique slugs and search-sized titles and descriptions", () => {
+  it("have 8-20 pages with unique slugs and search-sized titles and descriptions", () => {
     expect(TOOLS.length).toBeGreaterThanOrEqual(8);
-    expect(TOOLS.length).toBeLessThanOrEqual(16);
+    expect(TOOLS.length).toBeLessThanOrEqual(20);
     expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(TOOLS.length);
     expect(new Set(TOOLS.map((t) => t.title)).size).toBe(TOOLS.length);
     for (const t of TOOLS) {
@@ -133,6 +133,19 @@ describe("tool landing pages", () => {
     const page = copy(TOOLS.find((t) => t.slug === "sitemap-urls-redirect-or-404-checker")!);
     expect(page).toContain("does not return 200");
     expect(page).toContain("up to five");
+  });
+
+  it("the status code page only claims what the status check does", () => {
+    const links = readFileSync(join(src, "lib/scanner/checks/links.ts"), "utf8");
+    expect(links).toContain("status >= 400");
+    expect(links).toContain("p.redirects.length >= 2");
+    const t = TOOLS.find((x) => x.slug === "website-status-code-checker")!;
+    expect(t.checks).toEqual(["status"]);
+    expect(copy(t)).toContain("400 or higher");
+    expect(copy(t)).toContain("two or more redirects");
+    // Continuous monitoring is a paid-plan feature, never promised for the free scan.
+    expect(copy(t)).toContain("one-off");
+    expect(diffSource).toContain('kind: "site_down"');
   });
 
   it("every tool page and the index are in the sitemap", () => {

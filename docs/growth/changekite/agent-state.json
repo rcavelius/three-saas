@@ -133,6 +133,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-26",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added /tools/website-status-code-checker (claims pinned in tools.test.ts; page cap test raised 16->20). Scan form chips already say Free / No account."
+      ],
+      "metrics": {
+        "visitors_7d": 13,
+        "tool_users_7d": 1,
+        "pricing_views_7d": 1,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

@@ -412,6 +412,27 @@ export const TOOLS: ToolPage[] = [
     ],
   },
   {
+    slug: "website-status-code-checker",
+    title: "Website status code checker: is your homepage returning 200?",
+    h1: "Website status code checker",
+    description:
+      "Check what HTTP status your homepage returns and whether it loads at all. Free scan, no account: just enter the address. Also lists redirect chains.",
+    intro:
+      "If your homepage answers 404 or 500, or does not load at all, nothing else on the site matters. ChangeKite requests the address you enter, records the HTTP status and every redirect hop on the way, and flags a start page that fails, returns a 4xx/5xx error or is not served as HTML.",
+    checks: ["status"],
+    rules: ["start-unreachable", "start-error-status", "start-not-html", "redirect-chain"],
+    howTo: [
+      "Enter your homepage address above: a URL is all a free scan needs.",
+      "Open Page status in the report: it shows the start page's result and any pages that need two or more redirects.",
+      "If the start page fails, check that the site is online, the domain resolves and the certificate is valid; if it returns an error status, make it return 200 OK.",
+    ],
+    faq: [
+      { q: "What is flagged as critical?", a: "A start page that could not be loaded at all (timeout, DNS or TLS failure) and a start page that returns an HTTP status of 400 or higher." },
+      { q: "Does it check my site continuously?", a: "No, a free scan is a one-off check. Scheduled monitoring on a paid plan re-scans your sites and emails you when the home page stops answering or comes back." },
+      { q: "Does it show redirects?", a: "Yes. Pages that need two or more redirects before loading are listed as notices with the full chain, so you can point links straight at the final URL." },
+    ],
+  },
+  {
     slug: "monitor-website-for-broken-links",
     title: "Monitor your website for broken links, with email alerts",
     h1: "Monitor your website for broken links",
