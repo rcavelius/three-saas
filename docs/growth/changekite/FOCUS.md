@@ -1,16 +1,17 @@
-# ChangeKite focus — 2026-11-26
-Data: metrics generated 2026-11-25T22:37Z; visitors 7 d 13; visits 7 d 15 (tracking began 2026-11-23, partial window); paid 0.
+# ChangeKite focus — 2026-11-27
+Data: metrics generated 2026-11-26T22:28Z; visitors 7 d 16; visits 7 d 18 (tracking began 2026-11-23, partial window); paid 0.
 
 ## Diagnosis
-All 15 visits in 7 d are (direct or hidden), all landing on /. 7 d: 1 tool user, 1 pricing view, 0 checkouts; 24 h: 2 visitors. Bots are 41.3% of pageviews, so human traffic is even smaller. Biggest leak: visitors do not scan. Scan CTAs and the "what you get" section have shipped; today reduce the effort of the first scan. Sample far too small to conclude. Site-check is clean.
+All 18 visits in 7 d are (direct or hidden), all landing on /. 7 d: 1 tool user, 1 pricing view, 0 checkout starts. Bots 40%, mobile 25%. Biggest leak: visitors do not scan. Scan CTAs, "what you get" and the free/no-signup chip shipped; today give visitors a problem-specific way in. Sample far too small to conclude. Site-check is clean.
 
 ## pages
-- Narrow checker pages: show, beside the scan form, what is free and what a scan needs (just a URL, if true). Copy only.
-- Add one more narrow long-tail checker page and list it on /tools.
+- Make each tool page's title/description match one concrete problem search ("why is my page not indexed" style) and add a link back to the homepage scan.
+- Add one more tool page for a narrow check not yet covered (claims must match the checks in code).
 ## guides
-- Each guide links to two tool pages; add a link to an existing example/sample report if one exists. Make sure /guides lists the newest guides.
+- Add one guide answering a concrete "what does this SEO warning mean" question; link two tool pages near the top. Cross-link existing guides.
 ## convert
-- Homepage: tighten the first screen so the scan box and a one-line "free, no signup" style promise (only if true) are visible without scrolling at phone width. Copy only; no pricing or paywall code.
+- Homepage: a "Pick your problem" list (not indexed, broken links, wrong canonical, slow redirects) with each item deep-linking to the matching tool page. Copy and links only.
+
 ## Don't
 - No pricing, billing or paywall changes.
-- No more "what you get" or scan-CTA rewrites this week; both shipped.
+- Do not repeat scan CTA, "what you get" or free-chip changes.

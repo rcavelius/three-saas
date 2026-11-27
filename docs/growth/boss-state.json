@@ -2,7 +2,7 @@
   "name": "Traffic boss",
   "born": "2026-11-23",
   "rulebook": "docs/growth/BOSS.md",
-  "last_run": "2026-11-26T14:10:00Z",
+  "last_run": "2026-11-27T14:10:00Z",
   "log": [
     {
       "date": "2026-11-23",
@@ -183,6 +183,36 @@
         "changekite": "accepted (HTTP 200, 43 URLs)",
         "webhooktrail": "accepted (HTTP 200, 42 URLs)"
       }
+    },
+    {
+      "date": "2026-11-27",
+      "run": "14:10 UTC",
+      "visitors_24h": {
+        "gridrinse": 1,
+        "changekite": 3,
+        "webhooktrail": 2
+      },
+      "visits_7d": {
+        "gridrinse": 37,
+        "changekite": 18,
+        "webhooktrail": 15
+      },
+      "paid": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "focus": {
+        "gridrinse": "Route /pricing and homepage landers to a tool page; sharpen tool titles/descriptions",
+        "changekite": "Per-problem entry points on homepage deep-linking to tool pages",
+        "webhooktrail": "Create-endpoint-for-provider button on provider tester and guide pages"
+      },
+      "fixed": [],
+      "indexnow": {
+        "gridrinse": "accepted (HTTP 200, 64 URLs)",
+        "changekite": "accepted (HTTP 200, 45 URLs)",
+        "webhooktrail": "accepted (HTTP 200, 44 URLs)"
+      }
     }
   ],
   "money_log": [
@@ -256,6 +286,30 @@
         "gridrinse": "example data / no-file-needed path (prev: before/after example)",
         "changekite": "lower first-scan effort and free promise (prev: scan CTA on tool pages)",
         "webhooktrail": "provider shortcut links (prev: copy-paste curl)"
+      }
+    },
+    {
+      "date": "2026-11-27",
+      "making_money": {
+        "gridrinse": false,
+        "changekite": false,
+        "webhooktrail": false
+      },
+      "sales_24h": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "revenue_7d": 0,
+      "leak": {
+        "gridrinse": "visitors do not try the tool",
+        "changekite": "visitors do not scan",
+        "webhooktrail": "visitors do not create an endpoint"
+      },
+      "tactic": {
+        "gridrinse": "route landers to tool page, sharper titles (prev: example data / file promise)",
+        "changekite": "per-problem entry points (prev: free/no-signup chip)",
+        "webhooktrail": "create-endpoint button on provider pages (prev: provider shortcut links)"
       }
     }
   ]
