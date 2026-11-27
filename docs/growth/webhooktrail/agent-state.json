@@ -205,6 +205,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-27",
+      "agent": "guides",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added guide /guides/verify-mailgun-webhook-signatures (from Mailgun public docs; links /tools/mailgun-webhook-tester and /tools/send-test-webhook in first screen), linked from the Mailgun tool page; tests pinned"
+      ],
+      "metrics": {
+        "visitors_7d": 14,
+        "signup_starts_7d": 0,
+        "pricing_views_7d": 0,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

@@ -193,4 +193,17 @@ describe("tool landing pages", () => {
     const urls = (await sitemap()).map((e) => new URL(e.url).pathname);
     expect(urls).toContain("/guides/verify-sendgrid-event-webhook-signatures");
   });
+
+  it("links the Mailgun tool page and the Mailgun guide to each other and lists the guide in the sitemap", async () => {
+    const mg = TOOLS.find((t) => t.slug === "mailgun-webhook-tester")!;
+    expect(mg.links.map((l) => l.href)).toContain("/guides/verify-mailgun-webhook-signatures");
+    expect(GUIDES.map((g) => g.slug)).toContain("verify-mailgun-webhook-signatures");
+    const page = src("../app/guides/verify-mailgun-webhook-signatures/page.tsx");
+    expect(page).toContain("/tools/mailgun-webhook-tester");
+    expect(page).toContain("/tools/send-test-webhook");
+    expect(page).toContain("HMAC-SHA256");
+    const { default: sitemap } = await import("@/app/sitemap");
+    const urls = (await sitemap()).map((e) => new URL(e.url).pathname);
+    expect(urls).toContain("/guides/verify-mailgun-webhook-signatures");
+  });
 });

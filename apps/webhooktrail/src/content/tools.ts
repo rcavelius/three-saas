@@ -69,6 +69,7 @@ const GUIDE_GITHUB = { href: "/guides/verify-github-webhook-signatures", label: 
 const GUIDE_SLACK = { href: "/guides/verify-slack-request-signatures", label: "Guide: verify Slack request signatures" };
 const GUIDE_TWILIO = { href: "/guides/verify-twilio-request-signatures", label: "Guide: verify Twilio request signatures" };
 const GUIDE_SENDGRID = { href: "/guides/verify-sendgrid-event-webhook-signatures", label: "Guide: verify SendGrid Event Webhook signatures" };
+const GUIDE_MAILGUN = { href: "/guides/verify-mailgun-webhook-signatures", label: "Guide: verify Mailgun webhook signatures" };
 const GUIDE_REPLAY = { href: "/guides/test-webhook-retries-with-replay", label: "Guide: test retries and idempotency with replay" };
 const HELP_START = { href: "/help/getting-started", label: "Help: getting started" };
 const HELP_REPLAY = { href: "/help/replay-and-destinations", label: "Help: replay requests to verified destinations" };
@@ -415,7 +416,7 @@ export const TOOLS: ToolPage[] = [
       },
       { q: "What are the limits?", a: freePlanFacts },
     ],
-    links: [HELP_START, HELP_MASKING, DOCS_CUSTOM],
+    links: [HELP_START, HELP_MASKING, DOCS_CUSTOM, GUIDE_MAILGUN],
   },
   {
     slug: "zapier-webhook-tester",

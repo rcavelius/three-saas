@@ -42,4 +42,10 @@ export const GUIDES: Guide[] = [
     description: "How SendGrid signs Event Webhook batches with an ECDSA signature over the timestamp and raw body, and how to debug mismatches by capturing a real request.",
     updated: "2026-11-26",
   },
+  {
+    slug: "verify-mailgun-webhook-signatures",
+    title: "Verify Mailgun webhook signatures (timestamp, token and signature)",
+    description: "How Mailgun signs webhooks with an HMAC-SHA256 of the timestamp and token from the JSON body, and how to debug mismatches by capturing a real request.",
+    updated: "2026-11-27",
+  },
 ];
