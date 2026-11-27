@@ -148,6 +148,18 @@ describe("tool landing pages", () => {
     expect(diffSource).toContain('kind: "site_down"');
   });
 
+  it("the duplicate titles page matches the titles check", () => {
+    const content = readFileSync(join(src, "lib/scanner/checks/content.ts"), "utf8");
+    expect(content).toContain("t.toLowerCase()");
+    expect(content).toContain("if (urls.length < 2) continue;");
+    expect(content).toContain("!isNoindex(p.parsed!.robotsDirectives)");
+    expect(content).toContain("and ${urls.length - max} more");
+    const t = TOOLS.find((x) => x.slug === "duplicate-page-titles-checker")!;
+    expect(t.checks).toEqual(["titles"]);
+    expect(copy(t)).toContain("case-insensitively");
+    expect(copy(t)).toContain("noindex");
+  });
+
   it("every tool page and the index are in the sitemap", () => {
     const paths = sitemapPaths({ published: false }).map((p) => p.path);
     expect(paths).toContain("/tools");

@@ -433,6 +433,28 @@ export const TOOLS: ToolPage[] = [
     ],
   },
   {
+    slug: "duplicate-page-titles-checker",
+    title: "Duplicate page titles checker: find pages sharing a title",
+    h1: "Duplicate page titles checker",
+    description:
+      "Find pages on your site that share the same <title>, plus pages with two title tags. Free scan, no account needed: the report names the pages involved.",
+    intro:
+      "When several pages share one title, search results and browser tabs cannot tell them apart, and the pages compete with each other. ChangeKite reads the title of every page it crawls, compares them case-insensitively and reports each group of pages that share one, listing the pages involved.",
+    checks: ["titles"],
+    rules: ["title-duplicate", "title-multiple"],
+    howTo: [
+      "Enter your homepage above and run the scan.",
+      "Open Page titles in the report: a finding appears for each title shared by two or more pages and lists some of those pages.",
+      "Give each page a title that reflects its own content; for a page that repeats a template title, put the page name first.",
+      "Scan again to confirm the finding is gone.",
+    ],
+    faq: [
+      { q: "How are duplicates found?", a: "Titles are compared across all crawled pages, case-insensitively. Pages marked noindex are left out of the comparison." },
+      { q: "How serious is it?", a: "Duplicate titles are reported as a warning. A page with more than one <title> element is also a warning: browsers and search engines use only the first." },
+      { q: "Does it show every page that shares the title?", a: "The finding names the first pages in the group and says how many more there are." },
+    ],
+  },
+  {
     slug: "monitor-website-for-broken-links",
     title: "Monitor your website for broken links, with email alerts",
     h1: "Monitor your website for broken links",
