@@ -277,6 +277,46 @@ export const GUIDES: Guide[] = [
       </>
     ),
   },
+  {
+    slug: "duplicate-page-titles",
+    title: "Duplicate page titles: what the warning means and how to fix it",
+    description: "Several pages sharing one <title> is a common SEO warning. Why it happens, why it matters, and how to give each page its own title.",
+    updated: "2026-11-27",
+    steps: [
+      { name: "Find the pages that share a title", text: "Scan the site with a duplicate page titles checker such as ChangeKite, or compare the <title> of your main pages by viewing their source." },
+      { name: "Find the cause", text: "Look for a template or plugin that writes the same title everywhere, such as a site name used as the whole title, or pagination and filter pages that repeat their parent's title." },
+      { name: "Write a title per page", text: "Put what the page is about first and the site name last, so each page has its own title." },
+      { name: "Scan again", text: "Confirm the finding is gone and that no page has more than one <title> element." },
+    ],
+    body: (
+      <>
+        <p>
+          The <code>&lt;title&gt;</code> of a page is the clickable headline in search results and the label on the browser tab. When two or more
+          pages share the same title, search engines and visitors cannot tell them apart, and the pages compete with each other.
+        </p>
+        <h2>Why it happens</h2>
+        <ul>
+          <li><strong>A template that sets one title everywhere</strong>, often just the site name.</li>
+          <li><strong>Pagination and filtered lists</strong> that repeat the title of the first page.</li>
+          <li><strong>Copied pages</strong> whose title was never changed.</li>
+          <li><strong>Two title elements</strong> on one page, usually a theme plus an SEO plugin. Browsers and search engines use only the first.</li>
+        </ul>
+        <h2>How to fix it</h2>
+        <p>
+          Give every page a title that reflects its own content, with the page name first and the site name last. Titles around 30&ndash;60
+          characters usually fit in search results. If one template is the cause, fix the template rather than single pages, then scan again.
+        </p>
+        <p>
+          ChangeKite reads the title of every page it crawls, compares them case-insensitively and reports each group of pages that share one as a
+          warning, naming the first pages in the group. Pages marked noindex are left out of the comparison. A page with more than one title element
+          is also a warning. Try the{" "}
+          <Link href="/tools/duplicate-page-titles-checker">duplicate page titles checker</Link>, and see the{" "}
+          <Link href="/tools/title-and-meta-description-checker">title and meta description checker</Link> for missing, empty, too long or too short
+          titles. Then scan your own site below.
+        </p>
+      </>
+    ),
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
