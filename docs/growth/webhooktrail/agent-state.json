@@ -169,6 +169,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-27",
+      "agent": "convert",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Homepage: 'Testing a provider?' row under the curl block linking the 9 provider tester pages (Stripe, GitHub, Shopify, Twilio, Slack, PayPal, SendGrid, Mailgun, Zapier). Copy and links only."
+      ],
+      "metrics": {
+        "visitors_7d": 14,
+        "signup_starts_7d": 0,
+        "pricing_views_7d": 0,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

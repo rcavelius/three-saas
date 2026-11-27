@@ -19,6 +19,19 @@ import { GUIDES } from "./guides/guides";
  * Senders are plain text labels that link to the matching tester page; they are not customers.
  */
 
+const PROVIDER_LABELS: Record<string, string> = {
+  "stripe-webhook-tester": "Stripe",
+  "github-webhook-tester": "GitHub",
+  "shopify-webhook-tester": "Shopify",
+  "twilio-webhook-tester": "Twilio",
+  "slack-webhook-tester": "Slack",
+  "paypal-webhook-tester": "PayPal",
+  "sendgrid-webhook-tester": "SendGrid",
+  "mailgun-webhook-tester": "Mailgun",
+  "zapier-webhook-tester": "Zapier",
+};
+const PROVIDER_SLUGS = Object.keys(PROVIDER_LABELS);
+
 function Dot({ at }: { at: "tl" | "tr" | "bl" | "br" }) {
   const pos = { tl: "-left-[4px] -top-[4px]", tr: "-right-[4px] -top-[4px]", bl: "-left-[4px] -bottom-[4px]", br: "-right-[4px] -bottom-[4px]" }[at];
   return <span aria-hidden="true" className={`g-dot ${pos}`} />;
@@ -98,6 +111,21 @@ export default function Home() {
                     <p className="mt-2 font-mono text-[12px] leading-[18px] text-fg-dim">
                       Your real URL is on the next screen. The request shows up in the inspector with its method, headers and body.
                     </p>
+                  </div>
+                  <div className="mt-4">
+                    <p className="g-cap text-fg-dim">Testing a provider?</p>
+                    <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[13px] leading-[26px]">
+                      {PROVIDER_SLUGS.map((slug) => {
+                        const t = TOOLS.find((x) => x.slug === slug);
+                        return t ? (
+                          <li key={slug}>
+                            <Link href={`/tools/${slug}`} className="underline decoration-2 underline-offset-[5px] hover:text-signal">
+                              {PROVIDER_LABELS[slug]}
+                            </Link>
+                          </li>
+                        ) : null;
+                      })}
+                    </ul>
                   </div>
                 </div>
               </div>
