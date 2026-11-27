@@ -469,6 +469,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-27",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "New tool page /tools/remove-duplicates-multiple-columns-csv (dedupe on a combination of columns, e.g. Name + Date) with pinned test; linked from every tool page and /tools automatically; meta rewrites of existing pages skipped to stay within one unit"
+      ],
+      "metrics": {
+        "visitors_7d": 39,
+        "tool_users_7d": 3,
+        "pricing_views_7d": 7,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

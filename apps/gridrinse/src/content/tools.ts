@@ -508,6 +508,39 @@ export const TOOLS: ToolPage[] = [
     ],
     guide: { href: "/guides/dedupe-strategies", label: "Guide: ways to deduplicate a spreadsheet" },
   },
+  {
+    slug: "remove-duplicates-multiple-columns-csv",
+    title: "Remove duplicates based on multiple columns in CSV or Excel (free)",
+    h1: "Remove duplicates based on several columns",
+    description:
+      "Remove rows that repeat on a combination of columns, such as First name + Last name + Date, in a CSV or Excel file. Free, in your browser, no upload.",
+    intro:
+      "Sometimes no single column identifies a row: the same person can appear on different dates, but the same person on the same date is a repeat. GridRinse compares the combination of columns you pick and shows which rows go before you download.",
+    stepName: "Remove duplicate rows",
+    howTo: [
+      "Choose your CSV or Excel file above.",
+      "Open the step \"Remove duplicate rows\" and pick every column that together identify a row, for example Name and Date.",
+      "Choose whether the first or the last row is kept, check the highlighted rows in the review, then download.",
+    ],
+    example: {
+      input: {
+        columns: ["Name", "Date", "Hours"],
+        rows: [
+          ["Ann Lee", "2026-03-01", "6"],
+          ["Ann Lee", "2026-03-02", "5"],
+          ["Ann Lee", "2026-03-01", "6.5"],
+        ],
+      },
+      steps: [makeStep({ type: "dedupe", keys: ["Name", "Date"], keep: "first" })],
+      note: "Ann Lee on 2026-03-01 appears twice with different Hours, so the first is kept; her 2026-03-02 row stays because the Date differs.",
+    },
+    faq: [
+      { q: "When is a row a duplicate?", a: "Only when every key column you picked matches. Rows that match on just one of them are kept." },
+      { q: "How many columns can I pick?", a: "As many as you need; pick them all and it behaves like a whole-row check." },
+      { q: "Which row is kept?", a: "Your choice: the first (default) or the last. Removed rows are listed in the review before you download." },
+    ],
+    guide: { href: "/guides/dedupe-strategies", label: "Guide: ways to deduplicate a spreadsheet" },
+  },
 ];
 
 export function getTool(slug: string): ToolPage | undefined {

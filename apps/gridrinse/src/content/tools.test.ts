@@ -107,4 +107,11 @@ describe("tool landing pages", () => {
       ["Beta Ltd", "Leeds"],
     ]);
   });
+
+  it("multi-column dedupe keeps Ann's other date", () => {
+    expect(ex("remove-duplicates-multiple-columns-csv").after.rows).toEqual([
+      ["Ann Lee", "2026-03-01", "6"],
+      ["Ann Lee", "2026-03-02", "5"],
+    ]);
+  });
 });
