@@ -21,7 +21,7 @@ const free = WEBHOOKTRAIL_CATALOG.plans.find((p) => p.id === WEBHOOKTRAIL_CATALO
 describe("tool landing pages", () => {
   it("have unique slugs and search-sized titles and descriptions", () => {
     expect(TOOLS.length).toBeGreaterThanOrEqual(8);
-    expect(TOOLS.length).toBeLessThanOrEqual(21);
+    expect(TOOLS.length).toBeLessThanOrEqual(22);
     expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(TOOLS.length);
     expect(new Set(TOOLS.map((t) => t.title)).size).toBe(TOOLS.length);
     for (const t of TOOLS) {
@@ -123,6 +123,13 @@ describe("tool landing pages", () => {
     }
     expect(isSensitiveHeader("x-twilio-email-event-webhook-signature")).toBe(true);
     expect(src("../components/inspector/BodyViewer.tsx")).toContain("Raw");
+  });
+
+  it("webhook-not-received page is honest and listed", () => {
+    const t = TOOLS.find((x) => x.slug === "webhook-not-received")!;
+    expect(t.feature).toBe("capture");
+    expect(pageText(t)).toContain(freePlanFacts);
+    expect(src("../app/tools/page.tsx")).toContain('"webhook-not-received"');
   });
 
   it("never claim forwarding to localhost or automatic forwarding", () => {

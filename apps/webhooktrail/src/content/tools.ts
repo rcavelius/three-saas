@@ -82,6 +82,38 @@ const FAQ_NO_SIGNATURE_CHECK =
 
 export const TOOLS: ToolPage[] = [
   {
+    slug: "webhook-not-received",
+    title: "Webhook not arriving? Check if the sender sends it at all",
+    h1: "Webhook not received? Find out if the sender sends it",
+    description:
+      "When a webhook never reaches your server, point the sender at a WebhookTrail URL first: if the request shows up there, the problem is on your side of the network.",
+    intro:
+      "A webhook that never arrives is either not being sent or not reaching your server. Point the sender at a capture URL: if the request shows up in the inspector, the sender works and you can look at your own endpoint, firewall or URL.",
+    feature: "capture",
+    featureName: "Capture URL and live inspector",
+    howTo: [
+      "Click Create endpoint and copy the capture URL.",
+      "Replace your server's URL in the sender's webhook settings with the capture URL, then trigger the event again.",
+      "If the request appears in the inspector, the sender is working: compare its method, path and headers with what your server expects. If nothing appears, check the sender's own delivery log and the event or URL it is subscribed to.",
+    ],
+    faq: [
+      {
+        q: "What does it mean if the request shows up in WebhookTrail?",
+        a: "The sender is delivering to a public URL. The problem is then between the sender and your server, for example the URL, a firewall, a redirect or how your server answers.",
+      },
+      {
+        q: "What if nothing shows up?",
+        a: "The sender is probably not sending it. Check that the event is enabled, the URL is saved and https, and the sender's own delivery or event log, if it has one.",
+      },
+      {
+        q: "Can I see requests that failed on my server?",
+        a: "Only requests sent to the capture URL are recorded. Point the sender at the capture URL to record them, then compare with what your server logs.",
+      },
+      { q: "What are the limits?", a: freePlanFacts },
+    ],
+    links: [HELP_START, DOCS_CAPTURE],
+  },
+  {
     slug: "webhook-tester",
     title: "Webhook tester: free URL to capture and inspect webhooks",
     h1: "Webhook tester",

@@ -187,6 +187,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-27",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added /tools/webhook-not-received (webhook not arriving search intent; Create endpoint button already at top of every tool page), listed on /tools, test pinned"
+      ],
+      "metrics": {
+        "visitors_7d": 14,
+        "signup_starts_7d": 0,
+        "pricing_views_7d": 0,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

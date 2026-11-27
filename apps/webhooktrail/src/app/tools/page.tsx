@@ -16,7 +16,7 @@ const GROUPS: { title: string; line: string; slugs: string[]; cols?: 2 }[] = [
   {
     title: "Capture & inspect",
     line: "Get a URL, send something to it, read exactly what arrived.",
-    slugs: ["webhook-tester", "request-bin", "send-test-webhook"],
+    slugs: ["webhook-tester", "request-bin", "send-test-webhook", "webhook-not-received"],
   },
   {
     title: "Provider testing",
