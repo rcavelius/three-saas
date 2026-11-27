@@ -130,10 +130,62 @@ export const GUIDES: Guide[] = [
         <p>
           Spelling variants (&ldquo;Jon&rdquo; vs &ldquo;John&rdquo;) are not duplicates by any rule a tool can apply safely. Treat those by hand.
         </p>
+        <p>
+          Duplicates still showing after a check? See <Link href="/guides/duplicates-not-removed">why remove duplicates misses rows that look identical</Link>.
+        </p>
         <h2>Always look before you download</h2>
         <p>
           GridRinse lists every removed row in the <em>Removed rows</em> tab with its original row number and the step that removed it. Glance through it before
           downloading; if something there should stay, change the key columns or switch the step off.
+        </p>
+        <p>
+          <Link href="/">Open the cleaner</Link>
+        </p>
+      </>
+    ),
+  },
+  {
+    slug: "duplicates-not-removed",
+    category: "cleaning",
+    title: "Why remove duplicates misses rows that look identical",
+    summary: "Two rows look the same but survive a duplicate check. The usual causes are stray spaces, capital letters and a key that is too narrow or too wide, and each has a quick fix.",
+    body: (
+      <>
+        <p>
+          <strong>Try it on your file:</strong> <Link href="/tools/remove-duplicates-ignore-case-csv">remove duplicates ignoring case and spaces</Link> or{" "}
+          <Link href="/tools/remove-duplicates-multiple-columns-csv">remove duplicates on several columns</Link>. Both run in your browser and list every removed row before you download.
+        </p>
+        <p>
+          You ran a duplicate check, yet two rows that look the same are still there. A tool compares text exactly, so a difference you cannot see still counts. These are
+          the usual causes, in the order worth checking.
+        </p>
+        <h2>1. A stray space at the start or end</h2>
+        <p>
+          <code>ann@example.com</code> and <code>ann@example.com </code> look identical on screen. GridRinse ignores extra spaces at the start or end of a cell by default when
+          comparing, and the <Link href="/tools/trim-spaces-csv">trim spaces tool</Link> also cleans them out of the file itself.
+        </p>
+        <h2>2. Different capital letters</h2>
+        <p>
+          <code>Ann@Example.com</code> is a different text from <code>ann@example.com</code> unless you turn on <em>Ignore upper/lower case</em> in the Remove duplicate rows step.
+          Capitals are not ignored by default.
+        </p>
+        <h2>3. The key is too wide</h2>
+        <p>
+          With every column compared, two rows that differ in one cell, such as a newer phone number, are not duplicates. Pick only the columns that identify the record, for
+          example with the <Link href="/tools/remove-duplicates-by-column-csv">key column tool</Link>.
+        </p>
+        <h2>4. The key is too narrow</h2>
+        <p>
+          The opposite mistake: a single column that repeats legitimately, such as a customer who really placed two orders, removes good rows. When no single column identifies
+          a row, compare a combination (for example name and date) with the{" "}
+          <Link href="/tools/remove-duplicates-multiple-columns-csv">multiple column tool</Link>.
+        </p>
+        <h2>Check what was removed</h2>
+        <p>
+          Every removed row is listed in the review with its original row number, so you can see whether the check did what you meant before you download. Spelling variants such
+          as &ldquo;Jon&rdquo; and &ldquo;John&rdquo; are not treated as duplicates. For the full set of options, read{" "}
+          <Link href="/guides/dedupe-strategies">removing duplicates without losing the rows you need</Link>, and for contact lists see the{" "}
+          <Link href="/guides/clean-contacts-export-for-import">contacts export guide</Link>.
         </p>
         <p>
           <Link href="/">Open the cleaner</Link>
