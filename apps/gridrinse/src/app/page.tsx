@@ -100,6 +100,11 @@ export default function Home() {
             <p className="rise mt-4 max-w-[34rem] text-[18px] font-semibold leading-snug [animation-delay:80ms] sm:mt-5 sm:text-[21px]">
               Clean CSV and Excel files in your browser. Your file never leaves your device.
             </p>
+            <p className="rise mt-4 [animation-delay:120ms]">
+              <Link href="/tools/remove-duplicates-csv" className="btn-pop inline-block">
+                Remove duplicates from a CSV
+              </Link>
+            </p>
           </div>
           <div className="rise relative mt-[4.2rem] min-w-0 [animation-delay:160ms] sm:mt-0">
             <HeroDrop limitText={`.csv, .xlsx, .xls, .ods · free up to ${mb(free.maxFileBytes)} and ${free.maxRows.toLocaleString("en-US")} rows · no account`} />
