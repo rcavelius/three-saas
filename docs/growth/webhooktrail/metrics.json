@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-26T22:28:08.557Z",
+  "generated_at": "2026-11-27T22:09:39.658Z",
   "product": "webhooktrail",
   "sources_tracked_since": "2026-11-23T08:26:02.921Z",
   "accounts_total": 0,
@@ -39,53 +39,24 @@
   },
   "last_1d": {
     "days": 1,
-    "visitors": 2,
-    "pageviews": 2,
+    "visitors": 0,
+    "pageviews": 0,
     "tool_users": 0,
     "tool_runs": 0,
     "pricing_views": 0,
     "signup_starts": 0,
     "checkout_starts": 0,
     "new_accounts": 0,
-    "events": {
-      "pageview": {
-        "count": 2,
-        "visitors": 2
-      }
-    },
-    "top_pages": [
-      {
-        "path": "/",
-        "views": 2,
-        "visitors": 2
-      }
-    ],
+    "events": {},
+    "top_pages": [],
     "sources_available": true,
-    "visits": 2,
-    "bot_pageviews": 0,
-    "bot_share": 0,
-    "mobile_share": 0,
-    "top_referrers": [
-      {
-        "host": "(direct or hidden)",
-        "visits": 2,
-        "visitors": 2
-      }
-    ],
-    "top_countries": [
-      {
-        "country": "US",
-        "visitors": 2
-      }
-    ],
-    "top_landing_pages": [
-      {
-        "path": "/",
-        "visits": 2,
-        "visitors": 2,
-        "top_referrer": null
-      }
-    ],
+    "visits": 0,
+    "bot_pageviews": 3,
+    "bot_share": 1,
+    "mobile_share": null,
+    "top_referrers": [],
+    "top_countries": [],
+    "top_landing_pages": [],
     "utm_campaigns": []
   },
   "last_7d": {
@@ -113,8 +84,8 @@
     ],
     "sources_available": true,
     "visits": 15,
-    "bot_pageviews": 10,
-    "bot_share": 0.345,
+    "bot_pageviews": 13,
+    "bot_share": 0.406,
     "mobile_share": 0.455,
     "top_referrers": [
       {
@@ -206,8 +177,8 @@
     ],
     "sources_available": true,
     "visits": 15,
-    "bot_pageviews": 10,
-    "bot_share": 0.233,
+    "bot_pageviews": 13,
+    "bot_share": 0.283,
     "mobile_share": 0.455,
     "top_referrers": [
       {

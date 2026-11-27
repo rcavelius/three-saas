@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-26T22:28:01.844Z",
+  "generated_at": "2026-11-27T22:09:37.650Z",
   "product": "gridrinse",
   "sources_tracked_since": "2026-11-23T08:26:00.448Z",
   "accounts_total": 0,
@@ -55,7 +55,7 @@
     },
     "top_pages": [
       {
-        "path": "/",
+        "path": "/templates",
         "views": 1,
         "visitors": 1
       }
@@ -67,23 +67,23 @@
     "mobile_share": 0,
     "top_referrers": [
       {
-        "host": "(direct or hidden)",
+        "host": "google.com",
         "visits": 1,
         "visitors": 1
       }
     ],
     "top_countries": [
       {
-        "country": "US",
+        "country": "NA",
         "visitors": 1
       }
     ],
     "top_landing_pages": [
       {
-        "path": "/",
+        "path": "/templates",
         "visits": 1,
         "visitors": 1,
-        "top_referrer": null
+        "top_referrer": "google.com"
       }
     ],
     "utm_campaigns": []
@@ -111,8 +111,8 @@
     "top_pages": [
       {
         "path": "/",
-        "views": 35,
-        "visitors": 29
+        "views": 34,
+        "visitors": 28
       },
       {
         "path": "/pricing",
@@ -125,12 +125,17 @@
         "visitors": 3
       },
       {
+        "path": "/guides/dedupe-strategies",
+        "views": 1,
+        "visitors": 1
+      },
+      {
         "path": "/for/ecommerce-exports",
         "views": 1,
         "visitors": 1
       },
       {
-        "path": "/guides/dedupe-strategies",
+        "path": "/templates",
         "views": 1,
         "visitors": 1
       },
@@ -141,15 +146,20 @@
       }
     ],
     "sources_available": true,
-    "visits": 37,
+    "visits": 38,
     "bot_pageviews": 29,
     "bot_share": 0.367,
-    "mobile_share": 0.778,
+    "mobile_share": 0.75,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
         "visits": 37,
         "visitors": 27
+      },
+      {
+        "host": "google.com",
+        "visits": 1,
+        "visitors": 1
       }
     ],
     "top_countries": [
@@ -159,10 +169,14 @@
       },
       {
         "country": "(unknown)",
-        "visitors": 13
+        "visitors": 12
       },
       {
         "country": "DE",
+        "visitors": 1
+      },
+      {
+        "country": "NA",
         "visitors": 1
       }
     ],
@@ -196,14 +210,20 @@
         "visits": 1,
         "visitors": 1,
         "top_referrer": null
+      },
+      {
+        "path": "/templates",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": "google.com"
       }
     ],
     "utm_campaigns": []
   },
   "last_30d": {
     "days": 30,
-    "visitors": 103,
-    "pageviews": 202,
+    "visitors": 104,
+    "pageviews": 203,
     "tool_users": 7,
     "tool_runs": 12,
     "pricing_views": 19,
@@ -212,8 +232,8 @@
     "new_accounts": 0,
     "events": {
       "pageview": {
-        "count": 202,
-        "visitors": 103
+        "count": 203,
+        "visitors": 104
       },
       "signup_started": {
         "count": 7,
@@ -256,12 +276,12 @@
         "visitors": 2
       },
       {
-        "path": "/guides",
+        "path": "/features",
         "views": 5,
         "visitors": 2
       },
       {
-        "path": "/features",
+        "path": "/guides",
         "views": 5,
         "visitors": 2
       },
@@ -271,12 +291,12 @@
         "visitors": 4
       },
       {
-        "path": "/privacy",
+        "path": "/for/ecommerce-exports",
         "views": 3,
         "visitors": 3
       },
       {
-        "path": "/for/ecommerce-exports",
+        "path": "/privacy",
         "views": 3,
         "visitors": 3
       },
@@ -291,6 +311,11 @@
         "visitors": 2
       },
       {
+        "path": "/templates",
+        "views": 1,
+        "visitors": 1
+      },
+      {
         "path": "/guides/dedupe-strategies",
         "views": 1,
         "visitors": 1
@@ -302,15 +327,20 @@
       }
     ],
     "sources_available": true,
-    "visits": 37,
+    "visits": 38,
     "bot_pageviews": 29,
-    "bot_share": 0.126,
-    "mobile_share": 0.778,
+    "bot_share": 0.125,
+    "mobile_share": 0.75,
     "top_referrers": [
       {
         "host": "(direct or hidden)",
         "visits": 37,
         "visitors": 27
+      },
+      {
+        "host": "google.com",
+        "visits": 1,
+        "visitors": 1
       }
     ],
     "top_countries": [
@@ -324,6 +354,10 @@
       },
       {
         "country": "DE",
+        "visitors": 1
+      },
+      {
+        "country": "NA",
         "visitors": 1
       }
     ],
@@ -357,6 +391,12 @@
         "visits": 1,
         "visitors": 1,
         "top_referrer": null
+      },
+      {
+        "path": "/templates",
+        "visits": 1,
+        "visitors": 1,
+        "top_referrer": "google.com"
       }
     ],
     "utm_campaigns": []
