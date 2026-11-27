@@ -178,7 +178,7 @@
       "units": 1,
       "focus_followed": true,
       "did": [
-        "Homepage hero chip now reads 'Free website health scan · no signup' so the no-account promise sits above the scan form at phone width; copy only (Scanner already offers no-account scans)"
+        "Homepage hero chip now reads 'Free website health scan \u00b7 no signup' so the no-account promise sits above the scan form at phone width; copy only (Scanner already offers no-account scans)"
       ],
       "metrics": {
         "visitors_7d": 16,
@@ -218,6 +218,24 @@
       ],
       "metrics": {
         "visitors_7d": 16,
+        "tool_users_7d": 1,
+        "pricing_views_7d": 1,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
+    },
+    {
+      "date": "2026-11-27",
+      "agent": "convert",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Homepage: added 'Pick your problem' section deep-linking to six existing /tools/ pages (noindex/canonical conflict, broken links, canonical, redirect chains, mixed content, sitemap URLs); copy and links only. Content tests + tsc pass; full vitest run hung in this sandbox so only src/content tests were run."
+      ],
+      "metrics": {
+        "visitors_7d": 18,
         "tool_users_7d": 1,
         "pricing_views_7d": 1,
         "checkout_starts_7d": 0,

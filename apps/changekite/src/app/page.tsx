@@ -20,6 +20,15 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 const KITE_SRCSET = "/art/kite-sm.webp 259w, /art/kite.webp 406w";
 const KITE_SIZES = "(min-width: 1024px) 265px, (min-width: 640px) 180px, 124px";
 
+const PROBLEMS = [
+  { label: "Page not showing in Google", slug: "noindex-canonical-conflict-checker" },
+  { label: "Broken links", slug: "broken-link-checker" },
+  { label: "Wrong canonical tag", slug: "canonical-tag-checker" },
+  { label: "Slow redirects", slug: "redirect-chain-checker" },
+  { label: "Not secure after HTTPS", slug: "mixed-content-checker" },
+  { label: "Sitemap errors", slug: "sitemap-urls-redirect-or-404-checker" },
+] as const;
+
 const GRADE_LABEL = { good: "In good order", fair: "Needs attention", poor: "Serious problems" } as const;
 
 // The twelve checks in four groups of three. Each tile links to the first check of its group in /docs.
@@ -222,6 +231,23 @@ export default function HomePage() {
                 Guides →
               </Link>
             </li>
+          </ul>
+        </section>
+
+        {/* Pick your problem: deep links to the matching free checker. */}
+        <section aria-labelledby="problem-title" className="tile col-span-2 bg-white p-7 sm:p-9 lg:col-span-12">
+          <h2 id="problem-title" className="display text-[2rem] leading-none sm:text-[2.75rem]">
+            Pick your problem.
+          </h2>
+          <p className="mt-2 text-[1.0625rem] font-bold">Each one opens the free checker for it.</p>
+          <ul className="mt-5 flex flex-wrap gap-2">
+            {PROBLEMS.map((p) => (
+              <li key={p.slug}>
+                <Link href={`/tools/${p.slug}`} className="inline-flex min-h-11 items-center rounded-full bg-paper-deep px-4 font-extrabold transition-colors hover:bg-yellow">
+                  {p.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </section>
 
