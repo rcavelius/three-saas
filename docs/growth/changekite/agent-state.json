@@ -241,6 +241,24 @@
         "checkout_starts_7d": 0,
         "active_paid": 0
       }
+    },
+    {
+      "date": "2026-11-28",
+      "agent": "pages",
+      "generation": 1,
+      "sales": 0,
+      "units": 1,
+      "focus_followed": true,
+      "did": [
+        "Added /tools/duplicate-meta-descriptions-checker (claims pinned in tools.test.ts against checks/content.ts); every tool page now shows 'This scan checks: <check names>' under the scan form (from CHECK_DOCS titles)"
+      ],
+      "metrics": {
+        "visitors_7d": 18,
+        "tool_users_7d": 1,
+        "pricing_views_7d": 1,
+        "checkout_starts_7d": 0,
+        "active_paid": 0
+      }
     }
   ]
 }

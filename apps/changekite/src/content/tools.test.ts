@@ -160,6 +160,18 @@ describe("tool landing pages", () => {
     expect(copy(t)).toContain("noindex");
   });
 
+  it("the duplicate meta descriptions page matches the meta-description check", () => {
+    const content = readFileSync(join(src, "lib/scanner/checks/content.ts"), "utf8");
+    expect(content).toContain("d.toLowerCase()");
+    expect(content).toContain('id: "description-duplicate"');
+    expect(content).toContain('id: "description-multiple"');
+    expect(content).toContain("!isNoindex(p.parsed!.robotsDirectives)");
+    const t = TOOLS.find((x) => x.slug === "duplicate-meta-descriptions-checker")!;
+    expect(t.checks).toEqual(["meta-description"]);
+    expect(copy(t)).toContain("case-insensitively");
+    expect(copy(t)).toContain("noindex");
+  });
+
   it("every tool page and the index are in the sitemap", () => {
     const paths = sitemapPaths({ published: false }).map((p) => p.path);
     expect(paths).toContain("/tools");

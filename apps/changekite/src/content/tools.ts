@@ -455,6 +455,28 @@ export const TOOLS: ToolPage[] = [
     ],
   },
   {
+    slug: "duplicate-meta-descriptions-checker",
+    title: "Duplicate meta descriptions checker: find pages sharing one",
+    h1: "Duplicate meta descriptions checker",
+    description:
+      "Find pages on your site that reuse the same meta description, plus pages with two description tags. Free scan, no account needed: the report names the pages involved.",
+    intro:
+      "When many pages carry one meta description, every search snippet reads the same and none of them says what its own page is about. ChangeKite reads the meta description of every page it crawls, compares them case-insensitively and reports each group of pages that share one, listing the pages involved.",
+    checks: ["meta-description"],
+    rules: ["description-duplicate", "description-multiple"],
+    howTo: [
+      "Enter your homepage above and run the scan.",
+      "Open Meta descriptions in the report: a finding appears for each description shared by two or more pages and lists some of those pages.",
+      "Write a distinct description for each page, or remove it on pages where you cannot so search engines build a snippet from the content.",
+      "Scan again to confirm the finding is gone.",
+    ],
+    faq: [
+      { q: "How are duplicates found?", a: "Descriptions are compared across all crawled pages, case-insensitively. Pages marked noindex are left out of the comparison." },
+      { q: "How serious is it?", a: "A description reused across pages is reported as a warning, and so is a page with more than one description tag." },
+      { q: "Does it also check length?", a: "Yes. The same check flags missing, empty, very short and very long descriptions." },
+    ],
+  },
+  {
     slug: "monitor-website-for-broken-links",
     title: "Monitor your website for broken links, with email alerts",
     h1: "Monitor your website for broken links",

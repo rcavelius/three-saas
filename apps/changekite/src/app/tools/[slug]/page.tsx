@@ -116,6 +116,11 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           {/* The form comes before the explanation, so it is on a phone's first screen. */}
           <div className="lg:col-start-1 lg:row-start-2">
             <Scanner layout="tile" cta={TOOL_CTA[t.slug]} offer={offer} resultsId="scan-results" />
+            {docs.length > 0 && (
+              <p className="mt-3 text-sm font-semibold">
+                This scan checks: {docs.map((d) => d.title).join(", ")}.
+              </p>
+            )}
           </div>
           <p className="ck-in mt-8 max-w-[46ch] text-lg font-semibold leading-[1.5] lg:col-start-1 lg:row-start-3" style={{ ["--d" as string]: "60ms" }}>
             {t.intro}
