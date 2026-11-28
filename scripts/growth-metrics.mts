@@ -97,7 +97,7 @@ async function windowStats(days: number) {
        count(*) FILTER (WHERE name = 'tool_used') AS tool_runs,
        count(DISTINCT anonymous_id) FILTER (WHERE name = 'signup_started') AS signup_starts,
        count(*) FILTER (WHERE name = 'pageview' AND path = '/pricing') AS pricing_views,
-       count(*) FILTER (WHERE name = 'checkout_started') AS checkout_starts
+       count(*) FILTER (WHERE name IN ('checkout_started', 'pass_checkout_started', 'template_checkout_started')) AS checkout_starts
      FROM analytics_events WHERE created_at >= $1 ${human}`,
     [since],
   );
