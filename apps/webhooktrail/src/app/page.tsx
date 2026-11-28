@@ -109,7 +109,7 @@ export default function Home() {
   -d '{"event":"ping","ok":true}'`}</code>
                     </pre>
                     <p className="mt-2 font-mono text-[12px] leading-[18px] text-fg-dim">
-                      Your real URL is on the next screen. The request shows up in the inspector with its method, headers and body.
+                      After you click, the next screen shows your real capture URL (with a copy button) and a ready-to-copy curl command. It waits live for the first request, then shows its method, headers and body.
                     </p>
                   </div>
                   <div className="mt-4">
