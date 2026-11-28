@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
 import { PageHero } from "@/components/PageHero";
 import { AUDIENCES, getAudience } from "@/content/audiences";
+import { getTool } from "@/content/tools";
 import { appUrl } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -18,6 +19,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const a = getAudience(slug);
   return a ? pageMeta({ title: a.title, description: a.summary, path: `/for/${a.slug}` }) : {};
 }
+
+// Matching free tool pages per audience (slugs are checked against TOOLS at render time).
+const AUDIENCE_TOOLS: Record<string, { slug: string; label: string }[]> = {
+  "bookkeeping-exports": [
+    { slug: "clean-numbers-csv", label: "Clean numbers" },
+    { slug: "fix-dates-csv", label: "Fix dates" },
+  ],
+  "ecommerce-exports": [
+    { slug: "remove-duplicates-csv", label: "Remove duplicate rows" },
+    { slug: "trim-spaces-csv", label: "Trim spaces" },
+  ],
+  "crm-imports": [
+    { slug: "remove-duplicate-emails-csv", label: "Remove duplicate emails" },
+    { slug: "trim-spaces-csv", label: "Trim spaces" },
+  ],
+};
 
 function Table({ rows, label }: { rows: string[][]; label: string }) {
   return (
@@ -55,12 +72,18 @@ export default async function AudiencePage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const a = getAudience(slug);
   if (!a) notFound();
+  const tools = (AUDIENCE_TOOLS[a.slug] ?? []).filter((t) => getTool(t.slug));
   return (
     <article>
       <PageHero eyebrow={a.label} title={a.title}>
         <p>{a.summary}</p>
         <div className="mt-7 flex flex-wrap gap-4">
-          <Link href="/#start" className="btn-pop">
+          {tools[0] ? (
+            <Link href={`/tools/${tools[0].slug}`} className="btn-pop">
+              {tools[0].label}, free
+            </Link>
+          ) : null}
+          <Link href="/#start" className={tools[0] ? "btn-pop btn-pop-ghost" : "btn-pop"}>
             Clean a file now, free
           </Link>
           <Link href="/pricing" className="btn-pop btn-pop-ghost">
@@ -75,6 +98,21 @@ export default async function AudiencePage({ params }: { params: Promise<{ slug:
         <Table rows={a.example.after} label="After" />
         <figcaption className="text-[15px] font-medium text-ink-2">{a.example.caption}</figcaption>
       </figure>
+
+      {tools.length ? (
+        <p className="mt-8 text-[16px] font-medium text-ink-2">
+          Free tool pages for this:{" "}
+          {tools.map((t, i) => (
+            <span key={t.slug}>
+              {i > 0 ? " · " : ""}
+              <Link href={`/tools/${t.slug}`} className="font-bold underline decoration-2 underline-offset-4">
+                {t.label}
+              </Link>
+            </span>
+          ))}
+          . Each runs in your browser.
+        </p>
+      ) : null}
 
       <div className="prose-doc card-pop mt-10 px-5 py-4 text-[17px] sm:px-8 sm:py-6">{a.body}</div>
 

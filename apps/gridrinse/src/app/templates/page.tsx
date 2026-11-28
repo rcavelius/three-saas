@@ -26,6 +26,17 @@ export default function TemplatesIndex() {
           Ready-made workbooks for money, shops and rentals. Pay once, download right away: an Excel file, a Google Sheets
           file and a quick-start guide for each. No subscription, no macros, no passwords.
         </p>
+        <p className="mt-4 text-[16px] font-semibold">
+          Just need to tidy a messy CSV or Excel export first?{" "}
+          <Link href="/tools" className="underline decoration-2 underline-offset-4">
+            Use the free cleanup tools
+          </Link>
+          , for example{" "}
+          <Link href="/tools/remove-duplicates-csv" className="underline decoration-2 underline-offset-4">
+            remove duplicate rows
+          </Link>
+          .
+        </p>
       </PageHero>
 
       <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-8 sm:py-16">
