@@ -1,17 +1,17 @@
-# WebhookTrail focus — 2026-11-27
-Data: metrics generated 2026-11-26T22:28Z; visitors 7 d 14; visits 7 d 15 (tracking began 2026-11-23, partial window); paid 0.
+# WebhookTrail focus — 2026-11-28
+Data: metrics generated 2026-11-27T22:09Z; visitors 7 d 14; visits 7 d 15 (tracking began 2026-11-23, partial window); paid 0.
 
 ## Diagnosis
-All 15 visits in 7 d are (direct or hidden), all landing on /. 7 d: 0 tool users, 0 pricing views, 0 checkout starts. Bots 34.5%, mobile 45.5%. Biggest leak: visitors do not create an endpoint. Curl block and the homepage provider row shipped; today make the action available on the provider pages themselves. Sample far too small to conclude. Site-check is clean.
+All 15 visits in 7 d are (direct or hidden), all landing on /. 24 h: 0 visitors (3 bot pageviews). 7 d: 0 tool users, 0 pricing views, 0 checkout starts. Bots 40.6%, mobile 45.5%. Biggest leak: visitors do not create an endpoint. Homepage curl block, provider row and "what you see next" shipped; today push people arriving through guides and the tools index into a tester. Sample far too small to conclude. Site-check is clean.
 
 ## pages
-- On each provider tester page, put a "Create endpoint for <provider>" call at the top linking to the existing endpoint creation (links/copy only; no new claims).
-- Sharpen title/description of provider tester pages to the "<provider> webhook not arriving / test" search intent.
+- /tools index: make each tester card show a one-line reason to open it and the create-endpoint link (links/copy only).
+- Add one narrow long-tail tool page on a provider-debugging search not yet covered; link it from /tools.
 ## guides
-- Each signature guide: link its provider tester and /tools/send-test-webhook in the first screen; add one short guide on a narrow provider-debugging question.
+- Add one short guide on a narrow provider-debugging question; link its tester and /tools/send-test-webhook in the first screen; cross-link /guides/verify-mailgun-webhook-signatures.
 ## convert
-- Homepage: add short "what you see after creating an endpoint" line under the button (only what the product does) and keep the provider row; copy and links only.
+- Guide pages: add a create-endpoint button at the end of each guide (links/copy only), and check the homepage button at phone width.
 
 ## Don't
 - No pricing, billing or paywall changes.
-- Do not repeat the curl block or provider-row changes.
+- Do not repeat the curl block, provider row or "what you see next" changes.

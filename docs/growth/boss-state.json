@@ -2,7 +2,7 @@
   "name": "Traffic boss",
   "born": "2026-11-23",
   "rulebook": "docs/growth/BOSS.md",
-  "last_run": "2026-11-27T14:10:00Z",
+  "last_run": "2026-11-28T14:10:00Z",
   "log": [
     {
       "date": "2026-11-23",
@@ -213,6 +213,36 @@
         "changekite": "accepted (HTTP 200, 45 URLs)",
         "webhooktrail": "accepted (HTTP 200, 44 URLs)"
       }
+    },
+    {
+      "date": "2026-11-28",
+      "run": "14:10 UTC",
+      "visitors_24h": {
+        "gridrinse": 1,
+        "changekite": 2,
+        "webhooktrail": 0
+      },
+      "visits_7d": {
+        "gridrinse": 38,
+        "changekite": 20,
+        "webhooktrail": 15
+      },
+      "paid": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "focus": {
+        "gridrinse": "Lead /templates and /for landers to tool; file-handling line on tool page",
+        "changekite": "Self-explanatory scan input: what we check",
+        "webhooktrail": "Guides and /tools index lead to tester with create-endpoint button"
+      },
+      "fixed": [],
+      "indexnow": {
+        "gridrinse": "accepted (HTTP 200, 66 URLs)",
+        "changekite": "accepted (HTTP 200, 47 URLs)",
+        "webhooktrail": "accepted (HTTP 200, 46 URLs)"
+      }
     }
   ],
   "money_log": [
@@ -310,6 +340,30 @@
         "gridrinse": "route landers to tool page, sharper titles (prev: example data / file promise)",
         "changekite": "per-problem entry points (prev: free/no-signup chip)",
         "webhooktrail": "create-endpoint button on provider pages (prev: provider shortcut links)"
+      }
+    },
+    {
+      "date": "2026-11-28",
+      "making_money": {
+        "gridrinse": false,
+        "changekite": false,
+        "webhooktrail": false
+      },
+      "sales_24h": {
+        "gridrinse": 0,
+        "changekite": 0,
+        "webhooktrail": 0
+      },
+      "revenue_7d": 0,
+      "leak": {
+        "gridrinse": "visitors do not try the tool",
+        "changekite": "visitors do not scan",
+        "webhooktrail": "visitors do not create an endpoint"
+      },
+      "tactic": {
+        "gridrinse": "non-homepage landers to tool, file-handling line (prev: route landers to tool page, sharper titles)",
+        "changekite": "what-we-check line at scan input (prev: per-problem entry points)",
+        "webhooktrail": "guides and tools index to tester with create-endpoint (prev: create-endpoint button on provider pages)"
       }
     }
   ]
